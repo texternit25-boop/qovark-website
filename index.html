@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050817">
+  <meta name="description" content="QOVARK is an AI workspace for everyday conversations, deeper analysis and confidential specialist review—all in one connected experience.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://qovark.com/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="48x48" href="/qovark-favicon-48.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="QOVARK">
+  <meta property="og:url" content="https://qovark.com/">
+  <meta property="og:title" content="QOVARK — AI Workspace for Chat, Deep Analysis & Expert Review">
+  <meta property="og:description" content="QOVARK brings AI conversation, deeper analysis and confidential specialist review into one connected workspace.">
+  <meta property="og:image" content="https://qovark.com/qovark-social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="QOVARK AI Workspace">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QOVARK — AI Workspace for Chat, Deep Analysis & Expert Review">
+  <meta name="twitter:description" content="QOVARK brings AI conversation, deeper analysis and confidential specialist review into one connected workspace.">
+  <meta name="twitter:image" content="https://qovark.com/qovark-social-preview.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://qovark.com/#website",
+        "name": "QOVARK",
+        "alternateName": ["QOVARK AI Workspace", "qovark.com"],
+        "url": "https://qovark.com/",
+        "inLanguage": "en",
+        "publisher": { "@id": "https://qovark.com/#organization" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://qovark.com/#organization",
+        "name": "QOVARK",
+        "url": "https://qovark.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://qovark.com/qovark-logo.png"
+        },
+        "description": "QOVARK is an AI workspace bringing everyday conversations, deeper analysis and confidential specialist review into one connected experience."
+      }
+    ]
+  }
+  </script>
+  <title>QOVARK — AI Workspace for Chat, Deep Analysis & Expert Review</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050817;
+      --bg-2: #080e22;
+      --panel: rgba(15, 25, 49, .76);
+      --panel-strong: #0d1730;
+      --line: rgba(156, 190, 255, .14);
+      --text: #f3f7ff;
+      --muted: #a6b4ce;
+      --cyan: #23d7ff;
+      --blue: #3888ff;
+      --violet: #9c5cff;
+      --max: 1160px;
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; min-width: 320px; color: var(--text);
+      background:
+        radial-gradient(ellipse at 82% 8%, rgba(53, 77, 198, .18), transparent 32rem),
+        radial-gradient(ellipse at 8% 38%, rgba(0, 199, 255, .08), transparent 28rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    .wrap { width: min(var(--max), calc(100% - 44px)); margin-inline: auto; }
+    .site-header {
+      position: sticky; top: 0; z-index: 50; backdrop-filter: blur(18px);
+      background: rgba(5, 8, 23, .78); border-bottom: 1px solid var(--line);
+    }
+    .nav { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand img { width: 43px; height: 43px; object-fit: cover; border-radius: 13px; border: 1px solid rgba(66, 205, 255, .25); }
+    .brand-word { font-size: 1.18rem; font-weight: 850; letter-spacing: .1em; line-height: 1.1; }
+    .brand-sub { display: block; margin-top: 4px; color: var(--muted); font-size: .62rem; letter-spacing: .28em; font-weight: 700; }
+    .nav-links { display: flex; align-items: center; gap: 28px; color: #c0cce1; font-size: .9rem; }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-cta, .button {
+      display: inline-flex; justify-content: center; align-items: center; gap: 9px;
+      padding: 12px 18px; border-radius: 999px; color: #06101e; font-weight: 750;
+      background: linear-gradient(110deg, var(--cyan), #6ba8ff 58%, #b17aff);
+      box-shadow: 0 8px 30px rgba(35, 174, 255, .18); border: 0;
+    }
+    .nav-cta { white-space: nowrap; font-size: .88rem; }
+    .menu-toggle { display: none; border: 1px solid var(--line); color: var(--text); background: var(--panel); padding: 9px 12px; border-radius: 12px; }
+    .hero { position: relative; padding: 94px 0 84px; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.08fr .92fr; align-items: center; gap: 42px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: #9feaff; border: 1px solid rgba(35, 215, 255, .25); background: rgba(35, 215, 255, .07); padding: 7px 12px; border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    .eyebrow:before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
+    h1 { max-width: 720px; margin: 23px 0 20px; font-size: clamp(3rem, 6.6vw, 5.7rem); line-height: 1.02; letter-spacing: -.065em; font-weight: 850; }
+    .gradient-text { background: linear-gradient(100deg, #f3f7ff 5%, #8ceaff 48%, #b48aff 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero-copy { max-width: 620px; color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.13rem); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 30px; }
+    .button-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 11px 17px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); background: rgba(255,255,255,.025); font-weight: 650; }
+    .button-secondary:hover { border-color: rgba(35,215,255,.5); }
+    .hero-note { margin-top: 25px; color: #8090ac; font-size: .78rem; }
+    .hero-art { position: relative; display: grid; place-items: center; min-height: 440px; }
+    .orb-glow { position: absolute; width: 78%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(24, 147, 255, .22), rgba(115, 65, 255, .10) 44%, transparent 70%); filter: blur(15px); }
+    .hero-logo { position: relative; width: min(100%, 440px); aspect-ratio: 1; object-fit: cover; border-radius: 36px; filter: drop-shadow(0 26px 70px rgba(0, 95, 255, .22)); }
+    .floating-label { position: absolute; right: 0; bottom: 42px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 15px; background: rgba(9, 18, 41, .88); color: #cdd8eb; box-shadow: 0 16px 40px rgba(0,0,0,.25); font-size: .8rem; }
+    .floating-label strong { color: var(--cyan); }
+    .section { padding: 78px 0; border-top: 1px solid var(--line); }
+    .section-kicker { color: var(--cyan); font-size: .72rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    .section-heading { max-width: 720px; margin: 12px 0 14px; font-size: clamp(2rem, 4.5vw, 3.45rem); line-height: 1.1; letter-spacing: -.045em; }
+    .section-intro { max-width: 680px; color: var(--muted); margin: 0; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+    .feature-card { padding: 26px; min-height: 245px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgba(19, 35, 68, .76), rgba(9, 16, 35, .78)); }
+    .feature-icon { display: grid; place-items: center; width: 47px; height: 47px; border-radius: 15px; color: var(--cyan); background: rgba(35,215,255,.09); border: 1px solid rgba(35,215,255,.18); font-size: 1.25rem; }
+    .feature-card h3 { margin: 20px 0 8px; font-size: 1.18rem; }
+    .feature-card p { margin: 0; color: var(--muted); font-size: .93rem; }
+    .workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 34px; counter-reset: step; }
+    .step { position: relative; padding: 22px; border-radius: 19px; background: rgba(255,255,255,.025); border: 1px solid var(--line); }
+    .step:before { counter-increment: step; content: "0" counter(step); color: var(--cyan); display: block; font-size: .75rem; font-weight: 850; letter-spacing: .14em; margin-bottom: 20px; }
+    .step h3 { margin: 0 0 7px; font-size: 1rem; }
+    .step p { margin: 0; color: var(--muted); font-size: .86rem; }
+    .trust-panel { display: grid; grid-template-columns: 1fr .8fr; align-items: center; gap: 36px; padding: clamp(25px, 5vw, 50px); border: 1px solid rgba(77, 176, 255, .23); border-radius: 30px; background: radial-gradient(circle at 100% 0%, rgba(119, 69, 255, .16), transparent 38%), linear-gradient(130deg, rgba(13, 33, 67, .94), rgba(8, 15, 34, .95)); }
+    .trust-panel h2 { margin: 10px 0 13px; font-size: clamp(1.8rem, 3.5vw, 2.8rem); line-height: 1.12; letter-spacing: -.04em; }
+    .trust-panel p { color: var(--muted); margin: 0; }
+    .trust-points { display: grid; gap: 13px; }
+    .trust-point { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 15px; border: 1px solid var(--line); background: rgba(3, 10, 25, .36); }
+    .check { color: var(--cyan); font-weight: 900; }
+    .trust-point span:last-child { color: #d7e2f4; font-size: .9rem; }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+    .about-box { padding: 25px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); }
+    .about-box h3 { margin: 0 0 9px; }
+    .about-box p { color: var(--muted); margin: 0; }
+    .contact-band { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px; border-radius: 24px; border: 1px solid var(--line); background: linear-gradient(100deg, rgba(35, 215, 255, .08), rgba(156, 92, 255, .09)); }
+    .contact-band h2 { margin: 0 0 5px; font-size: clamp(1.5rem, 3vw, 2.15rem); }
+    .contact-band p { margin: 0; color: var(--muted); }
+    footer { border-top: 1px solid var(--line); padding: 27px 0 35px; color: #8391aa; font-size: .82rem; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .footer-brand { color: #dbe7f8; font-weight: 800; letter-spacing: .12em; }
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-links a:hover { color: var(--cyan); }
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+
+    .skip-link { position: absolute; left: 12px; top: -60px; z-index: 200; padding: 11px 15px; border-radius: 12px; background: #eaf8ff; color: #06101e; font-weight: 800; }
+    .skip-link:focus { top: 12px; }
+    .feature-card { display: flex; flex-direction: column; align-items: flex-start; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(35,215,255,.38); box-shadow: 0 18px 42px rgba(0,0,0,.18); }
+    .feature-card p { margin-bottom: 18px; }
+    .feature-open { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; color: #8ceaff; font-size: .88rem; font-weight: 800; }
+    .feature-open:hover { color: #fff; }
+    .details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
+    .detail-panel { padding: 25px; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(145deg, rgba(19,35,68,.68), rgba(9,16,35,.78)); scroll-margin-top: 100px; }
+    .detail-panel h3 { margin: 8px 0 10px; font-size: 1.15rem; }
+    .detail-panel p { color: var(--muted); margin: 0 0 12px; font-size: .91rem; }
+    .detail-panel ul { margin: 0; padding-left: 19px; color: #d2def1; font-size: .87rem; }
+    .detail-panel li + li { margin-top: 7px; }
+    .detail-index { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 30px; padding: 0 9px; border-radius: 9px; color: var(--cyan); background: rgba(35,215,255,.08); border: 1px solid rgba(35,215,255,.18); font-size: .74rem; font-weight: 900; letter-spacing: .08em; }
+    .section-note { margin-top: 20px; color: #8999b4; font-size: .82rem; }
+    .principle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+    .principle { padding: 20px; border-radius: 17px; background: rgba(255,255,255,.025); border: 1px solid var(--line); }
+    .principle strong { display: block; margin-bottom: 7px; color: #eaf5ff; }
+    .principle p { margin: 0; color: var(--muted); font-size: .88rem; }
+    .faq-list { display: grid; gap: 12px; max-width: 900px; margin-top: 30px; }
+    .faq-item { border: 1px solid var(--line); border-radius: 16px; background: rgba(12,22,44,.64); overflow: clip; }
+    .faq-item summary { position: relative; cursor: pointer; list-style: none; padding: 18px 52px 18px 20px; color: #eef6ff; font-weight: 750; }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary:after { content: "+"; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--cyan); font-size: 1.35rem; font-weight: 500; }
+    .faq-item[open] summary:after { content: "−"; }
+    .faq-answer { padding: 0 20px 18px; color: var(--muted); font-size: .92rem; }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: #8ceaff; text-decoration: underline; text-underline-offset: 3px; }
+    .feature-dialog { width: min(680px, calc(100% - 28px)); max-width: 680px; max-height: min(82vh, 760px); padding: 0; overflow: auto; border: 1px solid rgba(107,168,255,.3); border-radius: 24px; color: var(--text); background: #0b142b; box-shadow: 0 30px 100px rgba(0,0,0,.55); }
+    .feature-dialog::backdrop { background: rgba(1,5,16,.78); backdrop-filter: blur(8px); }
+    .dialog-card { padding: clamp(22px, 4vw, 34px); }
+    .dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .dialog-kicker { color: var(--cyan); font-size: .7rem; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
+    .dialog-header h2 { margin: 7px 0 0; font-size: clamp(1.55rem, 4vw, 2.15rem); line-height: 1.12; }
+    .dialog-close { flex: 0 0 auto; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: rgba(255,255,255,.04); cursor: pointer; font-size: 1.35rem; }
+    .dialog-close:hover { border-color: rgba(35,215,255,.5); }
+    .dialog-body { padding: 22px 0 8px; color: #c3d0e5; }
+    .dialog-body p { margin: 0 0 15px; }
+    .dialog-body ul { margin: 0; padding-left: 21px; }
+    .dialog-body li + li { margin-top: 9px; }
+    .dialog-callout { margin-top: 20px; padding: 14px 16px; border: 1px solid rgba(35,215,255,.17); border-radius: 14px; background: rgba(35,215,255,.055); color: #b9eefe; font-size: .88rem; }
+    .dialog-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .dialog-footer button { cursor: pointer; }
+    .contact-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .contact-actions a { min-height: 44px; }
+    .trust-footnote { margin-top: 16px; color: #91a2be; font-size: .82rem; }
+    @media (max-width: 860px) {
+      .details-grid, .principle-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .feature-card { transition: none; }
+      .feature-card:hover { transform: none; }
+    }
+
+    @media (max-width: 860px) {
+      .hero { padding-top: 65px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 15px; }
+      .hero-art { min-height: 330px; }
+      .hero-logo { width: min(78%, 350px); }
+      .floating-label { right: 7%; bottom: 18px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .feature-card { min-height: auto; }
+      .workflow { grid-template-columns: repeat(2, 1fr); }
+      .trust-panel { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 30px, var(--max)); }
+      .nav { min-height: 68px; flex-wrap: wrap; gap: 12px; padding: 10px 0; }
+      .menu-toggle { display: none; }
+      .nav-cta { display: none; }
+      .nav-links { display: flex; order: 3; width: 100%; padding: 8px 0 12px; flex-direction: column; align-items: flex-start; gap: 14px; }
+      .js .menu-toggle { display: inline-flex; }
+      .js .nav-links { display: none; }
+      .js .nav-links.open { display: flex; }
+      h1 { font-size: clamp(2.8rem, 14vw, 4.1rem); }
+      .hero { padding: 55px 0 58px; }
+      .hero-art { min-height: 285px; }
+      .hero-logo { width: min(78%, 290px); border-radius: 26px; }
+      .section { padding: 60px 0; }
+      .workflow { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; }
+      .contact-band { align-items: flex-start; flex-direction: column; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="#home" aria-label="QOVARK home">
+        <img src="qovark-logo.png" alt="QOVARK orbital Q symbol">
+        <span><span class="brand-word">QOVARK</span><span class="brand-sub">AI WORKSPACE</span></span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
+      <nav class="nav-links" id="navLinks" aria-label="Main navigation">
+        <a href="#platform">Platform</a>
+        <a href="#workflow">How it works</a>
+        <a href="#security">Security</a>
+        <a href="#faq">FAQ</a>
+        <a href="#about">About</a>
+      </nav>
+      <a class="nav-cta" href="#platform">Explore QOVARK <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="home">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow">An AI workspace</span>
+          <h1>Think clearly.<br><span class="gradient-text">Go further.</span></h1>
+          <p class="hero-copy">QOVARK brings everyday AI conversation, deeper analysis and confidential expert review into one connected workspace—helping you move from a first question to more considered work.</p>
+          <div class="hero-actions">
+            <a class="button" href="#platform">Discover the workspace <span aria-hidden="true">→</span></a>
+            <a class="button-secondary" href="#about">Our approach</a>
+          </div>
+          <p class="hero-note">THINK. CREATE. EXPLORE.</p>
+        </div>
+        <div class="hero-art" aria-label="QOVARK orbital Q emblem">
+          <div class="orb-glow"></div>
+          <img class="hero-logo" src="qovark-logo.png" alt="QOVARK's luminous orbital Q emblem">
+          <div class="floating-label"><strong>One workspace.</strong><br>More ways to think.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="platform">
+      <div class="wrap">
+        <span class="section-kicker">The workspace</span>
+        <h2 class="section-heading">Different kinds of work.<br><span class="gradient-text">One connected place.</span></h2>
+        <p class="section-intro">Start with a conversation, bring more context into a deeper task, or prepare work for specialist review. QOVARK is designed to connect these stages instead of treating them as separate experiences.</p>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">✦</div>
+            <h3>Fast Chat</h3>
+            <p>Ask questions, explore ideas and work through everyday tasks with an AI conversation experience.</p>
+            <a class="feature-open" href="#workspace-details" data-feature-dialog="fast-chat">Explore Fast Chat <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">⌘</div>
+            <h3>Deep Analysis</h3>
+            <p>Bring supporting context and instructions together for more structured, context-rich work.</p>
+            <a class="feature-open" href="#workspace-details" data-feature-dialog="deep-analysis">Explore Deep Analysis <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">◇</div>
+            <h3>Expert Review</h3>
+            <p>Submit eligible work for specialist feedback through the dedicated review workflow.</p>
+            <a class="feature-open" href="#workspace-details" data-feature-dialog="expert-review">Explore Expert Review <span aria-hidden="true">↗</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="section" id="workspace-details">
+      <div class="wrap">
+        <span class="section-kicker">Explore the workspace</span>
+        <h2 class="section-heading">Three connected ways to move work forward.</h2>
+        <p class="section-intro">QOVARK is not limited to document processing. Use the part of the workspace that fits the task, then move into a deeper workflow when the work calls for it.</p>
+        <div class="details-grid">
+          <article class="detail-panel" id="details-fast-chat">
+            <span class="detail-index">01</span>
+            <h3>Fast Chat</h3>
+            <p>A place to ask questions, explore ideas, understand topics, draft content and work through everyday tasks in conversation.</p>
+            <ul><li>Start with a question or an idea.</li><li>Refine the result through follow-up prompts.</li><li>Review important information before relying on it.</li></ul>
+          </article>
+          <article class="detail-panel" id="details-deep-analysis">
+            <span class="detail-index">02</span>
+            <h3>Deep Analysis</h3>
+            <p>A more structured workflow for tasks that need additional context, supporting files or a longer set of instructions. Documents are one possible input—not the whole purpose.</p>
+            <ul><li>Bring task instructions and relevant context together.</li><li>Work through more involved questions and analysis.</li><li>Availability and usage limits may depend on your account and current service configuration.</li></ul>
+          </article>
+          <article class="detail-panel" id="details-expert-review">
+            <span class="detail-index">03</span>
+            <h3>Expert Review</h3>
+            <p>A separate route for eligible work that may benefit from feedback by a specialist, rather than relying only on an AI-generated response.</p>
+            <ul><li>Submit work when the review service is available and the case is eligible.</li><li>Specialist feedback is distinct from AI assistance.</li><li>Reviewer availability and review terms can vary.</li></ul>
+          </article>
+        </div>
+        <p class="section-note">Specific features, file limits, providers and service availability can change. The signed-in QOVARK workspace is the source for your current account access and limits.</p>
+      </div>
+    </section>
+
+    <section class="section" id="workflow">
+      <div class="wrap">
+        <span class="section-kicker">A connected process</span>
+        <h2 class="section-heading">From question to considered outcome.</h2>
+        <p class="section-intro">The workspace follows a simple idea: make it easier to move from initial thinking to deeper work and, when needed, specialist input.</p>
+        <div class="workflow">
+          <article class="step"><h3>Start a conversation</h3><p>Explore a question or shape an early idea in Fast Chat.</p></article>
+          <article class="step"><h3>Add context</h3><p>Move into Deep Analysis with the relevant files and instructions.</p></article>
+          <article class="step"><h3>Request review</h3><p>Where available, route suitable work through the expert-review process.</p></article>
+          <article class="step"><h3>Review the result</h3><p>Receive the returned report and its available verification information.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="security">
+      <div class="wrap">
+        <div class="trust-panel">
+          <div>
+            <span class="section-kicker">Privacy-aware by design</span>
+            <h2>Careful handling matters as much as useful answers.</h2>
+            <p>QOVARK's expert-review workflow is designed around encrypted review materials and checks performed on the user's device. These protections describe that review workflow; users should consult the current in-product privacy information for the handling that applies to each feature.</p>
+          </div>
+          <div class="trust-points">
+            <div class="trust-point"><span class="check">✓</span><span>Encrypted materials for the expert-review workflow.</span></div>
+            <div class="trust-point"><span class="check">✓</span><span>Local checks for report signatures and file integrity.</span></div>
+            <div class="trust-point"><span class="check">✓</span><span>Clear separation between AI assistance and specialist feedback.</span></div>
+          </div>
+        </div>
+        <p class="trust-footnote">No online service can make every risk disappear. Review the current privacy information and avoid sharing passwords, Security PINs or API keys.</p>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <span class="section-kicker">About QOVARK</span>
+        <h2 class="section-heading">Built for curiosity, clarity and possibility.</h2>
+        <p class="section-intro">QOVARK is an AI workspace project focused on bringing practical assistance and deeper, more deliberate work into a coherent experience.</p>
+        <div class="about-grid">
+          <article class="about-box"><h3>Our direction</h3><p>Make powerful tools feel understandable and useful—from a quick question to a complex task that benefits from careful review.</p></article>
+          <article class="about-box"><h3>Our principle</h3><p>Build with clarity. Treat user context thoughtfully. Make the boundaries between automated assistance and human expertise clear.</p></article>
+        </div>
+
+        <div class="principle-grid">
+          <article class="principle"><strong>Useful by design</strong><p>Start simply, add context when needed, and choose a more involved workflow only when it helps.</p></article>
+          <article class="principle"><strong>Clear boundaries</strong><p>AI assistance and specialist feedback are different forms of support and should be understood separately.</p></article>
+          <article class="principle"><strong>Responsible use</strong><p>Check important outputs, protect sensitive information and confirm the current terms for the service you use.</p></article>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="section" id="faq">
+      <div class="wrap">
+        <span class="section-kicker">Common questions</span>
+        <h2 class="section-heading">A few things worth knowing.</h2>
+        <p class="section-intro">Straightforward answers about what the workspace is for and how to use it thoughtfully.</p>
+        <div class="faq-list">
+          <details class="faq-item"><summary>Is QOVARK only for documents?</summary><div class="faq-answer"><p>No. QOVARK is a broader AI workspace for conversation, idea development and more involved tasks. Files and documents can add context to Deep Analysis, but they are not the only reason to use the platform.</p></div></details>
+          <details class="faq-item"><summary>What is the difference between Fast Chat and Deep Analysis?</summary><div class="faq-answer"><p>Fast Chat is intended for everyday conversational tasks. Deep Analysis is intended for work that benefits from more context, supporting material or a structured, longer workflow. Access and usage limits may differ.</p></div></details>
+          <details class="faq-item"><summary>Does Expert Review mean an AI answer is checked by a person?</summary><div class="faq-answer"><p>Expert Review is a separate workflow for eligible submissions where specialist feedback may be available. It should not be assumed that every Fast Chat or Deep Analysis response is reviewed by a person.</p></div></details>
+          <details class="faq-item"><summary>Are all QOVARK features protected in exactly the same way?</summary><div class="faq-answer"><p>Do not assume that every feature has identical data handling. The encrypted-material and device-side verification statements on this page refer to the expert-review workflow. Check the current in-product privacy information for the feature you are using.</p></div></details>
+          <details class="faq-item"><summary>Can I rely on an AI response as professional advice?</summary><div class="faq-answer"><p>No. AI output can be incomplete or incorrect. For important legal, medical, financial or other professional decisions, verify information with an appropriately qualified professional. A specialist review, where offered, has its own scope and terms.</p></div></details>
+          <details class="faq-item"><summary>Why might a feature not be available to my account?</summary><div class="faq-answer"><p>Feature access can depend on account status, the plan or usage allowance assigned to the account, service availability and the eligibility rules for a particular workflow. Check the signed-in workspace for current access information.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="wrap">
+        <div class="contact-band">
+          <div><h2>Keep exploring with QOVARK.</h2><p>For account-specific help, use the support options shown inside your signed-in QOVARK experience, where available. Do not send passwords, Security PINs or API keys through public channels.</p></div>
+          <div class="contact-actions">
+            <a class="button" href="#platform">Explore the platform <span aria-hidden="true">↗</span></a>
+            <a class="button-secondary" href="#faq">Read common questions</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <dialog class="feature-dialog" id="featureDialog" aria-labelledby="featureDialogTitle">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <div><span class="dialog-kicker" id="featureDialogKicker">QOVARK workspace</span><h2 id="featureDialogTitle">Feature details</h2></div>
+          <button class="dialog-close" id="featureDialogClose" type="button" aria-label="Close details">×</button>
+        </div>
+        <div class="dialog-body" id="featureDialogBody"></div>
+        <div class="dialog-footer">
+          <a class="button-secondary" id="featureDialogFallback" href="#workspace-details">See all workspace details</a>
+          <button class="button-secondary" id="featureDialogDone" type="button">Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <template id="feature-details-fast-chat">
+      <p>Fast Chat is the conversational starting point for questions, ideas and everyday tasks. You can refine an answer with follow-up prompts and use the conversation to develop an early idea into a clearer next step.</p>
+      <ul><li>Ask questions and explore topics.</li><li>Draft, revise and brainstorm content.</li><li>Work through explanations and everyday problem-solving.</li></ul>
+      <div class="dialog-callout">Check important facts and review generated content before using it in consequential work.</div>
+    </template>
+    <template id="feature-details-deep-analysis">
+      <p>Deep Analysis is for tasks that need additional context, supporting files or more structured instructions. It is not a document-only feature: a task can involve broader analysis and reasoning with or without a document, depending on the available workflow.</p>
+      <ul><li>Bring together instructions and relevant supporting context.</li><li>Approach longer or more involved tasks in a structured way.</li><li>Check your account for current access, file limits and usage availability.</li></ul>
+      <div class="dialog-callout">The availability of AI providers and analysis capacity can change. The live workspace is the source for current service status.</div>
+    </template>
+    <template id="feature-details-expert-review">
+      <p>Expert Review is a separate route for eligible work that may benefit from specialist feedback. It is distinct from the automated AI response and depends on the review service's availability and acceptance rules.</p>
+      <ul><li>Submit an eligible task through the review workflow.</li><li>Review returned feedback and any available verification information.</li><li>Understand the specialist's scope and the service terms for each submission.</li></ul>
+      <div class="dialog-callout">A specialist review is not automatically included with every AI conversation or Deep Analysis task.</div>
+    </template>
+
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div><span class="footer-brand">QOVARK</span><br><span>THINK. CREATE. EXPLORE.</span></div>
+      <div class="footer-links"><a href="#platform">Platform</a><a href="#security">Security</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></div>
+      <div>© <span id="year">2026</span> QOVARK. All rights reserved.</div>
+    </div>
+  </footer>
+  <script>
+    (() => {
+      'use strict';
+      document.documentElement.classList.add('js');
+
+      const menuButton = document.getElementById('menuToggle');
+      const navigation = document.getElementById('navLinks');
+      const closeMenu = () => {
+        if (!menuButton || !navigation) return;
+        menuButton.setAttribute('aria-expanded', 'false');
+        navigation.classList.remove('open');
+      };
+
+      if (menuButton && navigation) {
+        menuButton.addEventListener('click', () => {
+          const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+          menuButton.setAttribute('aria-expanded', String(!isExpanded));
+          navigation.classList.toggle('open', !isExpanded);
+        });
+        navigation.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', closeMenu));
+        document.addEventListener('click', event => {
+          if (window.innerWidth <= 620 && navigation.classList.contains('open') &&
+              !navigation.contains(event.target) && !menuButton.contains(event.target)) closeMenu();
+        });
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape') closeMenu();
+        });
+      }
+
+      const year = document.getElementById('year');
+      if (year) year.textContent = String(new Date().getFullYear());
+
+      const dialog = document.getElementById('featureDialog');
+      const dialogTitle = document.getElementById('featureDialogTitle');
+      const dialogKicker = document.getElementById('featureDialogKicker');
+      const dialogBody = document.getElementById('featureDialogBody');
+      const dialogClose = document.getElementById('featureDialogClose');
+      const dialogDone = document.getElementById('featureDialogDone');
+      const dialogFallback = document.getElementById('featureDialogFallback');
+      const featureLabels = {
+        'fast-chat': 'Fast Chat',
+        'deep-analysis': 'Deep Analysis',
+        'expert-review': 'Expert Review'
+      };
+      let lastDialogTrigger = null;
+
+      const closeFeatureDialog = () => {
+        if (dialog && dialog.open && typeof dialog.close === 'function') dialog.close();
+      };
+
+      if (dialog && typeof dialog.showModal === 'function' && dialogTitle && dialogBody) {
+        document.querySelectorAll('[data-feature-dialog]').forEach(trigger => {
+          trigger.addEventListener('click', event => {
+            const feature = trigger.getAttribute('data-feature-dialog');
+            const template = document.getElementById(`feature-details-${feature}`);
+            const label = featureLabels[feature];
+            if (!template || !label) return; // Keep the real #workspace-details link as fallback.
+            event.preventDefault();
+            lastDialogTrigger = trigger;
+            dialogTitle.textContent = label;
+            if (dialogKicker) dialogKicker.textContent = 'Inside the QOVARK workspace';
+            dialogBody.replaceChildren(template.content.cloneNode(true));
+            try {
+              dialog.showModal();
+              if (dialogClose) dialogClose.focus();
+            } catch (error) {
+              // If a browser refuses to open the dialog, follow the link's valid fallback destination.
+              window.location.hash = 'workspace-details';
+            }
+          });
+        });
+        if (dialogClose) dialogClose.addEventListener('click', closeFeatureDialog);
+        if (dialogDone) dialogDone.addEventListener('click', closeFeatureDialog);
+        if (dialogFallback) dialogFallback.addEventListener('click', closeFeatureDialog);
+        dialog.addEventListener('click', event => {
+          if (event.target === dialog) closeFeatureDialog();
+        });
+        dialog.addEventListener('close', () => {
+          if (lastDialogTrigger && lastDialogTrigger.isConnected) lastDialogTrigger.focus();
+        });
+      } else {
+        // Without native dialog support, feature links navigate to the full visible details section.
+        document.querySelectorAll('[data-feature-dialog]').forEach(trigger => {
+          trigger.removeAttribute('data-feature-dialog');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
