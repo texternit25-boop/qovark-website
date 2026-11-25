@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex,follow">
   <meta name="description" content="QOVARK private AI workspace sign-in and account experience.">
   <base href="/">
@@ -4153,6 +4153,196 @@
   .chat-area, .deep-work-page, .app-view { left: 88px !important; }
   .input-area { left: 88px !important; }
 }
+</style>
+
+
+<style id="qovark-responsive-web-workspace-v2">
+  /* Shared responsive shell for the independent browser workspace.
+     The Android APK keeps its own bundled HTML and native presentation. */
+  html {
+    width: 100%;
+    min-width: 320px;
+    min-height: 100%;
+    overflow: hidden;
+  }
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .app {
+    min-width: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Wider phone browsers and narrow landscape WebViews: use the available width. */
+  @media (min-width: 431px) and (max-width: 767px) {
+    body {
+      justify-content: stretch !important;
+      align-items: stretch !important;
+    }
+    .app {
+      width: 100% !important;
+      max-width: none !important;
+      border-left: 0 !important;
+      border-right: 0 !important;
+      box-shadow: none !important;
+    }
+    .top-bar {
+      padding-left: clamp(12px, 2.5vw, 22px) !important;
+      padding-right: clamp(12px, 2.5vw, 22px) !important;
+    }
+    .chat-area {
+      padding-left: clamp(14px, 3vw, 28px) !important;
+      padding-right: clamp(14px, 3vw, 28px) !important;
+    }
+    .input-area {
+      padding-left: clamp(10px, 2.5vw, 22px) !important;
+      padding-right: clamp(10px, 2.5vw, 22px) !important;
+    }
+    .deep-work-page,
+    .app-view {
+      padding-left: clamp(14px, 3vw, 26px) !important;
+      padding-right: clamp(14px, 3vw, 26px) !important;
+    }
+  }
+
+  /* Tablet workspace: retain the desktop sidebar and use the full available canvas. */
+  @media (min-width: 768px) and (max-width: 899px) {
+    body {
+      justify-content: center !important;
+      align-items: stretch !important;
+    }
+    .app {
+      width: 100% !important;
+      max-width: 1560px !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      border-left: 0 !important;
+      border-right: 0 !important;
+      box-shadow: 0 0 60px rgba(0,0,0,.16);
+    }
+    .top-bar {
+      height: 68px !important;
+      padding: 8px 18px !important;
+    }
+    .bottom-nav {
+      top: 68px !important;
+      left: 0 !important;
+      right: auto !important;
+      bottom: 0 !important;
+      width: 88px !important;
+      height: auto !important;
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      gap: 12px !important;
+      padding: 18px 8px 20px !important;
+      border-top: 0 !important;
+      border-right: 1px solid var(--border) !important;
+      box-shadow: none !important;
+    }
+    .nav-item {
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 58px !important;
+      gap: 4px !important;
+    }
+    .nav-item i { font-size: 18px !important; }
+    .nav-item span { font-size: 9.5px !important; }
+    .nav-badge { right: 20px !important; }
+    .center-nav {
+      width: 54px !important;
+      height: 54px !important;
+      margin: 2px 0 5px !important;
+      flex: 0 0 auto !important;
+    }
+    .chat-area {
+      top: 68px !important;
+      left: 88px !important;
+      right: 0 !important;
+      bottom: 112px !important;
+      padding: 24px clamp(18px, 3vw, 36px) 28px !important;
+      gap: 14px !important;
+    }
+    .welcome-card { width: min(100%, 900px) !important; margin: auto !important; }
+    .ai-message { max-width: min(100%, 900px) !important; }
+    .user-message { max-width: min(86%, 820px) !important; }
+    .input-area {
+      left: 88px !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: auto !important;
+      min-height: 96px !important;
+      padding: 12px clamp(16px, 2.6vw, 30px) 18px !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .input-box { width: min(100%, 960px) !important; }
+    .deep-work-page,
+    .app-view {
+      top: 68px !important;
+      left: 88px !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 24px clamp(18px, 3vw, 34px) 36px !important;
+    }
+    .dw-content { width: min(100%, 960px) !important; margin: 0 auto !important; }
+    .dw-top-bar,
+    .view-header,
+    .view-topbar,
+    .files-header-row {
+      width: min(100%, 1080px) !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+    .pages-list,
+    .file-list-container,
+    .alerts-list-container,
+    .experts-list {
+      width: min(100%, 1080px) !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+    body.keyboard-open .chat-area { bottom: 84px !important; }
+    body.keyboard-open .bottom-nav { display: none !important; }
+    body.keyboard-open .input-area { left: 0 !important; }
+    body.keyboard-open .deep-work-page,
+    body.keyboard-open .app-view { left: 0 !important; }
+  }
+
+  /* Compact phone defaults remain intact; expose safe-area spacing in mobile WebViews. */
+  @media (max-width: 767px) {
+    .top-bar {
+      padding-left: max(10px, env(safe-area-inset-left)) !important;
+      padding-right: max(10px, env(safe-area-inset-right)) !important;
+    }
+    .bottom-nav {
+      padding-bottom: max(4px, env(safe-area-inset-bottom)) !important;
+    }
+    body.keyboard-open .input-area {
+      padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    }
+  }
+
+  /* Short landscape viewports: keep the composer and navigation accessible. */
+  @media (max-width: 899px) and (max-height: 560px) and (orientation: landscape) {
+    .top-bar { height: 56px !important; }
+    .chat-area { top: 56px !important; }
+    .deep-work-page,
+    .app-view { top: 56px !important; }
+    .welcome-stationary-hud { transform: scale(.82); transform-origin: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app,
+    .chat-area,
+    .input-area,
+    .bottom-nav { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  }
 </style>
 
 </head>
