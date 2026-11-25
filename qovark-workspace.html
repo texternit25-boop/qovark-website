@@ -5208,6 +5208,19 @@
   <div class="overlay" id="securityOverlay">
     <button type="button" id="securityBackBtn"><i class="fa-solid fa-chevron-left"></i></button>
     <div class="overlay-title">Security &amp; Privacy</div>
+    <section class="security-setting-card" id="qovarkSignInMethodsCard" style="margin:14px 0;">
+      <strong style="display:block;margin-bottom:6px;">Sign-in methods</strong>
+      <p id="qovarkSignInMethodsStatus" style="margin:0 0 12px;color:var(--text-muted);font-size:12px;line-height:1.5;">Sign in to manage the methods connected to this account.</p>
+      <label for="qovarkLinkPassword" style="display:block;margin:8px 0 5px;font-size:12px;color:var(--text-muted);">Account password</label>
+      <input id="qovarkLinkPassword" type="password" autocomplete="current-password" placeholder="Enter your current password to verify" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button type="button" class="security-action-btn" id="qovarkLinkGoogleBtn">Connect Google</button>
+        <button type="button" class="security-action-btn" id="qovarkAddPasswordBtn">Add password</button>
+      </div>
+      <label for="qovarkNewPassword" style="display:block;margin:12px 0 5px;font-size:12px;color:var(--text-muted);">New password (Google accounts)</label>
+      <input id="qovarkNewPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
+      <p style="margin:9px 0 0;color:var(--text-muted);font-size:11px;line-height:1.45;">Connecting a method keeps the same QOVARK account and chat history. If the method already belongs to another account, QOVARK will not merge accounts automatically.</p>
+    </section>
     <p class="security-intro">Choose one method for locking QOVARK when you return to the app: Android fingerprint / face authentication or your QOVARK Security PIN. When biometric unlock is enabled, QOVARK will not open a second PIN prompt for app reopening. Your account Security PIN remains available separately for protected workspace actions.</p>
     <div class="security-setting-card">
       <div class="security-setting-row">
@@ -5758,7 +5771,7 @@
 <script type="module">
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCredential, fetchSignInMethodsForEmail, getIdToken } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged, GoogleAuthProvider, EmailAuthProvider, signInWithPopup, signInWithCredential, linkWithCredential, linkWithPopup, reauthenticateWithCredential, fetchSignInMethodsForEmail, getIdToken } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, getDocs, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
   import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
@@ -10657,6 +10670,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
   onAuthStateChanged(auth, user => {
     currentUser = user || null;
+    refreshQovarkSignInMethods();
     if (user) {
       try { localStorage.setItem("qovark_last_auth_uid", user.uid); } catch {}
       applyCachedProfileToUI(user);
@@ -12068,6 +12082,71 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       } catch (error) { pendingNativeGoogleResolver?.reject(error); }
     });
   }
+  function qovarkAuthMethods(user) {
+    return new Set((user?.providerData || []).map(item => item.providerId));
+  }
+  function refreshQovarkSignInMethods() {
+    const status = document.getElementById("qovarkSignInMethodsStatus");
+    const googleButton = document.getElementById("qovarkLinkGoogleBtn");
+    const passwordButton = document.getElementById("qovarkAddPasswordBtn");
+    const user = auth.currentUser;
+    if (!status || !googleButton || !passwordButton) return;
+    if (!user) {
+      status.textContent = "Sign in to manage the methods connected to this account.";
+      googleButton.disabled = passwordButton.disabled = true;
+      return;
+    }
+    const methods = qovarkAuthMethods(user);
+    const labels = [];
+    if (methods.has("google.com")) labels.push("Google");
+    if (methods.has("password")) labels.push("Email and password");
+    status.textContent = labels.length ? "Connected: " + labels.join(" + ") + ". Both methods open this same account." : "No supported sign-in method is available on this session.";
+    googleButton.disabled = methods.has("google.com");
+    passwordButton.disabled = methods.has("password");
+    googleButton.textContent = methods.has("google.com") ? "Google connected" : "Connect Google";
+    passwordButton.textContent = methods.has("password") ? "Password connected" : "Add password";
+  }
+  function qovarkLinkErrorMessage(error) {
+    const code = error?.code || "";
+    if (code === "auth/credential-already-in-use" || code === "auth/email-already-in-use" || code === "auth/account-exists-with-different-credential") {
+      return "That sign-in method already belongs to another account. Nothing was merged or overwritten. Sign in to the original account first, then contact QOVARK support to recover or consolidate the accounts securely.";
+    }
+    if (code === "auth/requires-recent-login") return "For security, sign out and sign back in to this same account, then try connecting the method again.";
+    if (code === "auth/weak-password") return "Choose a stronger password with at least 8 characters.";
+    return safeUserFacingText(error?.message, "The sign-in method could not be connected. Please try again.");
+  }
+  async function qovarkConnectGoogleToCurrentAccount() {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Sign in to QOVARK first.");
+    if (qovarkAuthMethods(user).has("google.com")) return;
+    const currentPassword = document.getElementById("qovarkLinkPassword")?.value || "";
+    if (!currentPassword) throw new Error("Enter your current account password to verify it is you before connecting Google.");
+    const emailCredential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, emailCredential);
+    if (auth.currentUser?.uid !== user.uid) throw new Error("Your account changed during verification. Please try again.");
+    if (window.TexterAndroid) {
+      const idToken = await requestNativeGoogleIdToken();
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      await linkWithCredential(user, googleCredential);
+    } else {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      await linkWithPopup(user, provider);
+    }
+    if (auth.currentUser?.uid !== user.uid) throw new Error("Account verification failed. Please sign in again.");
+  }
+  async function qovarkAddPasswordToCurrentAccount() {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Sign in to QOVARK first.");
+    if (qovarkAuthMethods(user).has("password")) return;
+    if (!user.email || !user.emailVerified) throw new Error("Verify this account's email before adding a password.");
+    const password = document.getElementById("qovarkNewPassword")?.value || "";
+    if (password.length < 8) throw new Error("Choose a password with at least 8 characters.");
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await linkWithCredential(user, credential);
+    if (auth.currentUser?.uid !== user.uid) throw new Error("Account verification failed. Please sign in again.");
+  }
+
   async function signInWithQovarkGoogle() {
     if (window.TexterAndroid) {
       const idToken = await requestNativeGoogleIdToken();
@@ -12148,6 +12227,31 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         await loadPxxlProfile(); hideHUD(); transitionOverlay("Profile saved", finishOverlay, 450);
       } catch (error) { hideHUD(); showToast(error.message || "Profile could not be saved."); }
     }
+  }, true);
+
+  document.addEventListener("click", async event => {
+    const button = event.target.closest("#qovarkLinkGoogleBtn, #qovarkAddPasswordBtn");
+    if (!button) return;
+    event.preventDefault();
+    if (!auth.currentUser) { showToast("Sign in to QOVARK first."); return; }
+    button.disabled = true;
+    try {
+      showHUD("Verifying account…", true);
+      if (button.id === "qovarkLinkGoogleBtn") await qovarkConnectGoogleToCurrentAccount();
+      else await qovarkAddPasswordToCurrentAccount();
+      await auth.currentUser?.reload();
+      refreshQovarkSignInMethods();
+      const passwordInput = document.getElementById("qovarkLinkPassword");
+      const newPasswordInput = document.getElementById("qovarkNewPassword");
+      if (passwordInput) passwordInput.value = "";
+      if (newPasswordInput) newPasswordInput.value = "";
+      hideHUD();
+      showToast("Sign-in method connected to this QOVARK account.");
+    } catch (error) {
+      hideHUD();
+      showToast(qovarkLinkErrorMessage(error));
+      refreshQovarkSignInMethods();
+    } finally { refreshQovarkSignInMethods(); }
   }, true);
 
   // Backend profile state and cross-device workspace hydration after every auth change.
