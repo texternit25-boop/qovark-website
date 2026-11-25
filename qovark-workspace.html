@@ -12167,7 +12167,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if (password.length < 8) throw new Error("Choose a password with at least 8 characters.");
     if (password !== confirmation) throw new Error("The two passwords do not match.");
     const credential = EmailAuthProvider.credential(user.email, password);
-    await linkWithCredential(user, credential);
+    const linked = await linkWithCredential(user, credential);
+    if (!linked?.user || linked.user.uid !== user.uid || auth.currentUser?.uid !== user.uid) {
+      throw new Error("The password was not attached to the original QOVARK account. Please sign in again.");
+    }
+    await linked.user.getIdToken(true);
+    await linked.user.reload();
     if (auth.currentUser?.uid !== user.uid) throw new Error("Account verification failed. Please sign in again.");
   }
 
