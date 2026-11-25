@@ -29,7 +29,7 @@
   <script>
     (() => {
       const requestedPath = window.location.pathname;
-      const match = requestedPath.match(/^\\/share\\/(chat|message)\\/([A-Za-z0-9_-]{32,64})\\/?$/i);
+      const match = requestedPath.match(/^\/share\/(chat|message)\/([A-Za-z0-9_-]{32,64})\/?$/i);
       if (!match) return;
 
       const fallback = document.getElementById("fallback");
@@ -45,9 +45,9 @@
           const response = await fetch("/share.html");
           if (!response.ok) throw new Error("Share viewer returned " + response.status);
           let html = await response.text();
-          const routeState = '<script>window.__QOVARK_SHARE_PATH__=' + JSON.stringify(requestedPath) + ';<\\/script>';
-          if (!/<\\/head>/i.test(html)) throw new Error("Share viewer document is malformed");
-          html = html.replace(/<\\/head>/i, routeState + "</head>");
+          const routeState = '<script>window.__QOVARK_SHARE_PATH__=' + JSON.stringify(requestedPath) + ';<\/script>';
+          if (!/<\/head>/i.test(html)) throw new Error("Share viewer document is malformed");
+          html = html.replace(/<\/head>/i, routeState + "</head>");
           document.open();
           document.write(html);
           document.close();
