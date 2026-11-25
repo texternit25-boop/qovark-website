@@ -5219,6 +5219,8 @@
       <div id="qovarkPasswordLinkFields" style="display:none;">
         <label for="qovarkNewPassword" style="display:block;margin:12px 0 5px;font-size:12px;color:var(--text-muted);">Choose a QOVARK password</label>
         <input id="qovarkNewPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
+        <label for="qovarkConfirmNewPassword" style="display:block;margin:10px 0 5px;font-size:12px;color:var(--text-muted);">Confirm password</label>
+        <input id="qovarkConfirmNewPassword" type="password" autocomplete="new-password" placeholder="Re-enter your new password" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
         <button type="button" class="security-action-btn" id="qovarkAddPasswordBtn" style="margin-top:10px;">Add password</button>
       </div>
       <p style="margin:9px 0 0;color:var(--text-muted);font-size:11px;line-height:1.45;">Connecting a method keeps the same QOVARK account and chat history. If the method already belongs to another account, QOVARK will not merge accounts automatically.</p>
@@ -12161,7 +12163,9 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if (!await ensureQovarkEmailVerification(user, "password-link")) return false;
     if (!user.email || !user.emailVerified) throw new Error("Verify this account's email before adding a password.");
     const password = document.getElementById("qovarkNewPassword")?.value || "";
+    const confirmation = document.getElementById("qovarkConfirmNewPassword")?.value || "";
     if (password.length < 8) throw new Error("Choose a password with at least 8 characters.");
+    if (password !== confirmation) throw new Error("The two passwords do not match.");
     const credential = EmailAuthProvider.credential(user.email, password);
     await linkWithCredential(user, credential);
     if (auth.currentUser?.uid !== user.uid) throw new Error("Account verification failed. Please sign in again.");
@@ -12276,8 +12280,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       refreshQovarkSignInMethods();
       const passwordInput = document.getElementById("qovarkLinkPassword");
       const newPasswordInput = document.getElementById("qovarkNewPassword");
+      const confirmPasswordInput = document.getElementById("qovarkConfirmNewPassword");
       if (passwordInput) passwordInput.value = "";
       if (newPasswordInput) newPasswordInput.value = "";
+      if (confirmPasswordInput) confirmPasswordInput.value = "";
       hideHUD();
       showToast("Sign-in method connected to this QOVARK account.");
     } catch (error) {
