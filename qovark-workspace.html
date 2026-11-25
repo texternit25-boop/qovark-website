@@ -12383,6 +12383,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       if (auth.currentUser?.uid !== nextUid) return;
     } catch (chatInitError) {
       console.warn("QOVARK shared chat initialization:", chatInitError?.message || chatInitError);
+      if (chatInitError?.code === "QOVARK_ACCOUNT_LINK_REQUIRED") {
+        const message = "This email is already connected to a different QOVARK sign-in identity. No accounts were merged. Sign out and use the sign-in method you originally used; contact QOVARK support for verified account recovery.";
+        document.getElementById("historyAccountStatus").textContent = "Account recovery is required before cloud sync can continue.";
+        showToast(message);
+        return;
+      }
       document.getElementById("historyAccountStatus").textContent = "Chat history is temporarily unavailable. Your local conversation is preserved.";
     }
     startQovarkChatHistorySync(nextUid);
