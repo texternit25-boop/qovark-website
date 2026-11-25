@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex,follow">
+  <meta name="description" content="QOVARK private AI workspace sign-in and account experience.">
+  <base href="/">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="48x48" href="/qovark-favicon-48.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="theme-color" content="#020617">
   <title>QOVARK — AI Workspace</title>
   <!-- QOVARK offline/profile/audio polish 2026-11-20 -->
@@ -2632,18 +2638,12 @@
   }
 
   .chat-history-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .history-chat-entry { display:flex; align-items:stretch; gap:5px; min-width:0; border:1px solid var(--border); border-radius:13px; background:var(--surface); overflow:hidden; }
   .history-chat-item {
-    display: flex; flex:1 1 auto; min-width:0; flex-direction: column; gap: 4px; text-align: left; padding: 12px;
-    border: 0; border-radius: 0; background: transparent; color: var(--text); cursor: pointer;
+    display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 12px;
+    border: 1px solid var(--border); border-radius: 13px; background: var(--surface); color: var(--text);
+    cursor: pointer;
   }
-  .history-chat-entry:has(.history-chat-item.current) { border-color: var(--accent); background: var(--primary-soft); }
-  .history-chat-item.current { background: transparent; }
-  .history-chat-actions { display:flex; flex:0 0 auto; align-items:center; gap:4px; padding:6px 7px 6px 0; }
-  .history-chat-action { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-muted); cursor:pointer; }
-  .history-chat-action:hover { border-color:var(--accent); color:var(--accent); }
-  .history-chat-action.danger:hover { border-color:var(--danger); color:var(--danger); }
-  .history-chat-action:disabled { opacity:.45; cursor:wait; }
+  .history-chat-item.current { border-color: var(--accent); background: var(--primary-soft); }
   .history-chat-item strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .history-chat-item span { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .history-chat-item small { font-size: 10px; color: var(--muted); }
@@ -3428,9 +3428,9 @@
   font-size: 11.5px !important;
   line-height: 1.4 !important;
   overflow-wrap: anywhere !important;
-  box-sizing: border-box !important;
 }
 .help-topic-item {
+  box-sizing: border-box !important;
   flex: 0 0 auto !important;
   width: 100% !important;
   max-width: 620px !important;
@@ -4116,42 +4116,42 @@
 </style>
 
 
-<style id="qovark-logo-sizing-theme-v22">
-/* Shared QOVARK emblem: transparent artwork, sized by its placement, not cropped. */
-.brand-symbol {
-  width: 40px !important; height: 40px !important; flex: 0 0 40px !important;
-  display: block !important; object-fit: contain !important; object-position: center !important;
-  padding: 0 !important; border: 0 !important; border-radius: 0 !important;
-  background: transparent !important; box-shadow: none !important;
+<style id="qovark-desktop-web-workspace-v1">
+@media (min-width: 900px) {
+  body { justify-content: center !important; align-items: stretch !important; }
+  .app { width: 100% !important; max-width: 1560px !important; height: 100dvh !important; border-left: 0 !important; border-right: 0 !important; box-shadow: 0 0 90px rgba(0,0,0,.22); }
+  .top-bar { height: 72px !important; padding: 8px 28px !important; }
+  .top-bar .brand { flex: 1 1 auto; }
+  .bottom-nav { top: 72px !important; left: 0 !important; right: auto !important; bottom: 0 !important; width: 104px !important; height: auto !important; flex-direction: column !important; justify-content: flex-start !important; align-items: center !important; gap: 14px !important; padding: 22px 10px 24px !important; border-top: 0 !important; border-right: 1px solid var(--border) !important; box-shadow: none !important; }
+  .nav-item { width: 100% !important; min-width: 0 !important; min-height: 62px !important; gap: 5px !important; }
+  .nav-item i { font-size: 19px !important; }
+  .nav-item span { font-size: 10.5px !important; }
+  .nav-badge { right: 28px !important; }
+  .center-nav { width: 58px !important; height: 58px !important; margin: 4px 0 7px !important; flex: 0 0 auto !important; }
+  .chat-area { top: 72px !important; left: 104px !important; right: 0 !important; bottom: 128px !important; padding: 30px clamp(30px,5vw,84px) 32px !important; gap: 16px !important; }
+  .welcome-card { width: min(100%, 1000px) !important; margin: auto auto !important; }
+  .welcome-stationary-hud { transform: scale(.86); transform-origin: center; margin-top: -8px !important; margin-bottom: 10px !important; }
+  .welcome-list { max-width: 680px; }
+  .ai-message { max-width: min(100%, 980px) !important; }
+  .user-message { max-width: min(82%, 900px) !important; }
+  .input-area { left: 104px !important; right: 0 !important; bottom: 0 !important; width: auto !important; min-height: 108px !important; padding: 16px clamp(28px,5vw,84px) 22px !important; align-items: center !important; justify-content: center !important; }
+  .input-box { max-width: 1040px !important; min-height: 54px !important; }
+    .deep-work-page, .app-view { top: 72px !important; left: 104px !important; right: 0 !important; bottom: 0 !important; width: auto !important; max-width: none !important; padding: 28px clamp(26px,4vw,68px) 44px !important; }
+  .dw-content { width: min(100%, 1040px) !important; margin: 0 auto !important; }
+  .dw-top-bar { width: min(100%, 1160px) !important; margin: 0 auto 14px !important; }
+  .view-header, .view-topbar, .files-header-row { max-width: 1160px; margin-left: auto; margin-right: auto; width: 100%; }
+  .pages-list, .file-list-container, .alerts-list-container, .experts-list { width: min(100%, 1160px) !important; margin-left: auto !important; margin-right: auto !important; }
+  #servicesView .service-category-grid, #servicesView .service-intro-card, #servicesView .service-receipts-card { width: min(100%, 1160px); margin-left: auto; margin-right: auto; }
+  #filesView .search-container { width: min(100%, 1160px); margin-left: auto; margin-right: auto; }
+  body.keyboard-open .chat-area { bottom: 92px !important; }
+  body.keyboard-open .bottom-nav { display: none !important; }
+  body.keyboard-open .input-area { left: 0 !important; }
+  body.keyboard-open .deep-work-page, body.keyboard-open .app-view { left: 0 !important; }
 }
-.welcome-stationary-logo {
-  width: 96px !important; height: 96px !important; padding: 0 !important;
-  overflow: visible !important; border: 0 !important; border-radius: 0 !important;
-  background: transparent !important; box-shadow: none !important; text-shadow: none !important;
-}
-.welcome-stationary-logo img {
-  display: block !important; width: 100% !important; height: 100% !important;
-  object-fit: contain !important; object-position: center !important; border-radius: 0 !important;
-  filter: drop-shadow(0 2px 8px var(--primary-soft));
-}
-.settings-logo {
-  width: 44px !important; height: 44px !important; padding: 0 !important;
-  overflow: visible !important; border: 0 !important; border-radius: 12px !important;
-  background: transparent !important; box-shadow: none !important;
-}
-.settings-logo img {
-  display: block !important; width: 100% !important; height: 100% !important;
-  object-fit: contain !important; object-position: center !important; border-radius: 0 !important;
-  background: transparent !important;
-}
-.qovark-about-mark {
-  display: block !important; width: 104px !important; height: 104px !important;
-  object-fit: contain !important; object-position: center !important; padding: 0 !important;
-  border: 0 !important; border-radius: 0 !important; background: transparent !important;
-  box-shadow: none !important;
-}
-@media(max-width:480px){
-  .brand-symbol { width: 36px !important; height: 36px !important; flex-basis: 36px !important; }
+@media (min-width: 900px) and (max-width: 1100px) {
+  .bottom-nav { width: 88px !important; }
+  .chat-area, .deep-work-page, .app-view { left: 88px !important; }
+  .input-area { left: 88px !important; }
 }
 </style>
 
@@ -4196,7 +4196,7 @@
       <i class="fa-solid fa-bars-staggered"></i>
     </button>
     <div class="brand">
-      <img class="brand-symbol" src="qovark-logo.png" width="550" height="550" decoding="async" alt="QOVARK orbital symbol">
+      <img class="brand-symbol" src="qovark-logo.png" alt="QOVARK orbital symbol">
       <div class="brand-copy">
         <h1 class="brand-name"><span>Q</span>OVARK</h1>
         <div class="brand-glow"></div>
@@ -4218,7 +4218,7 @@
           <div class="s-ring s-ring1"></div>
           <div class="s-ring s-ring2"></div>
           <div class="s-ring s-ring3"></div>
-          <div class="welcome-stationary-logo" aria-label="QOVARK emblem"><img src="qovark-logo.png" width="512" height="512" decoding="async" alt=""></div>
+          <div class="welcome-stationary-logo" aria-label="QOVARK emblem"><img src="qovark-logo.png" alt=""></div>
         </div>
       </div>
       <div class="welcome-badge">✨ WELCOME</div>
@@ -4989,7 +4989,7 @@
   <!-- SETTINGS PANEL -->
   <div class="settings-panel" id="settingsPanel">
     <div class="settings-header">
-      <div class="settings-logo"><img src="qovark-logo.png" width="550" height="550" decoding="async" alt="QOVARK orbital Q"></div>
+      <div class="settings-logo"><img src="qovark-logo.png" alt="QOVARK orbital Q"></div>
       <h2>Settings</h2>
       <button type="button" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
     </div>
@@ -5018,21 +5018,7 @@
   <div class="overlay" id="securityOverlay">
     <button type="button" id="securityBackBtn"><i class="fa-solid fa-chevron-left"></i></button>
     <div class="overlay-title">Security &amp; Privacy</div>
-    <p class="security-intro">Manage how you sign in to your QOVARK account, then configure app locking and protected workspace access.</p>
-    <div class="security-setting-card" id="qovarkSignInMethodsCard">
-      <div class="security-setting-row">
-        <div><strong>Sign-in methods</strong><small id="qovarkSignInMethodsStatus">Sign in to view the methods connected to this account.</small></div>
-      </div>
-      <div id="qovarkPasswordSetupFields" style="display:none;margin-top:14px;">
-        <p style="margin:0 0 10px;color:var(--text-muted);font-size:12px;line-height:1.5;">Add a QOVARK password so you can use either Google or your email address and password. This attaches to your current account; it does not create a new account or change your account ID.</p>
-        <label for="qovarkNewLoginPassword" style="display:block;margin:9px 0 5px;color:var(--text-muted);font-size:12px;">New QOVARK password</label>
-        <input id="qovarkNewLoginPassword" type="password" autocomplete="new-password" minlength="8" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:11px;background:var(--bg);color:var(--text);font:inherit;">
-        <label for="qovarkConfirmLoginPassword" style="display:block;margin:10px 0 5px;color:var(--text-muted);font-size:12px;">Confirm new password</label>
-        <input id="qovarkConfirmLoginPassword" type="password" autocomplete="new-password" minlength="8" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:11px;background:var(--bg);color:var(--text);font:inherit;">
-        <button type="button" class="security-action-btn" id="qovarkAddPasswordBtn"><i class="fa-solid fa-key"></i> Add password sign-in</button>
-        <p id="qovarkPasswordSetupMessage" role="status" aria-live="polite" style="margin:9px 0 0;color:var(--text-muted);font-size:12px;line-height:1.5;"></p>
-      </div>
-    </div>
+    <p class="security-intro">Choose one method for locking QOVARK when you return to the app: Android fingerprint / face authentication or your QOVARK Security PIN. When biometric unlock is enabled, QOVARK will not open a second PIN prompt for app reopening. Your account Security PIN remains available separately for protected workspace actions.</p>
     <div class="security-setting-card">
       <div class="security-setting-row">
         <div><strong>Lock app when it leaves the screen</strong><small>Require authentication when you return to QOVARK after switching apps or hiding the app.</small></div>
@@ -5055,7 +5041,7 @@
     <button type="button" id="aboutBackBtn" style="position:absolute;top:14px;left:18px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);color:var(--accent);font-size:15px;cursor:pointer;z-index:20;"><i class="fa-solid fa-chevron-left"></i></button>
     <div class="overlay-title">About QOVARK</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin:28px auto 22px;text-align:center;max-width:340px;">
-      <img class="qovark-about-mark" src="qovark-logo.png" width="600" height="600" decoding="async" alt="QOVARK orbital Q emblem">
+      <img class="qovark-about-mark" src="qovark-logo.png" alt="QOVARK orbital Q emblem">
       <h2 style="color:var(--text);font-size:24px;">QOVARK</h2>
       <p style="color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;">THINK. CREATE. EXPLORE.</p>
     </div>
@@ -5582,8 +5568,8 @@
 <script type="module">
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCredential, fetchSignInMethodsForEmail, getIdToken, EmailAuthProvider, linkWithCredential } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, query, orderBy, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCredential, fetchSignInMethodsForEmail, getIdToken } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
   import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
   // Native connectivity state is initialised before any module code reads it.
@@ -6708,7 +6694,7 @@
     card.append(note, button); messageElement.appendChild(card);
   }
 
-  async function addMessageWithTyping(text, sender, originalPrompt = "", imageData = null, threadIdAtStart = activeFastChatId, sendTokenAtStart = activeFastChatSendToken) {
+  async function addMessageWithTyping(text, sender, originalPrompt = "", imageData = null) {
     const msgDiv = document.createElement("div");
     msgDiv.classList.add("message", sender === "user" ? "user-message" : "ai-message");
     chatContainer.appendChild(msgDiv);
@@ -6726,12 +6712,6 @@
       let i = 0;
       const step = Math.max(1, Math.ceil(text.length / 180));
       const interval = setInterval(() => {
-        if (activeFastChatId !== threadIdAtStart || activeFastChatSendToken !== sendTokenAtStart) {
-          clearInterval(interval);
-          msgDiv.remove();
-          resolve();
-          return;
-        }
         if (i < text.length) {
           msgDiv.textContent += text.slice(i, i + step);
           i += step;
@@ -6742,13 +6722,6 @@
         }
       }, 12);
     });
-
-    // The user may have switched chats while the typing animation was running.
-    // Never append an old response to whichever conversation is now active.
-    if (activeFastChatId !== threadIdAtStart || activeFastChatSendToken !== sendTokenAtStart) {
-      msgDiv.remove();
-      return;
-    }
 
     const assistantEntry = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
@@ -6776,7 +6749,6 @@
   async function getAIResponse(userMessage, imageData = null) {
     const requestUser = auth.currentUser;
     const requestUid = requestUser?.uid || null;
-    const requestChatId = activeFastChatId;
     const requestToken = ++activeFastChatRequestToken;
     showHUD(imageData ? "Reading image…" : "Thinking…", true);
     lastAIError = null;
@@ -6790,7 +6762,7 @@
         personality: aiPersonality,
         language: currentLanguage,
         userId: requestUid || "guest",
-        chatId: requestChatId || null
+        chatId: activeFastChatId || null
       };
       if (imageData) body.imageData = imageData;
 
@@ -6805,18 +6777,15 @@
         body: JSON.stringify(body),
         signal: controller.signal
       });
-      if ((auth.currentUser?.uid || null) !== requestUid || activeFastChatId !== requestChatId || requestToken !== activeFastChatRequestToken) return null;
+      if ((auth.currentUser?.uid || null) !== requestUid || requestToken !== activeFastChatRequestToken) return null;
       const contentType = response.headers.get("content-type") || "";
       const data = contentType.includes("application/json") ? await response.json() : { error: await response.text() };
-      if ((auth.currentUser?.uid || null) !== requestUid || activeFastChatId !== requestChatId || requestToken !== activeFastChatRequestToken) return null;
+      if ((auth.currentUser?.uid || null) !== requestUid || requestToken !== activeFastChatRequestToken) return null;
 
       if (!response.ok) {
         const err = new Error(data.error || data.message || `Server returned ${response.status}`);
         err.status = response.status;
         throw err;
-      }
-      if (requestUser && data.historyPersisted === false) {
-        console.warn("QOVARK Fast Chat returned a response but its Supabase history insert was not confirmed.");
       }
       const answer = data.response ?? data.reply ?? data.answer;
       if (typeof answer !== "string" || !answer.trim()) {
@@ -7031,7 +7000,6 @@
     if (isTyping) return;
     const sendToken = ++activeFastChatSendToken;
     const sendingUid = auth.currentUser?.uid || null;
-    const sendingChatId = activeFastChatId;
     if (isSpeaking || speechStartPending) stopSpeechPlayback();
 
     const editingId = editingUserMessageId;
@@ -7057,9 +7025,9 @@
       addMessage(message, "user", attachedImage);
       if (attachedImage) clearAttachment();
       const answer = await getAIResponse(message, attachedImage);
-      if ((auth.currentUser?.uid || null) !== sendingUid || activeFastChatId !== sendingChatId || sendToken !== activeFastChatSendToken) return;
+      if ((auth.currentUser?.uid || null) !== sendingUid) return;
       if (answer === null) showConnectionError();
-      else await addMessageWithTyping(answer, "ai", message, attachedImage, sendingChatId, sendToken);
+      else await addMessageWithTyping(answer, "ai", message, attachedImage);
     } finally {
       if (sendToken === activeFastChatSendToken) {
         isTyping = false;
@@ -10157,267 +10125,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   let activeFastChatOwnerUid = undefined;
   let activeFastChatId = "chat_" + Date.now();
   function chatScopedKey(baseKey, uid) { return `${baseKey}__${uid || 'guest'}`; }
-
-  // Local-first conversation cache. IndexedDB stores full thread bodies; localStorage
-  // stores only a small index so opening Chat History never waits for the network.
-  const QOVARK_CHAT_CACHE_DB = "qovark_chat_cache_v2";
-  const QOVARK_CHAT_CACHE_VERSION = 1;
-  const QOVARK_CHAT_INDEX_LIMIT = 500;
-  let qovarkChatDbPromise = null;
-  let qovarkChatHistoryUnsubscribe = null;
-  let qovarkChatHistorySyncUid = null;
-
-  const QOVARK_CHAT_DELETE_QUEUE_LIMIT = 250;
-  function qovarkChatDeleteQueueKey(uid) { return `qovark_chat_delete_queue_v1__${uid}`; }
-  function qovarkReadChatDeleteQueue(uid) {
-    if (!uid) return [];
-    try {
-      const value = JSON.parse(localStorage.getItem(qovarkChatDeleteQueueKey(uid)) || "[]");
-      return Array.isArray(value) ? value.map(String).filter(Boolean).slice(0, QOVARK_CHAT_DELETE_QUEUE_LIMIT) : [];
-    } catch { return []; }
-  }
-  function qovarkWriteChatDeleteQueue(uid, ids) {
-    if (!uid) return;
-    const unique = [...new Set((ids || []).map(String).filter(Boolean))].slice(0, QOVARK_CHAT_DELETE_QUEUE_LIMIT);
-    try { localStorage.setItem(qovarkChatDeleteQueueKey(uid), JSON.stringify(unique)); } catch {}
-  }
-  function qovarkIsChatDeletePending(uid, chatId) {
-    return Boolean(uid && chatId && qovarkReadChatDeleteQueue(uid).includes(String(chatId)));
-  }
-  function qovarkQueueChatDelete(uid, chatId) {
-    if (!uid || !chatId) return;
-    qovarkWriteChatDeleteQueue(uid, [...qovarkReadChatDeleteQueue(uid), String(chatId)]);
-  }
-  function qovarkCompleteChatDelete(uid, chatId) {
-    if (!uid || !chatId) return;
-    qovarkWriteChatDeleteQueue(uid, qovarkReadChatDeleteQueue(uid).filter(id => id !== String(chatId)));
-  }
-  async function qovarkRemoveCachedChat(uid, chatId) {
-    if (!uid || !chatId) return;
-    const id = String(chatId);
-    qovarkWriteChatIndex(uid, qovarkReadChatIndex(uid).filter(item => String(item.chatId) !== id));
-    try { localStorage.removeItem(chatScopedKey(`qovark_chat_thread_${id}`, uid)); } catch {}
-    const db = await qovarkOpenChatCacheDb();
-    if (!db) return;
-    await new Promise(resolve => {
-      try {
-        const tx = db.transaction("threads", "readwrite");
-        tx.objectStore("threads").delete(`${uid}::${id}`);
-        tx.oncomplete = tx.onerror = tx.onabort = () => resolve();
-      } catch { resolve(); }
-    });
-  }
-  async function retryQovarkChatDeletes(uid) {
-    if (!uid || !auth.currentUser || auth.currentUser.uid !== uid || !qovarkIsOnline()) return;
-    const pending = qovarkReadChatDeleteQueue(uid);
-    for (const chatId of pending) {
-      if (auth.currentUser?.uid !== uid) return;
-      try {
-        // Both stores are account-scoped. The backend delete is idempotent, so a
-        // partial retry cannot recreate a deleted conversation.
-        await pxxlRequest(`/api/chat/conversations/${encodeURIComponent(chatId)}`, { method: "DELETE" });
-        await deleteDoc(doc(db, "users", uid, "chats", chatId));
-        qovarkCompleteChatDelete(uid, chatId);
-      } catch (error) {
-        console.warn("Chat deletion will retry when connected:", error?.message || error);
-      }
-    }
-    if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
-  }
-
-  function qovarkChatIndexKey(uid) { return `qovark_chat_index_v2__${uid || 'guest'}`; }
-  function qovarkReadChatIndex(uid) {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(qovarkChatIndexKey(uid)) || "[]");
-      const deleted = new Set(qovarkReadChatDeleteQueue(uid));
-      return Array.isArray(parsed) ? parsed.filter(item => item && item.chatId && !deleted.has(String(item.chatId))) : [];
-    } catch { return []; }
-  }
-  function qovarkWriteChatIndex(uid, entries) {
-    if (!uid) return;
-    const byId = new Map();
-    for (const entry of entries || []) {
-      if (!entry?.chatId) continue;
-      const previous = byId.get(String(entry.chatId));
-      byId.set(String(entry.chatId), previous ? { ...previous, ...entry } : entry);
-    }
-    const sorted = Array.from(byId.values())
-      .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))
-      .slice(0, QOVARK_CHAT_INDEX_LIMIT);
-    try { localStorage.setItem(qovarkChatIndexKey(uid), JSON.stringify(sorted)); } catch {}
-    return sorted;
-  }
-  function qovarkUpsertChatIndex(uid, entry) {
-    if (!uid || !entry?.chatId) return;
-    const current = qovarkReadChatIndex(uid);
-    const id = String(entry.chatId);
-    const index = current.findIndex(item => String(item.chatId) === id);
-    if (index >= 0) current[index] = { ...current[index], ...entry };
-    else current.unshift(entry);
-    qovarkWriteChatIndex(uid, current);
-  }
-  function qovarkOpenChatCacheDb() {
-    if (qovarkChatDbPromise) return qovarkChatDbPromise;
-    qovarkChatDbPromise = new Promise(resolve => {
-      if (!window.indexedDB) { resolve(null); return; }
-      let request;
-      try { request = indexedDB.open(QOVARK_CHAT_CACHE_DB, QOVARK_CHAT_CACHE_VERSION); }
-      catch { resolve(null); return; }
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains("threads")) {
-          const store = db.createObjectStore("threads", { keyPath: "key" });
-          store.createIndex("uid", "uid", { unique: false });
-          store.createIndex("updatedAt", "updatedAt", { unique: false });
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => resolve(null);
-      request.onblocked = () => resolve(null);
-    });
-    return qovarkChatDbPromise;
-  }
-  function qovarkCleanChatMessages(messages) {
-    return (Array.isArray(messages) ? messages : []).map((item, index) => ({
-      id: String(item?.id || `cached_${index}_${item?.timestamp || ""}`),
-      text: String(item?.text || item?.message || ""),
-      sender: item?.sender === "ai" || item?.sender_role === "ai" ? "ai" : "user",
-      timestamp: String(item?.timestamp || item?.created_at || new Date().toISOString())
-    })).filter(item => item.text || item.sender === "ai");
-  }
-  async function qovarkGetCachedChat(uid, chatId) {
-    const db = await qovarkOpenChatCacheDb();
-    if (!db) {
-      try {
-        const raw = localStorage.getItem(chatScopedKey(`qovark_chat_thread_${chatId}`, uid));
-        return raw ? JSON.parse(raw) : null;
-      } catch { return null; }
-    }
-    return new Promise(resolve => {
-      try {
-        const request = db.transaction("threads", "readonly").objectStore("threads").get(`${uid}::${chatId}`);
-        request.onsuccess = () => {
-          if (request.result) { resolve(request.result); return; }
-          try {
-            const fallback = localStorage.getItem(chatScopedKey(`qovark_chat_thread_${chatId}`, uid));
-            resolve(fallback ? JSON.parse(fallback) : null);
-          } catch { resolve(null); }
-        };
-        request.onerror = () => {
-          try {
-            const fallback = localStorage.getItem(chatScopedKey(`qovark_chat_thread_${chatId}`, uid));
-            resolve(fallback ? JSON.parse(fallback) : null);
-          } catch { resolve(null); }
-        };
-      } catch { resolve(null); }
-    });
-  }
-  async function qovarkGetAllCachedChats(uid) {
-    const db = await qovarkOpenChatCacheDb();
-    if (!db) return [];
-    return new Promise(resolve => {
-      try {
-        const request = db.transaction("threads", "readonly").objectStore("threads").index("uid").getAll(uid);
-        request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
-        request.onerror = () => resolve([]);
-      } catch { resolve([]); }
-    });
-  }
-  async function qovarkPutCachedChat(uid, chatId, messages, meta = {}) {
-    if (!uid || !chatId || qovarkIsChatDeletePending(uid, chatId)) return false;
-    const cleanMessages = qovarkCleanChatMessages(messages);
-    const previous = await qovarkGetCachedChat(uid, chatId);
-    const incomingUpdatedAt = String(meta.updatedAt || new Date().toISOString());
-    // A delayed cloud snapshot must not overwrite a newer local edit/message.
-    if (previous?.dirty && String(previous.updatedAt || "") > incomingUpdatedAt && meta.dirty !== true) return true;
-    const record = {
-      key: `${uid}::${chatId}`,
-      uid,
-      chatId: String(chatId),
-      title: String(meta.title || deriveChatTitle(cleanMessages) || "New conversation").slice(0, 120),
-      preview: String(meta.preview || cleanMessages.find(item => item.sender === "user")?.text || cleanMessages.at(-1)?.text || "").slice(0, 220),
-      messageCount: Number(meta.messageCount || cleanMessages.length || 0),
-      updatedAt: incomingUpdatedAt,
-      messages: cleanMessages,
-      source: String(meta.source || "local"),
-      dirty: Boolean(meta.dirty),
-      cachedAt: Date.now()
-    };
-    // Publish the small summary index synchronously; the full message record follows.
-    qovarkUpsertChatIndex(uid, {
-      chatId: record.chatId, title: record.title, preview: record.preview,
-      messageCount: record.messageCount, updatedAt: record.updatedAt,
-      source: record.source, cached: true
-    });
-    const db = await qovarkOpenChatCacheDb();
-    let saved = false;
-    if (db) {
-      saved = await new Promise(resolve => {
-        try {
-          const tx = db.transaction("threads", "readwrite");
-          tx.objectStore("threads").put(record);
-          tx.oncomplete = () => resolve(true);
-          tx.onerror = tx.onabort = () => resolve(false);
-        } catch { resolve(false); }
-      });
-    }
-    if (!saved) {
-      try { localStorage.setItem(chatScopedKey(`qovark_chat_thread_${chatId}`, uid), JSON.stringify(record)); saved = true; }
-      catch { saved = false; }
-    }
-    qovarkUpsertChatIndex(uid, {
-      chatId: record.chatId, title: record.title, preview: record.preview,
-      messageCount: record.messageCount, updatedAt: record.updatedAt,
-      source: record.source, cached: saved
-    });
-    return saved;
-  }
-  async function qovarkMarkChatClean(uid, chatId) {
-    const record = await qovarkGetCachedChat(uid, chatId);
-    if (!record) return;
-    record.dirty = false;
-    record.source = "firestore";
-    const db = await qovarkOpenChatCacheDb();
-    if (!db) {
-      try { localStorage.setItem(chatScopedKey(`qovark_chat_thread_${chatId}`, uid), JSON.stringify(record)); } catch {}
-      return;
-    }
-    try {
-      const tx = db.transaction("threads", "readwrite");
-      tx.objectStore("threads").put(record);
-    } catch {}
-  }
-  async function qovarkHydrateChatIndexFromDevice(uid) {
-    const records = await qovarkGetAllCachedChats(uid);
-    if (!records.length) return;
-    const current = qovarkReadChatIndex(uid);
-    for (const record of records) {
-      if (qovarkIsChatDeletePending(uid, record.chatId)) continue;
-      const index = current.findIndex(item => String(item.chatId) === String(record.chatId));
-      const summary = {
-        chatId: record.chatId, title: record.title, preview: record.preview,
-        messageCount: record.messageCount, updatedAt: record.updatedAt,
-        source: record.source || "local", cached: true
-      };
-      if (index >= 0) current[index] = { ...current[index], ...summary };
-      else current.push(summary);
-    }
-    qovarkWriteChatIndex(uid, current);
-  }
-
   function saveLocalFastChatFor(uid) {
     const identity = uid || 'guest';
     try {
       localStorage.setItem(chatScopedKey('texter_fast_chat_cache', identity), JSON.stringify(chatHistory));
       localStorage.setItem(chatScopedKey('texter_fast_chat_id', identity), activeFastChatId);
     } catch {}
-    if (uid && activeFastChatId && Array.isArray(chatHistory) && chatHistory.length) {
-      return qovarkPutCachedChat(uid, activeFastChatId, chatHistory, {
-        title: deriveChatTitle(chatHistory), messageCount: chatHistory.length,
-        updatedAt: new Date().toISOString(), source: "local", dirty: true
-      });
-    }
-    return Promise.resolve(true);
   }
   function activateFastChatIdentity(uid) {
     const identity = uid || null;
@@ -10451,6 +10164,16 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   document.getElementById("closeChatHistoryBtn")?.addEventListener("click", () => setHistoryOpen(false));
   historyOverlayEl?.addEventListener("click", e => {
     if (e.target === historyOverlayEl) setHistoryOpen(false);
+  });
+
+  document.getElementById("newChatBtn")?.addEventListener("click", () => {
+    activeFastChatId = "chat_" + Date.now();
+    chatHistory = [];
+    latestAIText = "";
+    chatContainer.innerHTML = "";
+    setHistoryOpen(false);
+    persistFastChat();
+    updateScrollBottomButton();
   });
 
   function deriveChatTitle(messages) {
@@ -10824,38 +10547,25 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     input.select();
   }
 
-  async function createQovarkChatShare(chatId = activeFastChatId, messages = chatHistory, suppliedTitle = "", triggerButton = null) {
+  async function createQovarkChatShare() {
     if (qovarkShareBusy) return;
     if (!qovarkRequireShareAccount()) return;
-    const targetChatId = String(chatId || "").trim();
-    const targetMessages = qovarkCleanChatMessages(messages);
-    if (!targetChatId || !targetMessages.length) {
-      showToast("There are no saved messages in this conversation to share.");
+    if (!activeFastChatId || !Array.isArray(chatHistory) || !chatHistory.length) {
+      showToast("There are no messages in this chat to share.");
       return;
     }
-    const title = String(suppliedTitle || deriveChatTitle(targetMessages) || "Shared conversation");
     const confirmed = await confirmInApp(
-      `Create a link that lets anyone with it view the saved text in “${title.slice(0, 90)}” for 7 days? Attachments are excluded. You can revoke the link later from Manage shared links.`,
+      "Create a link that lets anyone with it view the saved text in this conversation for 7 days? Attachments are excluded. You can revoke the link later from Manage shared links.",
       { title: "Share this conversation", confirmText: "Create link" }
     );
     if (!confirmed) return;
     qovarkShareBusy = true;
-    const button = triggerButton || document.getElementById("shareCurrentChatBtn");
+    const button = document.getElementById("shareCurrentChatBtn");
     if (button) button.disabled = true;
     try {
-      const shareMessages = targetMessages.map(item => ({
-        sender: item.sender,
-        text: String(item.text || "").replace(/\s*\[image attached\]\s*$/i, "").slice(0, 20000),
-        timestamp: item.timestamp || null
-      })).filter(item => item.text.trim());
       const data = await pxxlRequest("/api/share/chat", {
         method: "POST",
-        body: JSON.stringify({
-          chatId: targetChatId,
-          title,
-          messages: shareMessages,
-          expiresInHours: 168
-        })
+        body: JSON.stringify({ chatId: activeFastChatId, title: deriveChatTitle(chatHistory), expiresInHours: 168 })
       });
       if (!data?.success || !data.url || !data.shareId) throw new Error("The sharing service did not return a valid link.");
       showQovarkCreatedShare(data, "chat");
@@ -10864,88 +10574,6 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     } finally {
       qovarkShareBusy = false;
       if (button) button.disabled = false;
-    }
-  }
-
-  async function shareQovarkHistoryChat(uid, entry, button) {
-    if (!uid || !entry?.chatId || !qovarkRequireShareAccount()) return;
-    if (!qovarkIsOnline()) {
-      showToast("Connect to the internet to create a share link.");
-      return;
-    }
-    button.disabled = true;
-    try {
-      let cached = await qovarkGetCachedChat(uid, entry.chatId);
-      let messages = Array.isArray(cached?.messages) ? cached.messages : [];
-      if (!messages.length) {
-        const result = await pxxlRequest(`/api/chat/history?chatId=${encodeURIComponent(entry.chatId)}&limit=500`);
-        if (auth.currentUser?.uid !== uid) return;
-        messages = (result.messages || []).map(row => ({
-          id: String(row.id || `db_${row.created_at || Date.now()}`),
-          text: String(row.message || ""),
-          sender: row.sender_role === "ai" ? "ai" : "user",
-          timestamp: row.created_at || new Date().toISOString()
-        }));
-        if (messages.length) {
-          await qovarkPutCachedChat(uid, entry.chatId, messages, {
-            title: entry.title, messageCount: messages.length,
-            updatedAt: entry.updatedAt || new Date().toISOString(), source: "supabase", dirty: false
-          });
-        }
-      }
-      if (!messages.length) throw new Error("This conversation has no saved messages available to share.");
-      await createQovarkChatShare(entry.chatId, messages, entry.title, button);
-    } catch (error) {
-      showToast(error?.message || "Could not prepare this conversation for sharing.");
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-  async function deleteQovarkHistoryChat(uid, entry, button) {
-    if (!uid || !entry?.chatId || (auth.currentUser?.uid || null) !== uid) return;
-    const title = String(entry.title || "this conversation").slice(0, 100);
-    const confirmed = await confirmInApp(
-      `Delete “${title}” from your QOVARK chat history? This removes the conversation from your account and synced devices. Existing share links remain available until revoked or expired.`,
-      { title: "Delete conversation", confirmText: "Delete chat", danger: true }
-    );
-    if (!confirmed) return;
-
-    button.disabled = true;
-    const chatId = String(entry.chatId);
-    qovarkQueueChatDelete(uid, chatId);
-    await qovarkRemoveCachedChat(uid, chatId);
-
-    if (String(activeFastChatId) === chatId) {
-      activeFastChatSendToken += 1;
-      activeFastChatRequestToken += 1;
-      try { activeFastChatController?.abort(); } catch {}
-      activeFastChatController = null;
-      isTyping = false;
-      activeFastChatId = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      chatHistory = [];
-      latestAIText = "";
-      editingUserMessageId = null;
-      chatContainer.innerHTML = "";
-      try {
-        localStorage.setItem(chatScopedKey("texter_fast_chat_id", uid), activeFastChatId);
-        localStorage.setItem(chatScopedKey("texter_fast_chat_cache", uid), "[]");
-      } catch {}
-      updateActionButton();
-      updateScrollBottomButton();
-      hideHUD();
-    }
-
-    renderFastChatHistory();
-    if (qovarkIsOnline()) {
-      await retryQovarkChatDeletes(uid);
-      if (qovarkIsChatDeletePending(uid, chatId)) {
-        showToast("Removed locally. Cloud deletion will retry when the connection is restored.");
-      } else {
-        showToast("Conversation deleted from your QOVARK account and synced history.");
-      }
-    } else {
-      showToast("Conversation removed on this device. Deletion will sync when you reconnect.");
     }
   }
 
@@ -11136,7 +10764,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     }
   }
 
-  document.getElementById("shareCurrentChatBtn")?.addEventListener("click", () => createQovarkChatShare());
+  document.getElementById("shareCurrentChatBtn")?.addEventListener("click", createQovarkChatShare);
   document.getElementById("manageSharedLinksBtn")?.addEventListener("click", openQovarkShareManager);
   document.getElementById("qovarkShareCloseBtn")?.addEventListener("click", closeQovarkShareDialog);
   qovarkShareOverlay?.addEventListener("click", event => { if (event.target === qovarkShareOverlay) closeQovarkShareDialog(); });
@@ -11808,315 +11436,86 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     await Promise.allSettled([loadPxxlWorkspace(), loadPxxlAlerts()]);
   }
 
-  // The device cache renders immediately. Firestore keeps devices in sync in the
-  // background; Supabase repairs older backend-only conversations periodically.
-  persistFastChat = async function() {
+  // Pxxl is the source of truth for signed-in chat history; guest chat remains local.
+  persistFastChat = function() {
     const ownerUid = activeFastChatOwnerUid === undefined ? (auth.currentUser?.uid || null) : activeFastChatOwnerUid;
-    await saveLocalFastChatFor(ownerUid);
+    saveLocalFastChatFor(ownerUid);
     if (auth.currentUser && auth.currentUser.uid === ownerUid && activeFastChatId && chatHistory.length) {
-      const uid = auth.currentUser.uid;
-      const snapshot = {
+      setDoc(doc(db, "users", auth.currentUser.uid, "chats", activeFastChatId), {
         title: deriveChatTitle(chatHistory),
-        messages: qovarkCleanChatMessages(chatHistory),
+        messages: chatHistory,
         messageCount: chatHistory.length,
         updatedAt: new Date().toISOString()
-      };
-      setDoc(doc(db, "users", uid, "chats", activeFastChatId), snapshot, { merge: true })
-        .then(() => qovarkMarkChatClean(uid, activeFastChatId))
-        .catch(error => console.warn("Chat cloud save queued for retry:", error.message));
-    }
-    return true; // Never wait for a cloud round-trip before changing screens.
+      }, { merge: true })
+        .then(() => { if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory(); })
+        .catch(error => console.warn("Chat cloud save:", error.message));
+    } else if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
   };
-
-  function qovarkHistoryStatus(text) {
-    const status = document.getElementById("historyAccountStatus");
-    if (status) status.textContent = text;
-  }
-
-  renderFastChatHistory = function() {
+  renderFastChatHistory = async function() {
+    const uidAtStart = auth.currentUser?.uid || null;
     const listEl = document.getElementById("chatHistoryList");
-    const uid = auth.currentUser?.uid || null;
     if (!listEl) return;
-    if (!uid) {
-      listEl.innerHTML = '<div class="history-empty">Sign in to sync conversations across devices. Guest chats remain on this device.</div>';
-      qovarkHistoryStatus("Guest conversations are saved on this device only.");
+    if (!uidAtStart) {
+      listEl.innerHTML = '<div class="history-empty">Sign in to sync conversations across devices. This device keeps its current chat locally.</div>';
       return;
     }
 
-    const entries = qovarkReadChatIndex(uid);
-    const fragment = document.createDocumentFragment();
-    for (const entry of entries) {
-      if (!entry?.chatId || qovarkIsChatDeletePending(uid, entry.chatId)) continue;
-      const wrapper = document.createElement("div");
-      wrapper.className = "history-chat-entry";
-      const openBtn = document.createElement("button");
-      openBtn.type = "button";
-      openBtn.className = "history-chat-item" + (String(entry.chatId) === String(activeFastChatId) ? " current" : "");
-      const title = String(entry.title || "New conversation");
-      const preview = String(entry.preview || "No preview available offline");
-      const date = entry.updatedAt ? new Date(entry.updatedAt).toLocaleString() : "Saved on this device";
-      openBtn.innerHTML = `<strong title="${escapeHTML(title)}">${escapeHTML(title)}</strong><span>${escapeHTML(preview).slice(0, 110)}</span><small>${escapeHTML(date)} · ${Number(entry.messageCount || 0)} messages${entry.cached === false ? " · cloud copy" : " · offline"}</small>`;
-      openBtn.addEventListener("click", async () => {
-        if ((auth.currentUser?.uid || null) !== uid || openBtn.disabled) return;
-        openBtn.disabled = true;
-        try {
-          activeFastChatSendToken += 1;
-          activeFastChatRequestToken += 1;
-          try { activeFastChatController?.abort(); } catch {}
-          activeFastChatController = null;
-          isTyping = false;
-          hideHUD();
-          await persistFastChat();
-          if ((auth.currentUser?.uid || null) !== uid) return;
+    // Render this account's local current conversation immediately; cloud history
+    // replaces or extends it once Firestore responds.
+    const cachedId = activeFastChatId;
+    const cachedMessages = Array.isArray(chatHistory) ? chatHistory.slice() : [];
+    const appendEntry = (container, chatId, data, messages) => {
+      const title = deriveChatTitle(messages) !== "New conversation" ? deriveChatTitle(messages) : (data.title || "New conversation");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "history-chat-item" + (chatId === activeFastChatId ? " current" : "");
+      const preview = messages.find(m => m.sender === "ai")?.text || messages.find(m => m.sender === "user")?.text || "No messages yet";
+      btn.innerHTML = `<strong title="${escapeHTML(title)}">${escapeHTML(title)}</strong><span>${escapeHTML(preview).slice(0, 110)}</span><small>${data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'On this device'} · ${messages.length} messages</small>`;
+      btn.addEventListener("click", () => {
+        if ((auth.currentUser?.uid || null) !== uidAtStart) return;
+        activeFastChatId = chatId;
+        chatHistory = messages;
+        latestAIText = chatHistory.filter(item => item.sender === 'ai').slice(-1)[0]?.text || '';
+        saveLocalFastChatFor(uidAtStart);
+        renderChatMessagesIntoMainFeed();
+        setHistoryOpen(false);
+      });
+      container.appendChild(btn);
+    };
 
-          let cached = await qovarkGetCachedChat(uid, entry.chatId);
-          let loadedMessages = Array.isArray(cached?.messages) ? cached.messages : [];
-          if (!loadedMessages.length && qovarkIsOnline()) {
-            const result = await pxxlRequest(`/api/chat/history?chatId=${encodeURIComponent(entry.chatId)}&limit=500`);
-            if ((auth.currentUser?.uid || null) !== uid) return;
-            const rows = Array.isArray(result.messages) ? result.messages : [];
-            loadedMessages = rows.map(row => ({
-              id: row.id || `db_${row.created_at || Date.now()}`,
-              text: String(row.message || ""),
-              sender: row.sender_role === "ai" ? "ai" : "user",
-              timestamp: row.created_at || new Date().toISOString()
-            }));
-            if (loadedMessages.length) {
-              await qovarkPutCachedChat(uid, entry.chatId, loadedMessages, {
-                title: entry.title, messageCount: loadedMessages.length,
-                updatedAt: entry.updatedAt || new Date().toISOString(), source: "supabase", dirty: false
-              });
-            }
-          }
-          if (!loadedMessages.length) {
-            if (!qovarkIsOnline()) throw new Error("This conversation has not been cached on this device yet. Reconnect once to make it available offline.");
-            throw new Error("No messages were found for this conversation.");
-          }
-          if ((auth.currentUser?.uid || null) !== uid) return;
-          activeFastChatId = entry.chatId;
-          chatHistory = qovarkCleanChatMessages(loadedMessages);
-          latestAIText = chatHistory.filter(item => item.sender === "ai").slice(-1)[0]?.text || "";
-          editingUserMessageId = null;
-          saveLocalFastChatFor(uid);
-          renderChatMessagesIntoMainFeed();
-          setHistoryOpen(false);
-          updateActionButton();
-        } catch (error) {
-          showToast(error?.message || "Could not open this saved conversation.");
-        } finally { openBtn.disabled = false; }
-      });
-
-      const actions = document.createElement("div");
-      actions.className = "history-chat-actions";
-      const shareBtn = document.createElement("button");
-      shareBtn.type = "button";
-      shareBtn.className = "history-chat-action";
-      shareBtn.setAttribute("aria-label", `Share ${title}`);
-      shareBtn.title = "Share conversation";
-      shareBtn.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
-      shareBtn.addEventListener("click", event => {
-        event.preventDefault(); event.stopPropagation();
-        shareQovarkHistoryChat(uid, entry, shareBtn);
-      });
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = "history-chat-action danger";
-      deleteBtn.setAttribute("aria-label", `Delete ${title}`);
-      deleteBtn.title = "Delete conversation";
-      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-      deleteBtn.addEventListener("click", event => {
-        event.preventDefault(); event.stopPropagation();
-        deleteQovarkHistoryChat(uid, entry, deleteBtn);
-      });
-      actions.append(shareBtn, deleteBtn);
-      wrapper.append(openBtn, actions);
-      fragment.appendChild(wrapper);
+    listEl.innerHTML = '<div class="history-empty">Loading saved conversations…</div>';
+    if (cachedMessages.length) {
+      const cachedFragment = document.createDocumentFragment();
+      appendEntry(cachedFragment, cachedId, { title: deriveChatTitle(cachedMessages) }, cachedMessages);
+      listEl.replaceChildren(cachedFragment);
     }
-    if (!fragment.childNodes.length) {
-      listEl.innerHTML = qovarkIsOnline()
-        ? '<div class="history-empty">No conversations saved on this device yet. Your account history will sync here automatically.</div>'
-        : '<div class="history-empty">No offline conversations are cached on this device yet. Reconnect once to download your saved history.</div>';
-    } else listEl.replaceChildren(fragment);
-    qovarkHistoryStatus(qovarkIsOnline()
-      ? "Saved on this device · syncing with your QOVARK account"
-      : "Offline · showing conversations saved on this device");
+
+    try {
+      const q = query(collection(db, "users", uidAtStart, "chats"), orderBy("updatedAt", "desc"));
+      const snap = await getDocs(q);
+      if ((auth.currentUser?.uid || null) !== uidAtStart) return;
+      const entries = [];
+      snap.forEach(d => {
+        const data = d.data() || {};
+        const messages = Array.isArray(data.messages) ? data.messages : [];
+        if (messages.length) entries.push({ id: d.id, data, messages });
+      });
+      const containsCached = entries.some(entry => entry.id === cachedId);
+      if (!containsCached && cachedMessages.length) {
+        entries.push({ id: cachedId, data: { title: deriveChatTitle(cachedMessages) }, messages: cachedMessages, localOnly: true });
+      }
+      if (!entries.length) {
+        listEl.innerHTML = '<div class="history-empty">Your conversations will appear here as soon as you start chatting.</div>';
+        return;
+      }
+      const fragment = document.createDocumentFragment();
+      entries.forEach(entry => appendEntry(fragment, entry.id, entry.data, entry.messages));
+      listEl.replaceChildren(fragment);
+    } catch (error) {
+      if ((auth.currentUser?.uid || null) !== uidAtStart) return;
+      if (!cachedMessages.length) listEl.innerHTML = '<div class="history-empty">Could not load chats. Try again.</div>';
+    }
   };
-
-  function stopQovarkChatHistorySync() {
-    if (typeof qovarkChatHistoryUnsubscribe === "function") {
-      try { qovarkChatHistoryUnsubscribe(); } catch {}
-    }
-    qovarkChatHistoryUnsubscribe = null;
-    qovarkChatHistorySyncUid = null;
-  }
-
-  async function syncQovarkLegacyBackendChats(uid, force = false) {
-    if (!uid || !auth.currentUser || auth.currentUser.uid !== uid || !qovarkIsOnline()) return;
-    const throttleKey = `qovark_chat_backend_recovery_at__${uid}`;
-    const last = Number(localStorage.getItem(throttleKey) || 0);
-    if (!force && Date.now() - last < 120000) return;
-    try { localStorage.setItem(throttleKey, String(Date.now())); } catch {}
-    const combined = new Map();
-    let offset = 0;
-    let pageCount = 0;
-    try {
-      do {
-        const result = await pxxlRequest(`/api/chat/conversations?limit=100&includeMessages=1&offset=${offset}`);
-        if ((auth.currentUser?.uid || null) !== uid) return;
-        for (const item of (result.conversations || [])) {
-          const chatId = String(item.chatId || "");
-          if (!chatId || qovarkIsChatDeletePending(uid, chatId)) continue;
-          const current = combined.get(chatId) || { ...item, messages: [] };
-          const pageMessages = Array.isArray(item.messages) ? item.messages : [];
-          const unique = new Map(current.messages.map(message => [String(message.id), message]));
-          for (const row of pageMessages) {
-            const message = {
-              id: String(row.id || `db_${row.created_at || Date.now()}`),
-              text: String(row.message || ""),
-              sender: row.sender_role === "ai" ? "ai" : "user",
-              timestamp: row.created_at || new Date().toISOString()
-            };
-            unique.set(message.id, message);
-          }
-          current.messages = Array.from(unique.values()).sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
-          current.messageCount = Math.max(current.messages.length, Number(current.messageCount || 0));
-          current.updatedAt = [current.updatedAt, item.updatedAt].filter(Boolean).sort().at(-1) || null;
-          if (!current.title || current.title === "New conversation") {
-            current.title = item.title && item.title !== "New conversation"
-              ? item.title : deriveChatTitle(current.messages);
-          }
-          combined.set(chatId, current);
-        }
-        pageCount += 1;
-        offset = result.nextOffset !== null && result.nextOffset !== undefined && Number.isFinite(Number(result.nextOffset))
-        ? Number(result.nextOffset) : null;
-      } while (offset !== null && pageCount < 10);
-
-      const existingIndex = qovarkReadChatIndex(uid);
-      for (const [chatId, item] of combined) {
-        const existing = existingIndex.find(entry => String(entry.chatId) === chatId);
-        // Firestore contains the richer, current cross-device snapshot. Supabase
-        // is a recovery source for legacy/backend-only threads, not an overwrite.
-        if (existing?.source === "firestore" && existing.cached !== false) continue;
-        if (item.messages.length) {
-          await qovarkPutCachedChat(uid, chatId, item.messages, {
-            title: item.title && item.title !== "New conversation" ? item.title : deriveChatTitle(item.messages),
-            preview: item.preview,
-            messageCount: item.messageCount || item.messages.length,
-            updatedAt: item.updatedAt || new Date().toISOString(),
-            source: "supabase", dirty: false
-          });
-        } else {
-          qovarkUpsertChatIndex(uid, {
-            chatId, title: item.title, preview: item.preview,
-            messageCount: item.messageCount, updatedAt: item.updatedAt,
-            source: "supabase", cached: false
-          });
-        }
-      }
-      if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
-    } catch (error) {
-      console.warn("Background chat-history recovery:", error?.message || error);
-    }
-  }
-
-  function startQovarkChatHistorySync(uid) {
-    if (!uid || qovarkChatHistorySyncUid === uid) return;
-    stopQovarkChatHistorySync();
-    qovarkChatHistorySyncUid = uid;
-    qovarkHydrateChatIndexFromDevice(uid).then(() => {
-      if (auth.currentUser?.uid === uid && historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
-    });
-
-    try {
-      const chatQuery = query(collection(db, "users", uid, "chats"), orderBy("updatedAt", "desc"));
-      qovarkChatHistoryUnsubscribe = onSnapshot(chatQuery, snapshot => {
-        if ((auth.currentUser?.uid || null) !== uid) return;
-        const cacheWrites = [];
-        const remotelyRemovedIds = !snapshot.metadata.fromCache
-          ? snapshot.docChanges().filter(change => change.type === "removed").map(change => change.doc.id)
-          : [];
-        snapshot.forEach(documentSnapshot => {
-          if (qovarkIsChatDeletePending(uid, documentSnapshot.id)) return;
-          const data = documentSnapshot.data() || {};
-          const messages = Array.isArray(data.messages) ? data.messages : [];
-          if (!messages.length) return;
-          cacheWrites.push(qovarkPutCachedChat(uid, documentSnapshot.id, messages, {
-            title: data.title || deriveChatTitle(messages),
-            messageCount: Number(data.messageCount || messages.length),
-            updatedAt: typeof data.updatedAt === "string" ? data.updatedAt : new Date().toISOString(),
-            source: "firestore", dirty: false
-          }));
-        });
-        Promise.allSettled(cacheWrites).then(async () => {
-          for (const removedId of remotelyRemovedIds) {
-            if (qovarkIsChatDeletePending(uid, removedId)) continue;
-            await qovarkRemoveCachedChat(uid, removedId);
-            if (String(activeFastChatId) === String(removedId) && activeFastChatOwnerUid === uid) {
-              activeFastChatSendToken += 1;
-              activeFastChatRequestToken += 1;
-              try { activeFastChatController?.abort(); } catch {}
-              activeFastChatController = null;
-              isTyping = false;
-              activeFastChatId = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-              chatHistory = [];
-              latestAIText = "";
-              editingUserMessageId = null;
-              chatContainer.innerHTML = "";
-              try {
-                localStorage.setItem(chatScopedKey("texter_fast_chat_id", uid), activeFastChatId);
-                localStorage.setItem(chatScopedKey("texter_fast_chat_cache", uid), "[]");
-              } catch {}
-              updateActionButton();
-              updateScrollBottomButton();
-              hideHUD();
-            }
-          }
-          if ((auth.currentUser?.uid || null) === uid && historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
-          qovarkHistoryStatus(qovarkIsOnline()
-            ? "Synced across your website and app · available offline on this device"
-            : "Offline · showing conversations saved on this device");
-        });
-      }, error => {
-        console.warn("Realtime chat-history sync:", error?.message || error);
-        if ((auth.currentUser?.uid || null) === uid) qovarkHistoryStatus("Offline or temporarily disconnected · showing locally saved conversations");
-      });
-    } catch (error) {
-      console.warn("Could not start chat-history sync:", error?.message || error);
-    }
-    syncQovarkLegacyBackendChats(uid).catch(() => {});
-    retryQovarkChatDeletes(uid).catch(() => {});
-  }
-
-  async function retryQovarkLocalChatSync(uid) {
-    if (!uid || !auth.currentUser || auth.currentUser.uid !== uid || !qovarkIsOnline()) return;
-    startQovarkChatHistorySync(uid);
-    const records = await qovarkGetAllCachedChats(uid);
-    for (const record of records.filter(item => item.dirty && item.messages?.length).slice(0, 50)) {
-      if (auth.currentUser?.uid !== uid) return;
-      try {
-        await setDoc(doc(db, "users", uid, "chats", record.chatId), {
-          title: record.title || deriveChatTitle(record.messages),
-          messages: record.messages,
-          messageCount: record.messages.length,
-          updatedAt: record.updatedAt || new Date().toISOString()
-        }, { merge: true });
-        await qovarkMarkChatClean(uid, record.chatId);
-      } catch (error) {
-        console.warn("Offline chat sync will retry:", error?.message || error);
-        break;
-      }
-    }
-    syncQovarkLegacyBackendChats(uid).catch(() => {});
-  }
-
-  window.addEventListener("offline", () => {
-    if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
-  });
-  window.addEventListener("online", () => {
-    const uid = auth.currentUser?.uid || null;
-    if (uid) retryQovarkChatDeletes(uid).catch(() => {});
-  });
 
   function renderChatMessagesIntoMainFeed() {
     chatContainer.innerHTML = "";
@@ -12314,132 +11713,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     return await signInWithPopup(auth, provider);
   }
 
-  function syncQovarkSignInMethodsUI(user = auth.currentUser) {
-    const status = document.getElementById("qovarkSignInMethodsStatus");
-    const fields = document.getElementById("qovarkPasswordSetupFields");
-    const message = document.getElementById("qovarkPasswordSetupMessage");
-    const button = document.getElementById("qovarkAddPasswordBtn");
-    if (!status || !fields || !button) return;
-
-    if (!user) {
-      status.textContent = "Sign in to view the methods connected to this account.";
-      fields.style.display = "none";
-      button.disabled = true;
-      return;
-    }
-
-    const providers = new Set((user.providerData || []).map(item => item.providerId));
-    const hasPassword = providers.has("password");
-    const hasGoogle = providers.has("google.com");
-    if (hasPassword) {
-      status.textContent = hasGoogle
-        ? "Google and email/password sign-in are both enabled for this same account."
-        : "Email/password sign-in is enabled for this account.";
-      fields.style.display = "none";
-      button.disabled = true;
-    } else {
-      const connected = [...providers].map(id => id === "google.com" ? "Google" : id).join(", ") || "your current sign-in method";
-      status.textContent = `${connected} sign-in is connected. Add a password to also use email/password login.`;
-      fields.style.display = "block";
-      button.disabled = false;
-      if (message && !message.textContent) message.textContent = "Use a password you do not use on other websites.";
-    }
-  }
-
-  function qovarkPasswordLinkError(error) {
-    const code = String(error?.code || "");
-    if (code === "auth/credential-already-in-use" || code === "auth/email-already-in-use") {
-      return "This email/password credential is already attached to another Firebase account. No accounts were merged. Sign in to the account that already owns that credential and link Google there; contact QOVARK support if you believe the accounts are duplicates.";
-    }
-    if (code === "auth/provider-already-linked") {
-      syncQovarkSignInMethodsUI(auth.currentUser);
-      return "Email/password sign-in is already linked to this account. Try signing in with that email and its existing password.";
-    }
-    if (code === "auth/requires-recent-login") {
-      return "For security, sign in again with your connected Google account, then retry adding the password.";
-    }
-    if (code === "auth/weak-password") {
-      return "Choose a password with at least 8 characters, including letters, numbers and a symbol.";
-    }
-    return error?.message || "The password sign-in method could not be added. Please try again.";
-  }
-
-  async function addQovarkPasswordSignIn() {
-    const user = auth.currentUser;
-    if (!user) throw new Error("Sign in to QOVARK first.");
-    if (!user.email) throw new Error("This account does not have an email address to use for password sign-in.");
-
-    const password = document.getElementById("qovarkNewLoginPassword")?.value || "";
-    const confirmation = document.getElementById("qovarkConfirmLoginPassword")?.value || "";
-    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-      throw new Error("Password must be at least 8 characters and include letters, numbers and a symbol.");
-    }
-    if (password !== confirmation) throw new Error("The two passwords do not match.");
-
-    const providers = new Set((user.providerData || []).map(item => item.providerId));
-    if (providers.has("password")) {
-      syncQovarkSignInMethodsUI(user);
-      throw new Error("Email/password sign-in is already enabled for this account.");
-    }
-    if (!user.emailVerified) {
-      throw new Error("Verify this email address before adding password sign-in. Sign in with your connected provider and complete QOVARK email verification first.");
-    }
-
-    // Keep QOVARK's own email-verification gate in force before linking another
-    // credential. If a code is required, the verification screen opens and the
-    // user can return here and retry after verification.
-    const emailReady = await ensureQovarkEmailVerification(user, "password-link");
-    if (!emailReady) return false;
-    if (auth.currentUser?.uid !== user.uid) throw new Error("Your signed-in account changed. Please try again.");
-
-    const emailCredential = EmailAuthProvider.credential(user.email.trim(), password);
-    const linked = await linkWithCredential(user, emailCredential);
-    if (!linked?.user || linked.user.uid !== user.uid) {
-      throw new Error("The sign-in method was not linked to the original account. Please contact QOVARK support before continuing.");
-    }
-    await linked.user.getIdToken(true);
-    await linked.user.reload();
-    if (auth.currentUser?.uid !== user.uid) throw new Error("Your signed-in account changed. Please sign in again.");
-
-    const newPasswordInput = document.getElementById("qovarkNewLoginPassword");
-    const confirmPasswordInput = document.getElementById("qovarkConfirmLoginPassword");
-    if (newPasswordInput) newPasswordInput.value = "";
-    if (confirmPasswordInput) confirmPasswordInput.value = "";
-    const message = document.getElementById("qovarkPasswordSetupMessage");
-    if (message) {
-      message.style.color = "var(--success, #16a34a)";
-      message.textContent = "Password sign-in is now connected to this same QOVARK account. You can use Google or your email and this new password.";
-    }
-    syncQovarkSignInMethodsUI(auth.currentUser);
-    showToast("Email/password sign-in added to your account.");
-    return true;
-  }
-
   // Profile, signup and terms: Firebase owns authentication; Pxxl owns profile data.
   document.addEventListener("click", async function pxxlAuthCapture(e) {
-    const target = e.target.closest("#authBtn, #googleSignInBtn, #agreeBtn, #saveProfileBtn, #manageSecurityPinBtn, #qovarkAddPasswordBtn");
+    const target = e.target.closest("#authBtn, #googleSignInBtn, #agreeBtn, #saveProfileBtn, #manageSecurityPinBtn");
     if (!target) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if (target.id === "qovarkAddPasswordBtn") {
-      const button = target;
-      const message = document.getElementById("qovarkPasswordSetupMessage");
-      button.disabled = true;
-      button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding password…';
-      if (message) { message.style.color = "var(--text-muted)"; message.textContent = "Linking the password to your existing account securely…"; }
-      try {
-        const linked = await addQovarkPasswordSignIn();
-        if (linked === false && message) {
-          message.style.color = "var(--text-muted)";
-          message.textContent = "Complete the email verification step, then return here to add your password.";
-        }
-      } catch (error) {
-        if (message) { message.style.color = "var(--danger, #dc2626)"; message.textContent = qovarkPasswordLinkError(error); }
-      } finally {
-        button.innerHTML = '<i class="fa-solid fa-key"></i> Add password sign-in';
-        syncQovarkSignInMethodsUI(auth.currentUser);
-      }
-      return;
-    }
     if (target.id === "manageSecurityPinBtn") {
       if (!requireSignedIn()) return;
       document.getElementById("securityOverlay")?.classList.remove("active");
@@ -12468,15 +11746,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
           showEmailVerification({ purpose: "signup", email: emailInput.value.trim(), username: usernameInput.value.trim() });
           return;
         }
-      } catch (error) {
-        hideHUD();
-        const errorCode = String(error?.code || "");
-        const loginHint = isLoginMode && errorCode === "auth/invalid-credential"
-          ? "Email/password sign-in was not accepted. If you originally joined with Google, choose Continue with Google, then open Settings → Security & Privacy → Sign-in methods and add a QOVARK password. Do not register a second account with the same email."
-          : safeUserFacingText(error.message, "Something went wrong. Please try again.");
-        authError.textContent = loginHint;
-        authError.classList.add("visible");
-      }
+      } catch (error) { hideHUD(); authError.textContent = safeUserFacingText(error.message, "Something went wrong. Please try again."); authError.classList.add("visible"); }
     } else if (target.id === "googleSignInBtn") {
       try {
         showHUD("Connecting Google…", true);
@@ -12552,14 +11822,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   onAuthStateChanged(auth, async user => {
     const nextUid = user?.uid || null;
     if (lastLoadedAuthUid !== nextUid) {
-      stopQovarkChatHistorySync();
       clearAccountScopedWorkspace();
       activateFastChatIdentity(nextUid);
       if (nextUid) restoreOfflineWorkspaceSnapshot(nextUid);
       lastLoadedAuthUid = nextUid;
     }
     currentUser = user || null;
-    syncQovarkSignInMethodsUI(user || null);
     if (user) {
       try { localStorage.setItem("qovark_last_auth_uid", user.uid); } catch {}
       applyCachedProfileToUI(user);
@@ -12595,8 +11863,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       return;
     }
     requestQovarkPushToken();
-    startQovarkChatHistorySync(nextUid);
-    document.getElementById("historyAccountStatus").textContent = "Synced across your website and app · available offline on this device";
+    document.getElementById("historyAccountStatus").textContent = "Synced with your QOVARK account.";
     try {
       await loadPxxlProfile();
       if (auth.currentUser?.uid !== nextUid) return;
@@ -12687,7 +11954,6 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     showToast("Internet connection restored" + routeLabel + ".");
     if (!auth.currentUser) return;
     requestQovarkPushToken();
-    retryQovarkLocalChatSync(auth.currentUser.uid).catch(() => {});
     loadPxxlProfile().catch(() => {});
     refreshPxxlData();
   });
@@ -12704,45 +11970,16 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     try { localStorage.setItem("texter_last_chat_id", activeFastChatId); } catch {}
   });
 
-  // One New Chat transition: preserve the previous thread, cancel its pending
-  // response, then switch to a unique ID. It never invokes a delete-history route.
-  function createFastChatId() {
-    const token = globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    return `chat_${token}`;
-  }
-  document.addEventListener("click", async e => {
+  // Starting a new chat switches thread IDs; it never deletes the conversation being left.
+  document.addEventListener("click", e => {
     const btn = e.target.closest("#newChatBtn"); if (!btn) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if (btn.dataset.qovarkBusy === "1") return;
-    btn.dataset.qovarkBusy = "1";
-    btn.disabled = true;
-
-    const ownerUid = auth.currentUser?.uid || null;
-    // Invalidate stale replies immediately so they cannot be appended to the next chat.
-    activeFastChatSendToken += 1;
-    activeFastChatRequestToken += 1;
-    try { activeFastChatController?.abort(); } catch {}
-    activeFastChatController = null;
-    isTyping = false;
-    hideHUD();
-
-    try {
-      await persistFastChat();
-      if ((auth.currentUser?.uid || null) !== ownerUid) return;
-      activeFastChatId = createFastChatId();
-      chatHistory = [];
-      latestAIText = "";
-      editingUserMessageId = null;
-      chatContainer.innerHTML = "";
-      saveLocalFastChatFor(ownerUid);
-      setHistoryOpen(false);
-      updateActionButton();
-      updateScrollBottomButton();
-      showToast("New conversation started. Your previous chat remains saved.");
-    } finally {
-      btn.disabled = false;
-      btn.dataset.qovarkBusy = "0";
-    }
+    persistFastChat();
+    activeFastChatId = "chat_" + Date.now();
+    chatHistory = []; latestAIText = ""; chatContainer.innerHTML = "";
+    try { localStorage.setItem(chatScopedKey('texter_fast_chat_id', auth.currentUser?.uid || 'guest'), activeFastChatId); localStorage.setItem(chatScopedKey('texter_fast_chat_cache', auth.currentUser?.uid || 'guest'), "[]"); } catch {}
+    persistFastChat(); setHistoryOpen(false); updateScrollBottomButton();
+    showToast("New conversation started. Your previous chat remains saved.");
   }, true);
 
   // Real Pages refresh: re-fetch workspace/document state instead of waiting on a timer.
@@ -12850,20 +12087,13 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
   async function loadPxxlChatIntoMainFeed() {
     const uidAtStart = auth.currentUser?.uid;
-    const chatIdAtStart = activeFastChatId;
-    if (!uidAtStart || !chatIdAtStart || chatHistory.length) return;
+    if (!uidAtStart) return;
     try {
-      const data = await pxxlRequest(`/api/chat/history?chatId=${encodeURIComponent(chatIdAtStart)}&limit=500`);
-      if (auth.currentUser?.uid !== uidAtStart || activeFastChatOwnerUid !== uidAtStart || activeFastChatId !== chatIdAtStart || chatHistory.length) return;
-      const rows = Array.isArray(data.messages) ? data.messages : [];
-      if (!rows.length) return;
-      chatHistory = rows.map(row => ({
-        id: row.id || `db_${row.created_at || Date.now()}`,
-        text: String(row.message || ""),
-        sender: row.sender_role === "ai" ? "ai" : "user",
-        timestamp: row.created_at || new Date().toISOString()
-      }));
-      latestAIText = chatHistory.filter(item => item.sender === "ai").slice(-1)[0]?.text || "";
+      const data = await pxxlRequest("/api/chat/history");
+      if (auth.currentUser?.uid !== uidAtStart || activeFastChatOwnerUid !== uidAtStart) return;
+      const messages = Array.isArray(data.messages) ? data.messages : [];
+      if (!messages.length || chatHistory.length) return;
+      chatHistory = messages.map(m => ({ text: m.message || "", sender: m.sender_role === "client" ? "user" : "ai", timestamp: m.created_at }));
       renderChatMessagesIntoMainFeed();
       persistFastChat();
     } catch (error) { console.warn("Chat history sync:", error); }
@@ -13807,6 +13037,40 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     setLanguage: chooseLanguage,
     refresh: () => walk(document.body)
   });
+})();
+</script>
+
+
+<script id="qovark-public-site-auth-intent">
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const intent = params.get('auth');
+  if (intent !== 'signin' && intent !== 'signup') return;
+  const startedAt = Date.now();
+  const openAuth = () => {
+    const accountButton = document.getElementById('accountBtn');
+    if (window.__TEXTER_MODULE_READY && accountButton) {
+      if (window.auth?.currentUser) {
+        try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+        return;
+      } else {
+        accountButton.click();
+        if (intent === 'signin') document.getElementById('switchMode')?.click();
+      }
+      try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+      return;
+    }
+    if (Date.now() - startedAt < 15000) {
+      window.setTimeout(openAuth, 120);
+      return;
+    }
+    // Do not open a misleading signup panel when Firebase is unavailable.
+    // Keep the sign-in intent in the URL so a reload can retry cleanly.
+    const toast = document.getElementById('customToast');
+    const msg = document.getElementById('toastMessage');
+    if (toast && msg) { msg.textContent = 'Sign-in services are still loading. Check your connection and reload QOVARK.'; toast.classList.add('show'); }
+  };
+  openAuth();
 })();
 </script>
 
