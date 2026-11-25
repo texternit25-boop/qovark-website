@@ -7231,6 +7231,7 @@
           qovarkPendingSharedChatId = null;
           await openFastChatById(pendingId, sendingUid, { publish: false });
         }
+        if (sendingUid) syncQovarkBackendChatsIntoFirestore(sendingUid, true).catch(() => {});
       }
     }
   }
@@ -10549,6 +10550,132 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     updateScrollBottomButton();
   }
 
+  // The Android client also persists Fast Chat turns to the authenticated
+  // backend (Supabase). Import those account-owned conversations into the same
+  // Firestore collection used by the website, so both clients share one history.
+  let qovarkBackendChatSyncInFlight = false;
+  let qovarkBackendChatSyncLastAt = 0;
+
+  function mergeBackendFastChatMessages(existing, incoming) {
+    const queues = new Map();
+    (Array.isArray(existing) ? existing : []).forEach(item => {
+      const key = String(item?.sender || "") + "\u0000" + String(item?.text || "").trim();
+      if (!queues.has(key)) queues.set(key, []);
+      queues.get(key).push(item);
+    });
+    const additions = [];
+    (Array.isArray(incoming) ? incoming : []).forEach(item => {
+      const key = String(item?.sender || "") + "\u0000" + String(item?.text || "").trim();
+      const matches = queues.get(key);
+      if (matches?.length) matches.shift();
+      else additions.push(item);
+    });
+    return mergeFastChatMessages(existing, additions);
+  }
+
+  function sameFastChatMessageSequence(a, b) {
+    const left = Array.isArray(a) ? a : [];
+    const right = Array.isArray(b) ? b : [];
+    return left.length === right.length && left.every((item, index) =>
+      String(item?.sender || "") === String(right[index]?.sender || "") &&
+      String(item?.text || "") === String(right[index]?.text || "")
+    );
+  }
+
+  async function syncQovarkBackendChatsIntoFirestore(uid, force = false) {
+    if (!uid || auth.currentUser?.uid !== uid || !qovarkIsOnline() || document.hidden) return;
+    if (qovarkBackendChatSyncInFlight) return;
+    const now = Date.now();
+    if (!force && now - qovarkBackendChatSyncLastAt < 25000) return;
+    qovarkBackendChatSyncInFlight = true;
+    qovarkBackendChatSyncLastAt = now;
+
+    try {
+      let offset = 0;
+      let page = 0;
+      do {
+        const result = await pxxlRequest(`/api/chat/conversations?limit=100&includeMessages=1&offset=${offset}`);
+        if (auth.currentUser?.uid !== uid) return;
+
+        const imported = Array.isArray(result?.conversations) ? result.conversations : [];
+        const localSnapshot = await getDocs(qovarkChatCollection(uid));
+        if (auth.currentUser?.uid !== uid) return;
+        const localById = new Map(localSnapshot.docs.map(item => [item.id, item]));
+
+        for (const conversation of imported) {
+          const chatId = String(conversation?.chatId || "");
+          if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
+          if (isTyping && chatId === activeFastChatId) continue;
+
+          const backendMessages = (Array.isArray(conversation.messages) ? conversation.messages : []).map((row, index) => ({
+            id: "db_" + String(row.id || `${row.created_at || Date.now()}_${index}`),
+            text: String(row.message || ""),
+            sender: row.sender_role === "ai" ? "ai" : "user",
+            timestamp: String(row.created_at || new Date().toISOString())
+          })).filter(message => message.text || message.sender === "ai");
+          if (!backendMessages.length) continue;
+
+          const localDoc = localById.get(chatId);
+          const localData = localDoc?.data?.() || {};
+          const localMessages = Array.isArray(localData.messages) ? localData.messages : [];
+          const mergedMessages = mergeBackendFastChatMessages(localMessages, backendMessages);
+          if (sameFastChatMessageSequence(localMessages, mergedMessages)) continue;
+
+          const chatRef = doc(db, "users", uid, "chats", chatId);
+          const finalMessages = await runTransaction(db, async transaction => {
+            const latest = await transaction.get(chatRef);
+            const latestData = latest.exists() ? (latest.data() || {}) : {};
+            const latestMessages = Array.isArray(latestData.messages) ? latestData.messages : [];
+            const combined = mergeBackendFastChatMessages(latestMessages, backendMessages);
+            if (sameFastChatMessageSequence(latestMessages, combined)) return latestMessages;
+
+            const candidates = [latestData.updatedAt, conversation.updatedAt, combined.at(-1)?.timestamp]
+              .filter(value => typeof value === "string" && value);
+            const latestUpdatedAt = candidates.sort((a, b) => (Date.parse(a) || 0) - (Date.parse(b) || 0)).at(-1) || new Date().toISOString();
+            const title = latestData.title && latestData.title !== "New conversation"
+              ? latestData.title
+              : (conversation.title && conversation.title !== "New conversation"
+                ? conversation.title : deriveChatTitle(combined));
+
+            transaction.set(chatRef, {
+              title,
+              messages: combined,
+              messageCount: combined.length,
+              updatedAt: latestUpdatedAt
+            }, { merge: true });
+            return combined;
+          });
+
+          if (activeFastChatOwnerUid === uid && activeFastChatId === chatId && !isTyping &&
+              (auth.currentUser?.uid || null) === uid) {
+            chatHistory = finalMessages;
+            latestAIText = chatHistory.filter(item => item.sender === "ai").slice(-1)[0]?.text || "";
+            saveLocalFastChatFor(uid);
+            renderChatMessagesIntoMainFeed();
+          }
+        }
+
+        page += 1;
+        offset = result?.nextOffset === null || result?.nextOffset === undefined
+          ? null
+          : Number(result.nextOffset);
+        if (!Number.isFinite(offset)) offset = null;
+      } while (offset !== null && page < (force ? 3 : 1));
+
+      if (historyOverlayEl?.classList.contains("open") && (auth.currentUser?.uid || null) === uid) {
+        renderFastChatHistory();
+      }
+    } catch (error) {
+      console.warn("Backend chat-history sync:", error?.message || error);
+      const status = document.getElementById("historyAccountStatus");
+      if (status && (auth.currentUser?.uid || null) === uid) {
+        status.textContent = "Chat history sync is temporarily unavailable; saved chats remain intact.";
+      }
+    } finally {
+      qovarkBackendChatSyncInFlight = false;
+    }
+  }
+
   function setHistoryOpen(open) {
     historyOverlayEl?.classList.toggle("open", open);
     historyOverlayEl?.setAttribute("aria-hidden", String(!open));
@@ -10556,6 +10683,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   document.getElementById("openChatHistoryBtn")?.addEventListener("click", () => {
     setHistoryOpen(true);
     renderFastChatHistory();
+    const uid = auth.currentUser?.uid || null;
+    if (uid) syncQovarkBackendChatsIntoFirestore(uid, true).catch(() => {});
   });
   document.getElementById("closeChatHistoryBtn")?.addEventListener("click", () => setHistoryOpen(false));
   historyOverlayEl?.addEventListener("click", e => {
@@ -12280,6 +12409,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       document.getElementById("historyAccountStatus").textContent = "Chat history is temporarily unavailable. Your local conversation is preserved.";
     }
     startQovarkChatHistorySync(nextUid);
+    syncQovarkBackendChatsIntoFirestore(nextUid, true).catch(() => {});
     requestQovarkPushToken();
     document.getElementById("historyAccountStatus").textContent = "Synced with your QOVARK account.";
     try {
@@ -12397,8 +12527,16 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       refreshQovarkWorkspaceWhenVisible(true);
     }
   });
-  window.addEventListener("focus", () => refreshQovarkWorkspaceWhenVisible());
-  window.setInterval(() => refreshQovarkWorkspaceWhenVisible(), 60000);
+  window.addEventListener("focus", () => {
+    refreshQovarkWorkspaceWhenVisible();
+    const uid = auth.currentUser?.uid || null;
+    if (uid) syncQovarkBackendChatsIntoFirestore(uid, true).catch(() => {});
+  });
+  window.setInterval(() => {
+    refreshQovarkWorkspaceWhenVisible();
+    const uid = auth.currentUser?.uid || null;
+    if (uid && !document.hidden) syncQovarkBackendChatsIntoFirestore(uid, false).catch(() => {});
+  }, 30000);
 
   window.addEventListener("pagehide", () => {
     persistFastChat();
