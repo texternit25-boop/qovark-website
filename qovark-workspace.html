@@ -4399,6 +4399,97 @@
   }
   #hud { z-index: 2147483005 !important; }
   body.qovark-busy { cursor: progress !important; }
+
+  /* QOVARK history: saved conversations must keep their natural height.
+     The list itself scrolls; its entries never flex-shrink to fit the drawer. */
+  #chatHistoryList, .chat-history-list {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 10px !important;
+    scrollbar-width: thin !important;
+  }
+  #chatHistoryList > .history-chat-item,
+  .chat-history-list > .history-chat-item,
+  #chatHistoryList > .history-chat-entry,
+  .chat-history-list > .history-chat-entry,
+  #chatHistoryList > *:not(.history-empty),
+  .chat-history-list > *:not(.history-empty) {
+    flex: 0 0 auto !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 72px !important;
+    height: auto !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+  }
+  .history-chat-item {
+    flex: 0 0 auto !important;
+    min-height: 72px !important;
+    height: auto !important;
+    max-height: none !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+  .history-chat-item strong,
+  .history-chat-item span,
+  .history-chat-item small {
+    display: block !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.45 !important;
+  }
+  .history-sidebar {
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .history-head, .history-foot, .new-chat-btn, .qovark-share-manage {
+    flex: 0 0 auto !important;
+  }
+
+  /* The open conversation feed must grow vertically and scroll, never compress messages. */
+  #chatArea {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  #chatArea > .message {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: max-content !important;
+    max-height: none !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+  }
+  #chatArea > .ai-message {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+  #chatArea > .user-message {
+    width: fit-content !important;
+    max-width: min(89%, 760px) !important;
+    align-self: flex-end !important;
+  }
 </style>
 
 </head>
