@@ -5759,7 +5759,7 @@
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCredential, fetchSignInMethodsForEmail, getIdToken } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
   import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
   // Native connectivity state is initialised before any module code reads it.
@@ -10314,6 +10314,74 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   const historyOverlayEl = document.getElementById("historyOverlay");
   let activeFastChatOwnerUid = undefined;
   let activeFastChatId = "chat_" + Date.now();
+  let qovarkChatHistoryUnsubscribe = null;
+  let qovarkChatHistorySyncUid = null;
+
+  function stopQovarkChatHistorySync() {
+    if (typeof qovarkChatHistoryUnsubscribe === "function") {
+      try { qovarkChatHistoryUnsubscribe(); } catch {}
+    }
+    qovarkChatHistoryUnsubscribe = null;
+    qovarkChatHistorySyncUid = null;
+  }
+
+  function startQovarkChatHistorySync(uid) {
+    if (!uid) { stopQovarkChatHistorySync(); return; }
+    if (qovarkChatHistorySyncUid === uid && qovarkChatHistoryUnsubscribe) return;
+    stopQovarkChatHistorySync();
+    qovarkChatHistorySyncUid = uid;
+
+    try {
+      const chatQuery = query(collection(db, "users", uid, "chats"), orderBy("updatedAt", "desc"));
+      qovarkChatHistoryUnsubscribe = onSnapshot(chatQuery, snapshot => {
+        if ((auth.currentUser?.uid || null) !== uid) return;
+
+        if (historyOverlayEl?.classList.contains("open")) {
+          renderFastChatHistory(snapshot);
+        }
+
+        snapshot.docChanges().forEach(change => {
+          const changedChatId = String(change.doc.id);
+          if (change.type === "removed") {
+            if (changedChatId === String(activeFastChatId) && activeFastChatOwnerUid === uid) {
+              activeFastChatRequestToken += 1;
+              activeFastChatSendToken += 1;
+              try { activeFastChatController?.abort(); } catch {}
+              activeFastChatController = null;
+              isTyping = false;
+              activeFastChatId = "chat_" + Date.now();
+              chatHistory = [];
+              latestAIText = "";
+              editingUserMessageId = null;
+              chatContainer.innerHTML = "";
+              saveLocalFastChatFor(uid);
+              updateActionButton();
+              updateScrollBottomButton();
+            }
+            return;
+          }
+
+          if (changedChatId !== String(activeFastChatId) || activeFastChatOwnerUid !== uid || isTyping) return;
+          const data = change.doc.data() || {};
+          const remoteMessages = Array.isArray(data.messages) ? data.messages : [];
+          if (!remoteMessages.length || JSON.stringify(remoteMessages) === JSON.stringify(chatHistory)) return;
+
+          chatHistory = remoteMessages;
+          latestAIText = chatHistory.filter(item => item.sender === "ai").slice(-1)[0]?.text || "";
+          saveLocalFastChatFor(uid);
+          renderChatMessagesIntoMainFeed();
+        });
+      }, error => {
+        console.warn("QOVARK realtime chat sync:", error?.message || error);
+        if ((auth.currentUser?.uid || null) === uid) {
+          const status = document.getElementById("historyAccountStatus");
+          if (status) status.textContent = "Chat sync temporarily disconnected; saved conversations remain available.";
+        }
+      });
+    } catch (error) {
+      console.warn("Could not start QOVARK realtime chat sync:", error?.message || error);
+    }
+  }
   function chatScopedKey(baseKey, uid) { return `${baseKey}__${uid || 'guest'}`; }
   function saveLocalFastChatFor(uid) {
     const identity = uid || 'guest';
@@ -11641,7 +11709,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         .catch(error => console.warn("Chat cloud save:", error.message));
     } else if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
   };
-  renderFastChatHistory = async function() {
+  renderFastChatHistory = async function(snapshotOverride = null) {
     const uidAtStart = auth.currentUser?.uid || null;
     const listEl = document.getElementById("chatHistoryList");
     if (!listEl) return;
@@ -11682,7 +11750,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
     try {
       const q = query(collection(db, "users", uidAtStart, "chats"), orderBy("updatedAt", "desc"));
-      const snap = await getDocs(q);
+      const snap = snapshotOverride || await getDocs(q);
       if ((auth.currentUser?.uid || null) !== uidAtStart) return;
       const entries = [];
       snap.forEach(d => {
@@ -12012,6 +12080,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   onAuthStateChanged(auth, async user => {
     const nextUid = user?.uid || null;
     if (lastLoadedAuthUid !== nextUid) {
+      stopQovarkChatHistorySync();
       clearAccountScopedWorkspace();
       activateFastChatIdentity(nextUid);
       if (nextUid) restoreOfflineWorkspaceSnapshot(nextUid);
@@ -12025,6 +12094,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       try { localStorage.removeItem("qovark_last_auth_uid"); } catch {}
     }
     if (!user) {
+      stopQovarkChatHistorySync();
       hideQovarkAppLockShield();
       texterProfile = null; texterWorkspaceLoaded = false; texterAlertsLoaded = false;
       texterSecurityPin = null;
@@ -12052,6 +12122,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       document.getElementById("historyAccountStatus").textContent = "Verify your email to unlock your QOVARK account.";
       return;
     }
+    startQovarkChatHistorySync(nextUid);
     requestQovarkPushToken();
     document.getElementById("historyAccountStatus").textContent = "Synced with your QOVARK account.";
     try {
@@ -12149,12 +12220,29 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   });
 
   // Flush the current thread and workspace view when Android hides or disposes the WebView.
+  let qovarkWorkspaceRefreshInFlight = false;
+  let qovarkLastWorkspaceRefreshAt = 0;
+  async function refreshQovarkWorkspaceWhenVisible(force = false) {
+    if (!auth.currentUser || document.hidden || qovarkWorkspaceRefreshInFlight) return;
+    const now = Date.now();
+    if (!force && now - qovarkLastWorkspaceRefreshAt < 15000) return;
+    qovarkLastWorkspaceRefreshAt = now;
+    qovarkWorkspaceRefreshInFlight = true;
+    try { await refreshPxxlData(); }
+    finally { qovarkWorkspaceRefreshInFlight = false; }
+  }
+
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       persistFastChat();
       try { localStorage.setItem("texter_last_chat_id", activeFastChatId); } catch {}
+    } else {
+      refreshQovarkWorkspaceWhenVisible(true);
     }
   });
+  window.addEventListener("focus", () => refreshQovarkWorkspaceWhenVisible());
+  window.setInterval(() => refreshQovarkWorkspaceWhenVisible(), 60000);
+
   window.addEventListener("pagehide", () => {
     persistFastChat();
     try { localStorage.setItem("texter_last_chat_id", activeFastChatId); } catch {}
