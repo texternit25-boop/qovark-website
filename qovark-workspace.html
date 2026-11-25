@@ -4345,6 +4345,62 @@
   }
 </style>
 
+
+<style id="qovark-modal-chat-interaction-guard-v1">
+  /* A settings drawer must dim/blur and block the entire workspace behind it. */
+  .settings-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 69000;
+    background: rgba(2, 6, 23, .22);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    touch-action: none;
+    overscroll-behavior: contain;
+    transition: opacity .22s ease, visibility .22s ease;
+  }
+  .settings-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .settings-panel { z-index: 70000; }
+  /* In a long conversation, flex items must keep their natural height rather than compress. */
+  #chatArea {
+    align-items: stretch;
+    overflow-anchor: none;
+  }
+  #chatArea > .message,
+  #chatArea > .ai-message {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    min-height: max-content !important;
+    height: auto !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal;
+  }
+  #chatArea > .ai-message {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #chatArea > .user-message {
+    width: fit-content !important;
+    max-width: 86% !important;
+  }
+  /* HUD shield is intentionally above every ordinary modal and blocks all input while busy. */
+  #blurLayer.active {
+    z-index: 2147483004 !important;
+    pointer-events: auto !important;
+    touch-action: none !important;
+    overscroll-behavior: contain !important;
+  }
+  #hud { z-index: 2147483005 !important; }
+  body.qovark-busy { cursor: progress !important; }
+</style>
+
 </head>
 <body>
 
@@ -4377,8 +4433,9 @@
     </section>
   </div>
 
-  <!-- BACKGROUND BLUR LAYER (Activates whenever HUD loads or spins) -->
-  <div class="blur-layer" id="blurLayer"></div>
+  <!-- BACKGROUND BLUR LAYER (Blocks the workspace during operations) -->
+  <div class="blur-layer" id="blurLayer" aria-hidden="true"></div>
+  <div class="settings-backdrop" id="settingsBackdrop" aria-hidden="true"></div>
 
   <!-- TOP BAR -->
   <div class="top-bar">
@@ -5177,7 +5234,7 @@
   </div>
 
   <!-- SETTINGS PANEL -->
-  <div class="settings-panel" id="settingsPanel">
+  <div class="settings-panel" id="settingsPanel" aria-label="Settings">
     <div class="settings-header">
       <div class="settings-logo"><img src="qovark-logo.png" alt="QOVARK orbital Q"></div>
       <h2>Settings</h2>
@@ -5458,6 +5515,9 @@
     history?.setAttribute("aria-hidden", "true");
   }
   function openHistory() {
+    $("settingsPanel")?.classList.remove("open");
+    $("settingsBackdrop")?.classList.remove("active");
+    $("settingsBackdrop")?.setAttribute("aria-hidden", "true");
     const history = $("historyOverlay");
     history?.classList.add("open");
     history?.setAttribute("aria-hidden", "false");
@@ -5638,7 +5698,7 @@
       } else openOverlay("accountOverlay");
     });
     else if (hit("#closeAccountOverlayBtn")) doHandle(() => { clearEarlyAuthFields(); closeOverlays(); });
-    else if (hit("#settingsBtn")) doHandle(() => $("settingsPanel")?.classList.add("open"));
+    else if (hit("#settingsBtn")) doHandle(() => { $("historyOverlay")?.classList.remove("open"); $("historyOverlay")?.setAttribute("aria-hidden", "true"); $("settingsPanel")?.classList.add("open"); $("settingsBackdrop")?.classList.add("active"); $("settingsBackdrop")?.setAttribute("aria-hidden", "false"); });
     else if (hit("#closeSettingsBtn")) doHandle(() => $("settingsPanel")?.classList.remove("open"));
     else if (hit("#accountProfileBackBtn")) doHandle(() => { $("accountProfileOverlay")?.classList.remove("active"); $("settingsPanel")?.classList.add("open"); });
     else if (hit("#voiceSettingsBtn") || hit("#speakToggle")) doHandle(() => {
@@ -5841,9 +5901,13 @@
     hud.classList.remove("hide-hud");
     hud.classList.add("thinking");
     hudText.innerText = text;
-    if (blurLayer && useBlur) {
+    // Any in-progress operation gets an input shield, even when a caller passes false.
+    if (blurLayer) {
       blurLayer.classList.add("active");
+      blurLayer.setAttribute("aria-hidden", "false");
     }
+    document.body.classList.add("qovark-busy");
+    document.body.setAttribute("aria-busy", "true");
   }
 
   function hideHUD() {
@@ -5853,7 +5917,10 @@
     hudText.innerText = "QOVARK";
     if (blurLayer) {
       blurLayer.classList.remove("active");
+      blurLayer.setAttribute("aria-hidden", "true");
     }
+    document.body.classList.remove("qovark-busy");
+    document.body.removeAttribute("aria-busy");
   }
 
   // The offline boot layer has its own private text sanitizer; the full app
@@ -5940,6 +6007,20 @@
   const settingsPanel = document.getElementById('settingsPanel');
   const helpOverlay = document.getElementById('helpOverlay');
 
+  function setSettingsPanelOpen(open) {
+    const shouldOpen = Boolean(open);
+    if (shouldOpen) {
+      const history = document.getElementById("historyOverlay");
+      history?.classList.remove("open");
+      history?.setAttribute("aria-hidden", "true");
+    }
+    settingsPanel?.classList.toggle("open", shouldOpen);
+    const backdrop = document.getElementById("settingsBackdrop");
+    backdrop?.classList.toggle("active", shouldOpen);
+    backdrop?.setAttribute("aria-hidden", String(!shouldOpen));
+  }
+
+
   accountBtn?.addEventListener("click", () => {
     if (auth.currentUser) openAccountProfile();
     else { resetAuthFields(); openOverlay(accountOverlay); }
@@ -5950,11 +6031,16 @@
     resetAuthFields();
   });
 
-  document.getElementById("settingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.add("open");
+  document.getElementById("settingsBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    setHistoryOpen(false);
+    setSettingsPanelOpen(true);
   });
-  document.getElementById("closeSettingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.remove("open");
+  document.getElementById("closeSettingsBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSettingsPanelOpen(false);
   });
 
   document.getElementById("voiceSettingsBtn")?.addEventListener("click", () => {
@@ -10574,10 +10660,14 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     },12000);
   }
   function setHistoryOpen(open) {
+    if (open) setSettingsPanelOpen(false);
     historyOverlayEl?.classList.toggle("open", open);
     historyOverlayEl?.setAttribute("aria-hidden", String(!open));
   }
-  document.getElementById("openChatHistoryBtn")?.addEventListener("click", () => {
+  document.getElementById("openChatHistoryBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSettingsPanelOpen(false);
     setHistoryOpen(true);
     renderFastChatHistory();
     const uid = auth.currentUser?.uid || null;
