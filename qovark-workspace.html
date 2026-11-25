@@ -12129,7 +12129,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   function qovarkLinkErrorMessage(error) {
     const code = error?.code || "";
     if (code === "auth/credential-already-in-use" || code === "auth/email-already-in-use" || code === "auth/account-exists-with-different-credential") {
-      return "That sign-in method already belongs to another account. Nothing was merged or overwritten. Sign in to the original account first, then contact QOVARK support to recover or consolidate the accounts securely.";
+      return "That sign-in method is already connected to a different Firebase account. QOVARK has not merged or changed either account. Keep using your original sign-in method and contact QOVARK support for verified account recovery.";
     }
     if (code === "auth/requires-recent-login") return "For security, sign out and sign back in to this same account, then try connecting the method again.";
     if (code === "auth/weak-password") return "Choose a stronger password with at least 8 characters.";
