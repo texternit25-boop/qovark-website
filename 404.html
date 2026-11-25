@@ -7,9 +7,17 @@
   <meta name="theme-color" content="#050817">
   <title>QOVARK — Page not found</title>
   <style>
+    *{box-sizing:border-box}
     body{margin:0;min-height:100vh;display:grid;place-items:center;background:#050817;color:#f3f7ff;font:16px system-ui;padding:24px}
-    .box{max-width:520px;padding:32px;border:1px solid #263653;border-radius:22px;background:#0c1730;text-align:center}
-    a{color:#7ceaff;font-weight:700}
+    .box{width:min(100%,520px);padding:32px;border:1px solid #263653;border-radius:22px;background:#0c1730;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.28)}
+    h1{margin:0 0 12px;letter-spacing:.12em;font-size:20px}
+    p{margin:10px 0;color:#b9c8dc;line-height:1.55}
+    a{color:#7ceaff;font-weight:700;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .loader{width:34px;height:34px;margin:0 auto 18px;border:3px solid rgba(124,234,255,.2);border-top-color:#7ceaff;border-radius:50%;animation:qovark-spin .8s linear infinite}
+    .hint{font-size:13px;color:#8ea4c1}
+    @keyframes qovark-spin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.loader{animation:none;border-top-color:#7ceaff}}
   </style>
 </head>
 <body>
@@ -19,30 +27,39 @@
     <p><a href="/">Return to QOVARK</a></p>
   </main>
   <script>
-    (async () => {
+    (() => {
       const requestedPath = window.location.pathname;
-      const match = requestedPath.match(/^\/share\/(chat|message)\/([A-Za-z0-9_-]{32,64})\/?$/i);
+      const match = requestedPath.match(/^\\/share\\/(chat|message)\\/([A-Za-z0-9_-]{32,64})\\/?$/i);
       if (!match) return;
 
-      try {
-        // This is a dedicated public share page. Do not load qovark-workspace.html
-        // or the Android app shell here.
-        const response = await fetch("/share.html", { cache: "no-store" });
-        if (!response.ok) throw new Error(`Share viewer returned ${response.status}`);
-        let html = await response.text();
-        const routeState = `<script>window.__QOVARK_SHARE_PATH__=${JSON.stringify(requestedPath)};<\/script>`;
-        if (!/<\/head>/i.test(html)) throw new Error("Share viewer document is malformed");
-        html = html.replace(/<\/head>/i, `${routeState}</head>`);
-        document.open();
-        document.write(html);
-        document.close();
-      } catch (error) {
-        console.error("QOVARK share route could not be loaded:", error);
-        const fallback = document.getElementById("fallback");
-        if (fallback) {
-          fallback.innerHTML = "<h1>QOVARK</h1><p>This shared content could not be opened right now.</p><p><a href='/'>Return to QOVARK</a></p>";
-        }
+      const fallback = document.getElementById("fallback");
+      if (fallback) {
+        fallback.setAttribute("aria-busy", "true");
+        fallback.innerHTML = '<div class="loader" role="status" aria-label="Loading"></div><h1>QOVARK</h1><p>Opening shared content…</p><p class="hint">Preparing your read-only shared view.</p>';
       }
+      document.title = "Opening shared content — QOVARK";
+
+      (async () => {
+        try {
+          // Let the browser use its normal HTTP cache for this small static viewer.
+          const response = await fetch("/share.html");
+          if (!response.ok) throw new Error("Share viewer returned " + response.status);
+          let html = await response.text();
+          const routeState = '<script>window.__QOVARK_SHARE_PATH__=' + JSON.stringify(requestedPath) + ';<\\/script>';
+          if (!/<\\/head>/i.test(html)) throw new Error("Share viewer document is malformed");
+          html = html.replace(/<\\/head>/i, routeState + "</head>");
+          document.open();
+          document.write(html);
+          document.close();
+        } catch (error) {
+          console.error("QOVARK share route could not be loaded:", error);
+          if (fallback) {
+            fallback.removeAttribute("aria-busy");
+            fallback.innerHTML = '<h1>QOVARK</h1><p>This shared content could not be loaded right now.</p><p class="hint">Check your connection and try again.</p><p><a href="' + requestedPath + '">Try again</a></p><p><a href="/">Return to QOVARK</a></p>';
+            document.title = "Shared content unavailable — QOVARK";
+          }
+        }
+      })();
     })();
   </script>
 </body>
