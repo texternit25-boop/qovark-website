@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#07101e">
+  <base href="/">
+  <title>Shared content — QOVARK</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #07101e;
+      --panel: #0d1a2b;
+      --panel-2: #101f33;
+      --line: rgba(160, 190, 225, .16);
+      --text: #f2f6fc;
+      --muted: #a7b5c8;
+      --accent: #62d9f5;
+      --user: #132b43;
+      --assistant: #0e1b2d;
+      --danger: #ffb8b8;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--page); }
+    body {
+      margin: 0; min-height: 100vh; color: var(--text);
+      background: radial-gradient(ellipse at 12% -10%, rgba(27, 100, 145, .22), transparent 42%), var(--page);
+      font: 15px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    .topbar {
+      min-height: 72px; border-bottom: 1px solid var(--line);
+      background: rgba(7, 16, 30, .88); backdrop-filter: blur(16px);
+    }
+    .topbar-inner {
+      width: min(1240px, calc(100% - 56px)); min-height: 72px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; }
+    .brand-mark {
+      width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px;
+      background: linear-gradient(145deg, #153b55, #172b4a); border: 1px solid rgba(98,217,245,.35);
+      color: #8beaff; font-weight: 900; font-size: 21px;
+    }
+    .brand-name { display: block; font-size: 16px; font-weight: 850; letter-spacing: .13em; }
+    .brand-tag { display: block; margin-top: -2px; color: var(--muted); font-size: 9px; letter-spacing: .18em; }
+    .top-link { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 650; }
+    .top-link:hover { color: var(--text); }
+    .page { width: min(1240px, calc(100% - 56px)); margin: 0 auto; padding: 48px 0 64px; }
+    .intro { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 28px; }
+    .eyebrow { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .19em; text-transform: uppercase; }
+    h1 { margin: 8px 0 7px; font-size: clamp(28px, 4vw, 42px); line-height: 1.12; letter-spacing: -.035em; }
+    .subtitle { max-width: 720px; margin: 0; color: var(--muted); }
+    .readonly {
+      flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.035);
+      color: #c9d7e8; font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 22px; align-items: start; }
+    .conversation, .details { border: 1px solid var(--line); border-radius: 20px; background: rgba(13,26,43,.9); box-shadow: 0 18px 60px rgba(0,0,0,.18); }
+    .conversation-head { padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .conversation-title { margin: 0; font-size: 18px; font-weight: 780; overflow-wrap: anywhere; }
+    .conversation-sub { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .thread { padding: 24px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .message { min-width: 0; border: 1px solid var(--line); border-radius: 16px; padding: 17px 19px; background: var(--assistant); }
+    .message.user { width: fit-content; max-width: min(84%, 820px); margin-left: auto; background: var(--user); }
+    .message.assistant { width: 100%; }
+    .message-label { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; color: #c6d7e8; font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .message-label .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .message time { margin-left: auto; color: #91a2b7; font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .message-content { margin: 0; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; }
+    .details { padding: 21px; position: sticky; top: 22px; }
+    .details h2 { margin: 0 0 16px; font-size: 14px; }
+    .detail-row { padding: 12px 0; border-top: 1px solid var(--line); }
+    .detail-label { display: block; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .detail-value { display: block; margin-top: 4px; color: var(--text); font-size: 13px; overflow-wrap: anywhere; }
+    .notice { margin: 15px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .button { appearance: none; display: inline-flex; justify-content: center; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--line); background: #13253a; color: var(--text); font: inherit; font-size: 12px; font-weight: 750; text-decoration: none; cursor: pointer; }
+    .button.primary { border-color: rgba(98,217,245,.42); background: #12364a; color: #b9f2ff; }
+    .button:hover { filter: brightness(1.14); }
+    .state { border: 1px solid var(--line); border-radius: 18px; padding: 26px; background: var(--panel); color: var(--muted); }
+    .state h2 { margin: 0 0 8px; color: var(--text); font-size: 20px; }
+    .state p { margin: 0; }
+    .state.error { border-color: rgba(255,140,140,.3); }
+    .state.error h2 { color: var(--danger); }
+    .footer { padding-top: 26px; color: #8293a8; font-size: 11px; text-align: center; }
+    [hidden] { display: none !important; }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .details { position: static; }
+      .intro { align-items: flex-start; flex-direction: column; }
+      .message.user { max-width: 92%; }
+    }
+    @media (max-width: 560px) {
+      .topbar-inner, .page { width: min(100% - 28px, 1240px); }
+      .topbar-inner { min-height: 64px; }
+      .page { padding-top: 30px; }
+      .thread { padding: 14px; }
+      .conversation-head { padding: 17px; }
+      .message { padding: 14px; }
+      .message.user { max-width: 96%; }
+      .readonly { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="QOVARK home">
+        <span class="brand-mark" aria-hidden="true">Q</span>
+        <span><span class="brand-name">QOVARK</span><span class="brand-tag">THINK. CREATE. EXPLORE.</span></span>
+      </a>
+      <a class="top-link" href="/">Visit qovark.com ↗</a>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div>
+        <div class="eyebrow">QOVARK · Shared work</div>
+        <h1>Conversation, shared with you.</h1>
+        <p class="subtitle">A read-only snapshot shared by its owner. You can read the conversation without signing in or opening the QOVARK workspace.</p>
+      </div>
+      <div class="readonly"><span aria-hidden="true">●</span> Public link · Read only</div>
+    </section>
+
+    <section id="loadingState" class="state" aria-live="polite">
+      <h2>Opening shared content…</h2>
+      <p>Connecting securely to QOVARK.</p>
+    </section>
+
+    <section id="errorState" class="state error" hidden aria-live="polite">
+      <h2 id="errorTitle">This share link is unavailable</h2>
+      <p id="errorText">The link may have expired, been revoked or may be incorrect.</p>
+      <div class="actions"><a class="button primary" href="/">Return to QOVARK</a></div>
+    </section>
+
+    <section id="shareLayout" class="layout" hidden>
+      <article class="conversation">
+        <header class="conversation-head">
+          <h2 id="conversationTitle" class="conversation-title">Shared conversation</h2>
+          <p id="conversationSub" class="conversation-sub">Read-only shared snapshot</p>
+        </header>
+        <div id="thread" class="thread" aria-live="polite"></div>
+      </article>
+      <aside class="details">
+        <h2>Share details</h2>
+        <div class="detail-row"><span class="detail-label">Shared content</span><span id="shareKind" class="detail-value">Conversation</span></div>
+        <div class="detail-row"><span class="detail-label">Created</span><span id="createdAt" class="detail-value">—</span></div>
+        <div class="detail-row"><span class="detail-label">Available until</span><span id="expiresAt" class="detail-value">—</span></div>
+        <div class="detail-row"><span class="detail-label">Attachments</span><span class="detail-value">Not included in this share</span></div>
+        <p id="truncatedNote" class="notice" hidden>This conversation was shortened to fit the sharing limit.</p>
+        <p class="notice">Anyone with this link can view the shared text until the owner revokes it or it expires. Do not treat a public share link as a private message.</p>
+        <div class="actions">
+          <button id="copyLinkButton" class="button" type="button">Copy link</button>
+          <a class="button primary" href="/">Visit QOVARK</a>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="footer">© <span id="year"></span> QOVARK · Shared content is provided as a read-only snapshot.</footer>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+      const API_ORIGIN = "https://api.qovark.com";
+      const route = String(window.__QOVARK_SHARE_PATH__ || window.location.pathname || "");
+      const match = route.match(/^\/share\/(chat|message)\/([A-Za-z0-9_-]{32,64})\/?$/i);
+      const el = id => document.getElementById(id);
+      el("year").textContent = String(new Date().getFullYear());
+
+      function formatDate(value) {
+        if (!value) return "Not available";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "Not available" : new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium", timeStyle: "short"
+        }).format(date);
+      }
+
+      function showError(title, message) {
+        el("loadingState").hidden = true;
+        el("shareLayout").hidden = true;
+        el("errorTitle").textContent = title;
+        el("errorText").textContent = message;
+        el("errorState").hidden = false;
+      }
+
+      function appendMessage(item, index) {
+        const role = item && item.role === "assistant" ? "assistant" : "user";
+        const card = document.createElement("article");
+        card.className = `message ${role}`;
+        const label = document.createElement("div");
+        label.className = "message-label";
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.setAttribute("aria-hidden", "true");
+        const name = document.createElement("span");
+        name.textContent = role === "assistant" ? "QOVARK AI" : "User message";
+        label.append(dot, name);
+        if (item && item.createdAt) {
+          const time = document.createElement("time");
+          time.dateTime = String(item.createdAt);
+          time.textContent = formatDate(item.createdAt);
+          label.appendChild(time);
+        }
+        const content = document.createElement("p");
+        content.className = "message-content";
+        content.textContent = String(item && item.content || "");
+        card.append(label, content);
+        card.setAttribute("aria-label", `${role === "assistant" ? "QOVARK AI" : "User"} message ${index + 1}`);
+        el("thread").appendChild(card);
+      }
+
+      async function loadShare() {
+        if (!match) {
+          showError("This share link is not recognised", "Check that you copied the complete QOVARK share link.");
+          return;
+        }
+        const type = match[1].toLowerCase();
+        const token = match[2];
+        try {
+          const controller = new AbortController();
+          const timeout = window.setTimeout(() => controller.abort(), 20000);
+          let response;
+          try {
+            response = await fetch(`${API_ORIGIN}/api/share/${type}/${encodeURIComponent(token)}`, {
+              method: "GET",
+              cache: "no-store",
+              credentials: "omit",
+              headers: { "Accept": "application/json" },
+              signal: controller.signal
+            });
+          } finally {
+            window.clearTimeout(timeout);
+          }
+          const contentType = response.headers.get("content-type") || "";
+          const data = contentType.includes("application/json") ? await response.json() : { error: await response.text() };
+          if (response.status === 404) throw new Error("This link is invalid, has expired or has been revoked by its owner.");
+          if (response.status === 503) throw new Error("QOVARK sharing is temporarily unavailable. Please try again later.");
+          if (!response.ok || !data || !data.success || !data.share) {
+            throw new Error(data && data.error || "QOVARK could not open this shared content.");
+          }
+
+          const share = data.share;
+          const title = String(share.title || (type === "chat" ? "Shared conversation" : "Shared message"));
+          const items = type === "chat"
+            ? (Array.isArray(share.messages) ? share.messages : [])
+            : (share.message ? [share.message] : []);
+          el("conversationTitle").textContent = title;
+          el("conversationSub").textContent = `${items.length} ${items.length === 1 ? "message" : "messages"} · Shared as a read-only snapshot`;
+          el("shareKind").textContent = type === "chat" ? "Conversation" : "Single message";
+          el("createdAt").textContent = formatDate(data.createdAt);
+          el("expiresAt").textContent = formatDate(data.expiresAt);
+          el("truncatedNote").hidden = !share.truncated;
+          el("thread").replaceChildren();
+          items.forEach(appendMessage);
+          if (!items.length) throw new Error("This share contains no readable text.");
+
+          el("copyLinkButton").addEventListener("click", async () => {
+            const link = window.location.href;
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(link);
+              } else {
+                const field = document.createElement("textarea");
+                field.value = link; field.setAttribute("readonly", "");
+                field.style.position = "fixed"; field.style.opacity = "0";
+                document.body.appendChild(field); field.select();
+                const copied = document.execCommand("copy"); field.remove();
+                if (!copied) throw new Error("Copy unavailable");
+              }
+              el("copyLinkButton").textContent = "Link copied";
+            } catch {
+              el("copyLinkButton").textContent = "Copy unavailable";
+            }
+          }, { once: true });
+          el("loadingState").hidden = true;
+          el("shareLayout").hidden = false;
+          document.title = `${title} — QOVARK Shared`;
+        } catch (error) {
+          const message = error && error.name === "AbortError"
+            ? "The request timed out. Check your connection and try again."
+            : (error && error.message || "Could not open this share link.");
+          showError("Unable to open shared content", message);
+        }
+      }
+
+      loadShare();
+    })();
+  </script>
+</body>
+</html>
