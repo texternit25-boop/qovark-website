@@ -7199,10 +7199,23 @@
     const attachedImage = pendingAttachment?.dataUrl || (originalEntry ? (chatImageCache.get(String(originalEntry.id || originalEntry.timestamp || '')) || null) : null);
     if (!message && !attachedImage) return;
 
-    // Editing replaces the selected prompt and its later responses, then asks TEXTER again.
+    // Editing trims the canonical Supabase thread first when this message has a
+    // database ID. Legacy/local-only messages are already covered by migration.
     if (editingIndex >= 0) {
+      const selectedId = String(editingId || "");
+      if (sendingUid && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedId)) {
+        try {
+          await pxxlRequest(`/api/chat/conversations/${encodeURIComponent(activeFastChatId)}/truncate`, {
+            method: "POST",
+            body: JSON.stringify({ fromMessageId: selectedId })
+          });
+        } catch (error) {
+          showToast(error?.message || "Could not edit this saved conversation.");
+          return;
+        }
+      }
       chatHistory = chatHistory.slice(0, editingIndex);
-      persistFastChat({ replaceMessages: true });
+      persistFastChat();
       renderChatMessagesIntoMainFeed();
     }
     editingUserMessageId = null;
