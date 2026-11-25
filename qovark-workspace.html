@@ -10500,7 +10500,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if(auth.currentUser?.uid!==uid)return;
     let cachedId="";
     try{cachedId=localStorage.getItem(chatScopedKey("texter_fast_chat_id",uid))||"";}catch{}
-    const result=await pxxlRequest("/api/chat/conversations?limit=100&includeMessages=0&offset=0");
+    const result=await pxxlRequest("/api/chat/conversations?limit=1000&includeMessages=0&offset=0");
     if(auth.currentUser?.uid!==uid)return;
     const conversations=Array.isArray(result.conversations)?result.conversations:[];
     const selected=conversations.find(item=>String(item.chatId)===cachedId)||conversations[0]||null;
@@ -10593,9 +10593,26 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const localId=activeFastChatId;
     listEl.innerHTML='<div class="history-empty">Loading saved conversations…</div>';
     try{
-      const result=await pxxlRequest("/api/chat/conversations?limit=100&includeMessages=0&offset=0");
-      if(auth.currentUser?.uid!==uid)return;
-      const items=Array.isArray(result.conversations)?result.conversations:[];
+      const allItems=new Map();
+      let offset=0;
+      let pageCount=0;
+      do {
+        const result=await pxxlRequest(`/api/chat/conversations?limit=1000&includeMessages=0&offset=${offset}`);
+        if(auth.currentUser?.uid!==uid)return;
+        for(const item of (Array.isArray(result.conversations)?result.conversations:[])){
+          const id=String(item.chatId||"");
+          if(!id)continue;
+          const previous=allItems.get(id);
+          allItems.set(id,previous?{
+            ...previous,...item,
+            updatedAt:[previous.updatedAt,item.updatedAt].filter(Boolean).sort().at(-1)||null
+          }:item);
+        }
+        pageCount++;
+        offset=result.nextOffset===null||result.nextOffset===undefined?null:Number(result.nextOffset);
+        if(!Number.isFinite(offset))offset=null;
+      } while(offset!==null&&pageCount<50);
+      const items=Array.from(allItems.values()).sort((a,b)=>String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
       const fragment=document.createDocumentFragment();
       items.forEach(item=>{
         const chatId=String(item.chatId||"");
