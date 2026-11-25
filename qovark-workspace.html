@@ -12415,7 +12415,15 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         showQovarkAppLockShield();
         requestAppResumeUnlock(() => restoreWorkspaceView(true));
       } else restoreWorkspaceView(false);
-    } catch (error) { console.warn("Pxxl profile sync:", error); }
+    } catch (error) {
+      console.warn("Pxxl profile sync:", error);
+      if (error?.code === "QOVARK_ACCOUNT_LINK_REQUIRED") {
+        const message = "This email is already connected to a different QOVARK sign-in identity. No accounts were merged. Sign out and use the sign-in method you originally used; contact QOVARK support for verified account recovery.";
+        const historyStatus = document.getElementById("historyAccountStatus");
+        if (historyStatus) historyStatus.textContent = "Account recovery is required before cloud sync can continue.";
+        showToast(message);
+      }
+    }
   });
 
   // Native Android connectivity is more reliable than WebView navigator.onLine.
