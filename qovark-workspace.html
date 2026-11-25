@@ -5211,14 +5211,16 @@
     <section class="security-setting-card" id="qovarkSignInMethodsCard" style="margin:14px 0;">
       <strong style="display:block;margin-bottom:6px;">Sign-in methods</strong>
       <p id="qovarkSignInMethodsStatus" style="margin:0 0 12px;color:var(--text-muted);font-size:12px;line-height:1.5;">Sign in to manage the methods connected to this account.</p>
-      <label for="qovarkLinkPassword" style="display:block;margin:8px 0 5px;font-size:12px;color:var(--text-muted);">Account password</label>
-      <input id="qovarkLinkPassword" type="password" autocomplete="current-password" placeholder="Enter your current password to verify" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-        <button type="button" class="security-action-btn" id="qovarkLinkGoogleBtn">Connect Google</button>
-        <button type="button" class="security-action-btn" id="qovarkAddPasswordBtn">Add password</button>
+      <div id="qovarkGoogleLinkFields" style="display:none;">
+        <label for="qovarkLinkPassword" style="display:block;margin:8px 0 5px;font-size:12px;color:var(--text-muted);">Current QOVARK password</label>
+        <input id="qovarkLinkPassword" type="password" autocomplete="current-password" placeholder="Enter your current password to verify" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
+        <button type="button" class="security-action-btn" id="qovarkLinkGoogleBtn" style="margin-top:10px;">Connect Google</button>
       </div>
-      <label for="qovarkNewPassword" style="display:block;margin:12px 0 5px;font-size:12px;color:var(--text-muted);">New password (Google accounts)</label>
-      <input id="qovarkNewPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
+      <div id="qovarkPasswordLinkFields" style="display:none;">
+        <label for="qovarkNewPassword" style="display:block;margin:12px 0 5px;font-size:12px;color:var(--text-muted);">Choose a QOVARK password</label>
+        <input id="qovarkNewPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters" style="width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);">
+        <button type="button" class="security-action-btn" id="qovarkAddPasswordBtn" style="margin-top:10px;">Add password</button>
+      </div>
       <p style="margin:9px 0 0;color:var(--text-muted);font-size:11px;line-height:1.45;">Connecting a method keeps the same QOVARK account and chat history. If the method already belongs to another account, QOVARK will not merge accounts automatically.</p>
     </section>
     <p class="security-intro">Choose one method for locking QOVARK when you return to the app: Android fingerprint / face authentication or your QOVARK Security PIN. When biometric unlock is enabled, QOVARK will not open a second PIN prompt for app reopening. Your account Security PIN remains available separately for protected workspace actions.</p>
@@ -12097,22 +12099,30 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const status = document.getElementById("qovarkSignInMethodsStatus");
     const googleButton = document.getElementById("qovarkLinkGoogleBtn");
     const passwordButton = document.getElementById("qovarkAddPasswordBtn");
+    const googleFields = document.getElementById("qovarkGoogleLinkFields");
+    const passwordFields = document.getElementById("qovarkPasswordLinkFields");
     const user = auth.currentUser;
-    if (!status || !googleButton || !passwordButton) return;
+    if (!status || !googleButton || !passwordButton || !googleFields || !passwordFields) return;
     if (!user) {
       status.textContent = "Sign in to manage the methods connected to this account.";
-      googleButton.disabled = passwordButton.disabled = true;
+      googleFields.style.display = passwordFields.style.display = "none";
       return;
     }
     const methods = qovarkAuthMethods(user);
+    const hasGoogle = methods.has("google.com");
+    const hasPassword = methods.has("password");
     const labels = [];
-    if (methods.has("google.com")) labels.push("Google");
-    if (methods.has("password")) labels.push("Email and password");
-    status.textContent = labels.length ? "Connected: " + labels.join(" + ") + ". Both methods open this same account." : "No supported sign-in method is available on this session.";
-    googleButton.disabled = methods.has("google.com");
-    passwordButton.disabled = methods.has("password");
-    googleButton.textContent = methods.has("google.com") ? "Google connected" : "Connect Google";
-    passwordButton.textContent = methods.has("password") ? "Password connected" : "Add password";
+    if (hasGoogle) labels.push("Google");
+    if (hasPassword) labels.push("Email and password");
+    status.textContent = labels.length === 2
+      ? "Google and email/password are connected to this same QOVARK account."
+      : labels.length === 1
+        ? labels[0] + " is connected. You can add the other method below."
+        : "No supported sign-in method is available on this session.";
+    googleFields.style.display = hasPassword && !hasGoogle ? "block" : "none";
+    passwordFields.style.display = hasGoogle && !hasPassword ? "block" : "none";
+    googleButton.disabled = hasGoogle;
+    passwordButton.disabled = hasPassword;
   }
   function qovarkLinkErrorMessage(error) {
     const code = error?.code || "";
