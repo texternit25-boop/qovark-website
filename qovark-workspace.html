@@ -6322,7 +6322,15 @@
         } else {
           const password = passwordInput.value;
           if (!password) throw new Error("Your password field is empty. Return to sign-up and request a new code.");
-          const credential = await createUserWithEmailAndPassword(auth, context.email, password);
+          let credential;
+          try {
+            credential = await createUserWithEmailAndPassword(auth, context.email, password);
+          } catch (createError) {
+            if (createError?.code === "auth/email-already-in-use") {
+              throw new Error("A QOVARK account already exists with this email. Cancel this verification, choose Login, and use the sign-in method you originally registered with. If that was Google, choose Continue with Google, then open Settings → Security & Privacy → Sign-in methods to add a password. Do not create another account.");
+            }
+            throw createError;
+          }
           user = credential.user;
           await updateProfile(user, { displayName: context.username });
         }
@@ -12118,7 +12126,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   async function qovarkConnectGoogleToCurrentAccount() {
     const user = auth.currentUser;
     if (!user) throw new Error("Sign in to QOVARK first.");
-    if (qovarkAuthMethods(user).has("google.com")) return;
+    if (qovarkAuthMethods(user).has("google.com")) return true;
+    if (!await ensureQovarkEmailVerification(user, "google-link")) return false;
     const currentPassword = document.getElementById("qovarkLinkPassword")?.value || "";
     if (!currentPassword) throw new Error("Enter your current account password to verify it is you before connecting Google.");
     const emailCredential = EmailAuthProvider.credential(user.email, currentPassword);
@@ -12138,7 +12147,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   async function qovarkAddPasswordToCurrentAccount() {
     const user = auth.currentUser;
     if (!user) throw new Error("Sign in to QOVARK first.");
-    if (qovarkAuthMethods(user).has("password")) return;
+    if (qovarkAuthMethods(user).has("password")) return true;
+    if (!await ensureQovarkEmailVerification(user, "password-link")) return false;
     if (!user.email || !user.emailVerified) throw new Error("Verify this account's email before adding a password.");
     const password = document.getElementById("qovarkNewPassword")?.value || "";
     if (password.length < 8) throw new Error("Choose a password with at least 8 characters.");
@@ -12206,7 +12216,14 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         if (texterProfile?.terms_accepted === false) transitionOverlay("Please review the terms…", agreementOverlay, 350);
         else closeAllOverlays();
         showToast("Google account connected.");
-      } catch (error) { hideHUD(); authError.textContent = safeUserFacingText(error.message, "Something went wrong. Please try again."); authError.classList.add("visible"); }
+      } catch (error) {
+        hideHUD();
+        const code = String(error?.code || "");
+        authError.textContent = code === "auth/account-exists-with-different-credential"
+          ? "This email already has a QOVARK account using another sign-in method. Sign in with that original method first, then open Settings → Security & Privacy → Sign-in methods to connect Google. No account was merged."
+          : safeUserFacingText(error.message, "Something went wrong. Please try again.");
+        authError.classList.add("visible");
+      }
     } else if (target.id === "agreeBtn") {
       try {
         showHUD("Saving agreement…", true);
@@ -12237,8 +12254,14 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     button.disabled = true;
     try {
       showHUD("Verifying account…", true);
-      if (button.id === "qovarkLinkGoogleBtn") await qovarkConnectGoogleToCurrentAccount();
-      else await qovarkAddPasswordToCurrentAccount();
+      const linked = button.id === "qovarkLinkGoogleBtn"
+        ? await qovarkConnectGoogleToCurrentAccount()
+        : await qovarkAddPasswordToCurrentAccount();
+      if (linked === false) {
+        hideHUD();
+        showToast("Complete the email verification step, then return here to finish connecting your sign-in method.");
+        return;
+      }
       await auth.currentUser?.reload();
       refreshQovarkSignInMethods();
       const passwordInput = document.getElementById("qovarkLinkPassword");
