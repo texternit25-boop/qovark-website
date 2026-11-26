@@ -12494,7 +12494,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if (!listEl || auth.currentUser?.uid !== uid) return;
     const items = qovarkHistoryComposeItems(uid, sourceItems);
     const signature = JSON.stringify([uid, String(activeFastChatId || ""), cloudAvailable,
-      items.map(item => [item.chatId,item.title,qovarkHistoryCompactPreview(item.preview),item.updatedAt,Number(item.messageCount || 0),Boolean(item.localOnly)])]);
+      items.map(item => [item.chatId,item.title,item.summary || "",qovarkHistoryCompactPreview(item.summary || item.preview),item.updatedAt,Number(item.messageCount || 0),Boolean(item.localOnly)])]);
     if (listEl.dataset.qovarkHistorySignature === signature) {
       if (statusEl) statusEl.textContent = cloudAvailable ? "Your conversations are synced across signed-in devices" : "Cloud history unavailable · device copies preserved";
       return;
@@ -12506,7 +12506,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const chatId = String(item.chatId || "");
       if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
       const title = String(item.title || "New conversation");
-      const summary = qovarkHistoryCompactPreview(item.preview || "Conversation");
+      const summary = qovarkHistoryCompactPreview(item.summary || item.preview || "Conversation");
       const wrapper = document.createElement("article");
       wrapper.className = "history-chat-entry";
       const openButton = document.createElement("button");
