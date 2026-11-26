@@ -10596,8 +10596,20 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       localStorage.setItem(chatScopedKey("texter_fast_chat_cache",identity),JSON.stringify(messages));
       localStorage.setItem(chatScopedKey("texter_fast_chat_id",identity),activeFastChatId);
       if(activeFastChatId){
-        const snapshot={chatId:String(activeFastChatId),messages,title:deriveChatTitle(messages),updatedAt:new Date().toISOString()};
-        localStorage.setItem(chatScopedKey("qovark_fast_chat_thread_"+activeFastChatId,identity),JSON.stringify(snapshot));
+        const threadId=String(activeFastChatId);
+        const snapshot={chatId:threadId,messages,title:deriveChatTitle(messages),updatedAt:new Date().toISOString()};
+        const threadKey=chatScopedKey("qovark_fast_chat_thread_"+threadId,identity);
+        const previous=JSON.parse(localStorage.getItem(threadKey)||"null");
+        localStorage.setItem(threadKey,JSON.stringify(snapshot));
+        if(uid){
+          const indexKey=chatScopedKey("qovark_fast_chat_thread_index",identity);
+          const rawIndex=JSON.parse(localStorage.getItem(indexKey)||"[]");
+          const index=Array.isArray(rawIndex)?rawIndex:[];
+          const previousIndex=index.find(item=>String(item.chatId)===threadId);
+          const changed=JSON.stringify(previous?.messages||[])!==JSON.stringify(messages);
+          const entry={chatId:threadId,title:snapshot.title,updatedAt:snapshot.updatedAt,dirty:Boolean(messages.length&&(previousIndex?.dirty||changed))};
+          localStorage.setItem(indexKey,JSON.stringify([...index.filter(item=>String(item.chatId)!==threadId),entry].slice(-100)));
+        }
       }
     } catch(error) { console.warn("QOVARK local chat backup could not be saved:",error?.message||error); }
   }
@@ -10608,6 +10620,33 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const parsed=raw?JSON.parse(raw):null;
       return parsed&&Array.isArray(parsed.messages)?parsed.messages:null;
     }catch{return null;}
+  }
+  function markLocalFastChatThreadClean(uid,chatId) {
+    if(!uid||!chatId)return;
+    try{
+      const key=chatScopedKey("qovark_fast_chat_thread_index",uid);
+      const raw=JSON.parse(localStorage.getItem(key)||"[]");
+      if(Array.isArray(raw))localStorage.setItem(key,JSON.stringify(raw.map(item=>String(item.chatId)===String(chatId)?{...item,dirty:false}:item)));
+    }catch{}
+  }
+  async function syncPendingLocalChatBackups(uid) {
+    if(!uid||auth.currentUser?.uid!==uid||!qovarkIsOnline()||isTyping)return;
+    let pending=[];
+    try{
+      const raw=JSON.parse(localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_index",uid))||"[]");
+      pending=Array.isArray(raw)?raw.filter(item=>item?.dirty&&item.chatId).slice(-30):[];
+    }catch{return;}
+    for(const item of pending){
+      if(auth.currentUser?.uid!==uid||!qovarkIsOnline())return;
+      const messages=loadLocalFastChatThread(uid,item.chatId);
+      if(!messages?.length){markLocalFastChatThreadClean(uid,item.chatId);continue;}
+      try{
+        await pxxlRequest("/api/chat/conversations/"+encodeURIComponent(item.chatId)+"/import",{
+          method:"POST",body:JSON.stringify({messages:messages.slice(-500)})
+        });
+        markLocalFastChatThreadClean(uid,item.chatId);
+      }catch(error){console.warn("QOVARK local chat recovery will retry:",item.chatId,error?.message||error);}
+    }
   }
   function activateFastChatIdentity(uid) {
     const identity=uid||null;
@@ -10676,6 +10715,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         saveLocalFastChatFor(uid);
         renderChatMessagesIntoMainFeed();
       }
+      markLocalFastChatThreadClean(uid,targetId);
       if(historyOverlayEl?.classList.contains("open"))renderFastChatHistory();
     } catch(error) {
       console.warn("QOVARK Supabase chat refresh:",error?.message||error);
@@ -10734,6 +10774,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     try {
       let remote=await fetchSupabaseFastChat(uid,target);
       if((auth.currentUser?.uid||null)!==uid)return;
+      let loadedFromServer=Array.isArray(remote)&&remote.length>0;
       if(!Array.isArray(remote)||remote.length===0){
         const cached=loadLocalFastChatThread(uid,target);
         if(cached?.length)remote=cached;
@@ -10750,6 +10791,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       editingUserMessageId=null;
       renderChatMessagesIntoMainFeed();
       saveLocalFastChatFor(uid);
+      if(loadedFromServer)markLocalFastChatThreadClean(uid,target);
       setHistoryOpen(false);
       updateScrollBottomButton();
     } catch(error) {
@@ -10783,6 +10825,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       if(Array.isArray(remote)&&remote.length){
         activeFastChatId=selectedId;
         chatHistory=remote;
+        markLocalFastChatThreadClean(uid,selectedId);
       }else{
         const threadCache=loadLocalFastChatThread(uid,selectedId);
         if(threadCache?.length){activeFastChatId=selectedId;chatHistory=threadCache;}
@@ -10806,9 +10849,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if(qovarkChatHistorySyncUid===uid&&qovarkSupabaseChatPollTimer)return;
     stopQovarkChatHistorySync();
     qovarkChatHistorySyncUid=uid;
+    syncPendingLocalChatBackups(uid).catch(()=>{});
     refreshCurrentFastChatFromSupabase(uid,true).catch(()=>{});
     qovarkSupabaseChatPollTimer=setInterval(()=>{
       if(auth.currentUser?.uid!==uid||document.hidden)return;
+      syncPendingLocalChatBackups(uid).catch(()=>{});
       refreshCurrentFastChatFromSupabase(uid,false).catch(()=>{});
       if(historyOverlayEl?.classList.contains("open"))renderFastChatHistory();
     },12000);
