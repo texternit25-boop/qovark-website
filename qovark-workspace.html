@@ -7086,7 +7086,7 @@
     card.append(note, button); messageElement.appendChild(card);
   }
 
-  async function addMessageWithTyping(text, sender, originalPrompt = "", imageData = null) {
+  async function addMessageWithTyping(text, sender, originalPrompt = "", imageData = null, expectedChatId = null, expectedSendToken = null) {
     const msgDiv = document.createElement("div");
     msgDiv.classList.add("message", sender === "user" ? "user-message" : "ai-message");
     chatContainer.appendChild(msgDiv);
@@ -7115,6 +7115,11 @@
       }, 12);
     });
 
+    if((expectedChatId&&activeFastChatId!==expectedChatId)||
+       (expectedSendToken!==null&&expectedSendToken!==activeFastChatSendToken)){
+      msgDiv.remove();
+      return;
+    }
     const assistantEntry = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
       text: String(text || ""),
@@ -7442,7 +7447,7 @@
       if ((auth.currentUser?.uid || null) !== sendingUid || activeFastChatId!==sendingChatId || sendToken!==activeFastChatSendToken) return;
       if (answer === null) showConnectionError();
       else {
-        await addMessageWithTyping(answer, "ai", message, attachedImage);
+        await addMessageWithTyping(answer, "ai", message, attachedImage, sendingChatId, sendToken);
         if (sendingUid) await refreshCurrentFastChatFromSupabase(sendingUid,true);
       }
     } finally {
@@ -12770,6 +12775,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const btn = e.target.closest("#newChatBtn"); if (!btn) return;
     e.preventDefault(); e.stopImmediatePropagation();
     const uid = auth.currentUser?.uid || null;
+    activeFastChatSendToken += 1;
+    activeFastChatRequestToken += 1;
+    try { activeFastChatController?.abort(); } catch {}
+    activeFastChatController = null;
+    isTyping = false;
     persistFastChat();
     activeFastChatId = createFastChatId();
     chatHistory = []; latestAIText = ""; chatContainer.innerHTML = "";
