@@ -10778,11 +10778,21 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const previousMessages=Array.isArray(chatHistory)?chatHistory.slice():[];
     saveLocalFastChatFor(uid);
     try {
+      await syncPendingLocalChatBackups(uid);
       let remote=await fetchSupabaseFastChat(uid,target);
       if((auth.currentUser?.uid||null)!==uid)return;
       let loadedFromServer=Array.isArray(remote)&&remote.length>0;
+      const cached=loadLocalFastChatThread(uid,target);
+      let localDirty=false;
+      try{
+        const index=JSON.parse(localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_index",uid))||"[]");
+        localDirty=Array.isArray(index)&&index.some(item=>String(item.chatId)===target&&item.dirty);
+      }catch{}
+      if(localDirty&&cached?.length&&(!Array.isArray(remote)||cached.length>remote.length)){
+        remote=cached;
+        loadedFromServer=false;
+      }
       if(!Array.isArray(remote)||remote.length===0){
-        const cached=loadLocalFastChatThread(uid,target);
         if(cached?.length)remote=cached;
         else if(previousId===target&&previousMessages.length)remote=previousMessages;
         else {
