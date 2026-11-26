@@ -4587,6 +4587,36 @@
       .history-chat-action { width:31px !important; height:31px !important; min-width:31px !important; flex-basis:31px !important; }
     }
   </style>
+  <style id="qovark-history-library-design">
+    .history-sidebar{width:min(90vw,380px)!important;height:100%!important;max-height:100dvh!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;gap:11px!important;padding:18px 14px 12px!important;overflow:hidden!important}
+    .history-head,.history-toolbar,.history-foot{flex:0 0 auto!important;min-height:0!important}
+    .history-head{padding:2px 2px 4px!important}
+    .history-head strong{font-size:19px!important;font-weight:780!important;letter-spacing:-.025em!important}
+    .history-head small{font-size:11px!important;opacity:.78!important}
+    .history-toolbar{display:flex!important;flex-direction:column!important;gap:7px!important}
+    .new-chat-btn{width:100%!important;height:41px!important;min-height:41px!important;border-radius:12px!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:0 13px!important;font-size:13px!important}
+    .history-secondary-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important}
+    .qovark-history-tool{display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;width:100%!important;height:36px!important;min-height:36px!important;border:1px solid var(--border)!important;border-radius:10px!important;background:var(--surface)!important;color:var(--text-muted)!important;padding:0 8px!important;font-size:11px!important;font-weight:700!important;text-align:center!important;white-space:nowrap!important}
+    .qovark-history-tool i{font-size:12px!important}
+    #chatHistoryList,.chat-history-list{display:flex!important;flex:1 1 0%!important;flex-direction:column!important;align-items:stretch!important;min-width:0!important;min-height:0!important;max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;gap:7px!important;padding:1px 2px 8px!important}
+    .history-chat-entry{display:flex!important;flex:0 0 auto!important;align-items:center!important;gap:4px!important;width:100%!important;min-width:0!important;min-height:76px!important;height:auto!important;max-height:92px!important;padding:4px!important;border:1px solid var(--border)!important;border-radius:13px!important;background:var(--surface)!important;box-sizing:border-box!important;overflow:hidden!important}
+    .history-chat-entry:has(.history-chat-item.current){border-color:var(--accent)!important;background:var(--primary-soft)!important}
+    .history-chat-entry .history-chat-item{display:grid!important;grid-template-columns:32px minmax(0,1fr)!important;grid-template-rows:auto!important;flex:1 1 auto!important;align-items:center!important;gap:0 9px!important;min-width:0!important;min-height:64px!important;height:auto!important;max-height:none!important;padding:7px 5px!important;border:0!important;border-radius:9px!important;background:transparent!important;color:var(--text)!important;text-align:left!important;overflow:hidden!important}
+    .history-chat-mark{grid-column:1!important;grid-row:1!important;display:flex!important;align-items:center!important;justify-content:center!important;width:32px!important;height:32px!important;border-radius:10px!important;background:var(--primary-soft)!important;color:var(--accent)!important;font-size:13px!important}
+    .history-chat-copy{grid-column:2!important;grid-row:1!important;display:flex!important;flex-direction:column!important;min-width:0!important;width:100%!important;gap:3px!important}
+    .history-chat-copy strong{display:block!important;width:100%!important;color:var(--text)!important;font-size:12px!important;line-height:1.35!important;font-weight:760!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    .history-chat-copy .history-chat-preview{display:block!important;width:100%!important;color:var(--text-muted)!important;font-size:10px!important;line-height:1.35!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    .history-chat-copy small{display:block!important;color:var(--muted)!important;font-size:9px!important;line-height:1.3!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    .history-chat-actions{display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;gap:3px!important;padding:0 2px 0 0!important}
+    .history-chat-action{display:inline-flex!important;flex:0 0 29px!important;align-items:center!important;justify-content:center!important;width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;border:1px solid var(--border)!important;border-radius:9px!important;background:transparent!important;color:var(--text-muted)!important;font-size:10px!important}
+    .history-chat-action.danger{color:var(--muted)!important}
+    .history-chat-action:active{background:var(--primary-soft)!important}
+    .history-foot{padding:8px 3px 0!important;border-top:1px solid var(--border)!important;font-size:10px!important;line-height:1.35!important;color:var(--muted)!important}
+    .history-empty{display:flex!important;flex-direction:column!important;align-items:center!important;gap:7px!important;padding:24px 15px!important;color:var(--text-muted)!important}
+    .history-empty i{font-size:22px!important;opacity:.65!important}
+    .history-empty strong{font-size:12px!important;color:var(--text)!important}
+    .history-empty span{font-size:11px!important}
+  </style>
 </head>
 <body>
 
@@ -5585,9 +5615,13 @@
         <div><strong>Chats</strong><small>Your saved conversations</small></div>
         <button type="button" id="closeChatHistoryBtn" aria-label="Close chat history"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <button type="button" id="newChatBtn" class="new-chat-btn"><i class="fa-solid fa-plus"></i> New chat</button>
-      <button type="button" id="shareCurrentChatBtn" class="new-chat-btn qovark-share-current"><i class="fa-solid fa-share-nodes"></i> Share current chat</button>
-      <button type="button" id="manageSharedLinksBtn" class="qovark-share-manage"><i class="fa-solid fa-link"></i> Manage shared links</button>
+      <div class="history-toolbar">
+        <button type="button" id="newChatBtn" class="new-chat-btn"><i class="fa-solid fa-plus"></i> New chat</button>
+        <div class="history-secondary-actions">
+          <button type="button" id="shareCurrentChatBtn" class="qovark-history-tool qovark-share-current"><i class="fa-solid fa-share-nodes"></i><span>Share current</span></button>
+          <button type="button" id="manageSharedLinksBtn" class="qovark-history-tool qovark-share-manage"><i class="fa-solid fa-link"></i><span>Shared links</span></button>
+        </div>
+      </div>
       <div id="chatHistoryList" class="chat-history-list"><div class="history-empty">Your conversations will appear here.</div></div>
       <div class="history-foot" id="historyAccountStatus">Sign in to sync chats across devices.</div>
     </aside>
@@ -10975,7 +11009,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       syncPendingLocalChatBackups(uid).catch(()=>{});
       refreshCurrentFastChatFromSupabase(uid,false).catch(()=>{});
       if(historyOverlayEl?.classList.contains("open"))renderFastChatHistory();
-    },12000);
+    },30000);
   }
   function setHistoryOpen(open) {
     if (open) setSettingsPanelOpen(false);
@@ -10987,7 +11021,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     event.stopPropagation();
     setSettingsPanelOpen(false);
     setHistoryOpen(true);
-    renderFastChatHistory();
+    renderFastChatHistory({ force: true });
     const uid = auth.currentUser?.uid || null;
     if (uid) refreshCurrentFastChatFromSupabase(uid,true).catch(() => {});
   });
@@ -12253,7 +12287,6 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   persistFastChat = function() {
     const ownerUid = activeFastChatOwnerUid === undefined ? (auth.currentUser?.uid || null) : activeFastChatOwnerUid;
     saveLocalFastChatFor(ownerUid);
-    if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
     return Promise.resolve(true);
   };
 
@@ -12321,6 +12354,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if (button) button.disabled = true;
     try {
       await pxxlRequest("/api/chat/conversations/" + encodeURIComponent(chatId), { method: "DELETE" });
+      if (qovarkHistoryCacheState?.uid === uid) {
+        qovarkHistoryCacheState.items = qovarkHistoryCacheState.items.filter(item => String(item.chatId) !== chatId);
+        qovarkHistoryCacheState.fetchedAt = Date.now();
+      }
       qovarkHistoryRemoveLocalThread(uid, chatId);
       if (activeFastChatId === chatId && auth.currentUser?.uid === uid) {
         activeFastChatId = createFastChatId();
@@ -12345,188 +12382,190 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     }
   }
 
-  renderFastChatHistory = async function() {
-    const uidAtStart = auth.currentUser?.uid || null;
+  // Cached history view: refresh quietly, and rebuild rows only when data changes.
+  let qovarkHistoryCacheState = { uid:null, items:[], fetchedAt:0, pending:null, cloudAvailable:false };
+
+  function qovarkHistoryCompactPreview(value, maxLength = 92) {
+    const clean = String(value || "")
+      .replace(new RegExp("\\x60{3}[\\s\\S]*?\\x60{3}", "g"), "Code response")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/https?:\/\/\S+/g, "link")
+      .replace(/[#*_~>]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!clean) return "Conversation";
+    return clean.length > maxLength ? clean.slice(0, maxLength - 1).trimEnd() + "…" : clean;
+  }
+
+  function qovarkHistoryDateLabel(value) {
+    const date = value ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) return "Saved conversation";
+    const now = new Date();
+    if (date.toDateString() === now.toDateString()) return "Today · " + date.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
+    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return date.toLocaleDateString([], { month:"short", day:"numeric", ...(date.getFullYear() !== now.getFullYear() ? {year:"numeric"} : {}) });
+  }
+
+  function qovarkHistoryComposeItems(uid, cloudItems) {
+    const map = new Map((Array.isArray(cloudItems) ? cloudItems : []).map(item => [String(item.chatId), {...item}]));
+    try {
+      const rawIndex = JSON.parse(localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_index", uid)) || "[]");
+      for (const localItem of (Array.isArray(rawIndex) ? rawIndex : [])) {
+        if (!localItem?.dirty || !localItem.chatId) continue;
+        const chatId = String(localItem.chatId);
+        const messages = qovarkHistoryLocalMessages(uid, chatId);
+        const localPreview = messages.find(message => message.sender === "ai")?.text || messages.find(message => message.sender === "user")?.text || "";
+        const previous = map.get(chatId);
+        map.set(chatId, previous ? {
+          ...previous, title:localItem.title || previous.title, preview:localPreview || previous.preview || "",
+          messageCount:Math.max(Number(previous.messageCount || 0), messages.length), updatedAt:localItem.updatedAt || previous.updatedAt
+        } : {
+          chatId, title:localItem.title || deriveChatTitle(messages), preview:localPreview,
+          messageCount:messages.length, updatedAt:localItem.updatedAt || null, localOnly:true
+        });
+      }
+    } catch(error) { console.warn("QOVARK local history index:", error?.message || error); }
+
+    const activeId = String(activeFastChatId || "");
+    const activeMessages = Array.isArray(chatHistory) ? chatHistory : [];
+    if (activeId && activeMessages.length && !map.has(activeId)) {
+      map.set(activeId, {
+        chatId:activeId, title:deriveChatTitle(activeMessages),
+        preview:activeMessages.find(message => message.sender === "ai")?.text || activeMessages.find(message => message.sender === "user")?.text || "",
+        messageCount:activeMessages.length, updatedAt:new Date().toISOString(), localOnly:true
+      });
+    }
+    return Array.from(map.values()).sort((a,b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+  }
+
+  function qovarkRenderHistorySnapshot(uid, sourceItems, cloudAvailable) {
     const listEl = document.getElementById("chatHistoryList");
     const statusEl = document.getElementById("historyAccountStatus");
-    if (!listEl) return;
-    if (!uidAtStart) {
-      listEl.innerHTML = '<div class="history-empty">Sign in to sync conversations across devices. Guest chats remain on this device.</div>';
-      if (statusEl) statusEl.textContent = "Guest conversations are saved on this device only.";
+    if (!listEl || auth.currentUser?.uid !== uid) return;
+    const items = qovarkHistoryComposeItems(uid, sourceItems);
+    const signature = JSON.stringify([uid, String(activeFastChatId || ""), cloudAvailable,
+      items.map(item => [item.chatId,item.title,qovarkHistoryCompactPreview(item.preview),item.updatedAt,Number(item.messageCount || 0),Boolean(item.localOnly)])]);
+    if (listEl.dataset.qovarkHistorySignature === signature) {
+      if (statusEl) statusEl.textContent = cloudAvailable ? "Your conversations are synced across signed-in devices" : "Cloud history unavailable · device copies preserved";
       return;
     }
 
-    const activeId = String(activeFastChatId || "");
-    const activeMessages = Array.isArray(chatHistory) ? chatHistory.slice() : [];
-    listEl.innerHTML = '<div class="history-empty">Loading your saved conversations…</div>';
-    if (statusEl) statusEl.textContent = "Syncing conversations with your QOVARK account…";
-
-    const allItems = new Map();
-    let cloudAvailable = false;
-    try {
-      await syncPendingLocalChatBackups(uidAtStart);
-      if (auth.currentUser?.uid !== uidAtStart) return;
-
-      let offset = 0;
-      let pageCount = 0;
-      do {
-        const result = await pxxlRequest("/api/chat/conversations?limit=1000&includeMessages=0&offset=" + offset);
-        if (auth.currentUser?.uid !== uidAtStart) return;
-        cloudAvailable = true;
-        for (const raw of (Array.isArray(result.conversations) ? result.conversations : [])) {
-          const chatId = String(raw.chatId || "");
-          if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
-          const previous = allItems.get(chatId);
-          if (!previous) {
-            allItems.set(chatId, { ...raw, chatId });
-          } else {
-            const previousTime = Date.parse(previous.updatedAt || "") || 0;
-            const nextTime = Date.parse(raw.updatedAt || "") || 0;
-            allItems.set(chatId, {
-              ...previous,
-              ...raw,
-              chatId,
-              // The first page contains the newest preview and update timestamp.
-              // Older pages can contribute earlier title text and message counts.
-              title: pageCount > 0 ? (raw.title || previous.title) : (previous.title || raw.title),
-              preview: previous.preview || raw.preview || "",
-              messageCount: Number(previous.messageCount || 0) + Number(raw.messageCount || 0),
-              updatedAt: new Date(Math.max(previousTime, nextTime)).toISOString()
-            });
-          }
-        }
-        pageCount += 1;
-        const next = result.nextOffset;
-        offset = next === null || next === undefined ? null : Number(next);
-        if (offset !== null && !Number.isFinite(offset)) offset = null;
-      } while (offset !== null && pageCount < 50);
-
-      if (auth.currentUser?.uid !== uidAtStart) return;
-    } catch (error) {
-      console.warn("QOVARK Supabase chat history list:", error?.message || error);
-    }
-
-    // Keep dirty device-only threads visible until their import is confirmed.
-    try {
-      const rawIndex = JSON.parse(localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_index", uidAtStart)) || "[]");
-      for (const localItem of (Array.isArray(rawIndex) ? rawIndex : [])) {
-        if (!localItem?.chatId || !localItem.dirty) continue;
-        const chatId = String(localItem.chatId);
-        const localMessages = qovarkHistoryLocalMessages(uidAtStart, chatId);
-        const localPreview = localMessages.find(message => message.sender === "ai")?.text ||
-          localMessages.find(message => message.sender === "user")?.text || "";
-        const previous = allItems.get(chatId);
-        allItems.set(chatId, previous ? {
-          ...previous,
-          title: localItem.title || previous.title,
-          preview: localPreview || previous.preview || "",
-          messageCount: Math.max(Number(previous.messageCount || 0), localMessages.length),
-          updatedAt: localItem.updatedAt || previous.updatedAt
-        } : {
-          chatId,
-          title: localItem.title || deriveChatTitle(localMessages),
-          preview: localPreview,
-          messageCount: localMessages.length,
-          updatedAt: localItem.updatedAt || null,
-          localOnly: true
-        });
-      }
-    } catch (error) {
-      console.warn("QOVARK local history index:", error?.message || error);
-    }
-
-    // A currently open unsaved thread is displayed locally, but is not invented
-    // as a server conversation until its first message has been persisted.
-    if (activeId && activeMessages.length && !allItems.has(activeId)) {
-      const preview = activeMessages.find(message => message.sender === "ai")?.text ||
-        activeMessages.find(message => message.sender === "user")?.text || "";
-      allItems.set(activeId, {
-        chatId: activeId,
-        title: deriveChatTitle(activeMessages),
-        preview,
-        messageCount: activeMessages.length,
-        updatedAt: new Date().toISOString(),
-        localOnly: true
-      });
-    }
-
-    const items = Array.from(allItems.values()).sort((a, b) =>
-      String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))
-    );
-
+    const previousScrollTop = listEl.scrollTop;
     const fragment = document.createDocumentFragment();
     for (const item of items) {
-      if (auth.currentUser?.uid !== uidAtStart) return;
       const chatId = String(item.chatId || "");
       if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
-
       const title = String(item.title || "New conversation");
-      const preview = String(item.preview || "No preview available");
-      const wrapper = document.createElement("div");
+      const summary = qovarkHistoryCompactPreview(item.preview || "Conversation");
+      const wrapper = document.createElement("article");
       wrapper.className = "history-chat-entry";
       const openButton = document.createElement("button");
       openButton.type = "button";
       openButton.className = "history-chat-item" + (chatId === activeFastChatId ? " current" : "");
       openButton.innerHTML =
-        '<strong title="' + escapeHTML(title) + '">' + escapeHTML(title) + '</strong>' +
-        '<span>' + escapeHTML(preview) + '</span>' +
-        '<small>' + escapeHTML(item.updatedAt ? new Date(item.updatedAt).toLocaleString() : "Saved conversation") +
-        ' · ' + Number(item.messageCount || 0) + ' messages' +
-        (item.localOnly ? ' · waiting to sync' : ' · account copy') + '</small>';
+        '<span class="history-chat-mark"><i class="fa-regular fa-message" aria-hidden="true"></i></span>' +
+        '<span class="history-chat-copy"><strong title="' + escapeHTML(title) + '">' + escapeHTML(title) + '</strong>' +
+        '<span class="history-chat-preview">' + escapeHTML(summary) + '</span>' +
+        '<small>' + escapeHTML(qovarkHistoryDateLabel(item.updatedAt)) + ' · ' + Number(item.messageCount || 0) + ' messages</small></span>';
       openButton.addEventListener("click", async () => {
-        if (auth.currentUser?.uid !== uidAtStart || openButton.disabled) return;
+        if (auth.currentUser?.uid !== uid || openButton.disabled) return;
         openButton.disabled = true;
-        try {
-          await openFastChatById(chatId, uidAtStart);
-        } finally {
-          openButton.disabled = false;
-        }
+        try { await openFastChatById(chatId, uid); } finally { openButton.disabled = false; }
       });
 
       const actions = document.createElement("div");
       actions.className = "history-chat-actions";
       const shareButton = document.createElement("button");
-      shareButton.type = "button";
-      shareButton.className = "history-chat-action";
-      shareButton.title = "Share conversation";
-      shareButton.setAttribute("aria-label", "Share " + title);
+      shareButton.type = "button"; shareButton.className = "history-chat-action";
+      shareButton.title = "Share conversation"; shareButton.setAttribute("aria-label", "Share " + title);
       shareButton.innerHTML = '<i class="fa-solid fa-share-nodes" aria-hidden="true"></i>';
-      shareButton.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-        shareQovarkHistoryConversation(uidAtStart, item, shareButton);
-      });
-
+      shareButton.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); shareQovarkHistoryConversation(uid,item,shareButton); });
       const deleteButton = document.createElement("button");
-      deleteButton.type = "button";
-      deleteButton.className = "history-chat-action danger";
-      deleteButton.title = "Delete conversation";
-      deleteButton.setAttribute("aria-label", "Delete " + title);
-      deleteButton.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
-      deleteButton.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-        deleteQovarkHistoryConversation(uidAtStart, item, deleteButton);
-      });
-
-      actions.append(shareButton, deleteButton);
-      wrapper.append(openButton, actions);
+      deleteButton.type = "button"; deleteButton.className = "history-chat-action danger";
+      deleteButton.title = "Delete conversation"; deleteButton.setAttribute("aria-label", "Delete " + title);
+      deleteButton.innerHTML = '<i class="fa-regular fa-trash-can" aria-hidden="true"></i>';
+      deleteButton.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); deleteQovarkHistoryConversation(uid,item,deleteButton); });
+      actions.append(shareButton,deleteButton);
+      wrapper.append(openButton,actions);
       fragment.appendChild(wrapper);
     }
 
-    if (auth.currentUser?.uid !== uidAtStart) return;
     if (!fragment.childNodes.length) {
       listEl.innerHTML = cloudAvailable
-        ? '<div class="history-empty">No saved conversations yet. Start a chat and it will appear here after saving.</div>'
-        : '<div class="history-empty">Cloud history is unavailable. Your current device conversations are preserved.</div>';
+        ? '<div class="history-empty"><i class="fa-regular fa-comments"></i><strong>No conversations yet</strong><span>Your saved chats will appear here.</span></div>'
+        : '<div class="history-empty"><i class="fa-solid fa-cloud-arrow-down"></i><strong>History unavailable</strong><span>Your device copies are preserved.</span></div>';
     } else {
       listEl.replaceChildren(fragment);
+      listEl.scrollTop = previousScrollTop;
     }
-    if (statusEl) {
-      statusEl.textContent = cloudAvailable
-        ? "Saved to your QOVARK account · available across signed-in devices"
-        : "Cloud history unavailable · showing preserved device conversations";
+    listEl.dataset.qovarkHistorySignature = signature;
+    if (statusEl) statusEl.textContent = cloudAvailable ? "Your conversations are synced across signed-in devices" : "Cloud history unavailable · device copies preserved";
+  }
+
+  renderFastChatHistory = async function(options = {}) {
+    const uid = auth.currentUser?.uid || null;
+    const listEl = document.getElementById("chatHistoryList");
+    if (!listEl) return;
+    if (!uid) {
+      listEl.dataset.qovarkHistorySignature = "";
+      listEl.innerHTML = '<div class="history-empty"><i class="fa-regular fa-comments"></i><strong>Sign in to see your chats</strong><span>Guest conversations stay on this device.</span></div>';
+      qovarkHistoryStatus("Guest conversations are saved on this device only.");
+      return;
     }
+    if (qovarkHistoryCacheState.uid !== uid) {
+      qovarkHistoryCacheState = {uid,items:[],fetchedAt:0,pending:null,cloudAvailable:false};
+      listEl.dataset.qovarkHistorySignature = "";
+    }
+    if (qovarkHistoryCacheState.fetchedAt || qovarkHistoryCacheState.items.length) {
+      qovarkRenderHistorySnapshot(uid,qovarkHistoryCacheState.items,qovarkHistoryCacheState.cloudAvailable);
+    } else if (!listEl.children.length) {
+      listEl.innerHTML = '<div class="history-empty"><i class="fa-solid fa-circle-notch fa-spin"></i><strong>Loading conversations</strong><span>Your saved chats are being retrieved.</span></div>';
+    }
+
+    const force = options?.force === true;
+    const cacheFresh = Date.now() - qovarkHistoryCacheState.fetchedAt < 25000;
+    if (!force && cacheFresh) return;
+    if (qovarkHistoryCacheState.pending) return qovarkHistoryCacheState.pending;
+
+    qovarkHistoryCacheState.pending = (async () => {
+      const allItems = new Map();
+      let cloudAvailable = false;
+      try {
+        await syncPendingLocalChatBackups(uid);
+        if (auth.currentUser?.uid !== uid) return;
+        let offset = 0, pageCount = 0;
+        do {
+          const result = await pxxlRequest("/api/chat/conversations?limit=1000&includeMessages=0&offset=" + offset);
+          if (auth.currentUser?.uid !== uid) return;
+          cloudAvailable = true;
+          for (const raw of (Array.isArray(result.conversations) ? result.conversations : [])) {
+            const chatId = String(raw.chatId || "");
+            if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
+            const previous = allItems.get(chatId);
+            if (!previous) allItems.set(chatId,{...raw,chatId});
+            else {
+              const previousTime = Date.parse(previous.updatedAt || "") || 0;
+              const nextTime = Date.parse(raw.updatedAt || "") || 0;
+              allItems.set(chatId,{...previous,...raw,chatId,title:previous.title || raw.title,preview:previous.preview || raw.preview || "",
+                messageCount:Number(previous.messageCount || 0)+Number(raw.messageCount || 0),
+                updatedAt:new Date(Math.max(previousTime,nextTime)).toISOString()});
+            }
+          }
+          pageCount++;
+          const next = result.nextOffset;
+          offset = next === null || next === undefined ? null : Number(next);
+          if (offset !== null && !Number.isFinite(offset)) offset = null;
+        } while (offset !== null && pageCount < 50);
+      } catch(error) { console.warn("QOVARK Supabase chat history refresh:",error?.message || error); }
+      if (auth.currentUser?.uid !== uid) return;
+      qovarkHistoryCacheState.items = Array.from(allItems.values());
+      qovarkHistoryCacheState.cloudAvailable = cloudAvailable;
+      qovarkHistoryCacheState.fetchedAt = Date.now();
+      qovarkRenderHistorySnapshot(uid,qovarkHistoryCacheState.items,cloudAvailable);
+    })().finally(() => { qovarkHistoryCacheState.pending = null; });
+    return qovarkHistoryCacheState.pending;
   };
 
   function renderChatMessagesIntoMainFeed() {
