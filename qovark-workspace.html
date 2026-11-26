@@ -13659,6 +13659,19 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   html[dir="rtl"] .qovark-language-head,
   html[dir="rtl"] .qovark-language-choice { direction: rtl; }
   html[dir="rtl"] .qovark-language-choice { text-align: right; }
+
+/* Give generated conversation summaries enough room to be useful at a glance. */
+.history-chat-entry .history-chat-copy .history-chat-preview {
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  overflow-wrap:anywhere!important;
+  font-size:10px!important;
+  line-height:1.4!important;
+}
 </style>
 <script id="qovark-global-localization-v1">
 (() => {
