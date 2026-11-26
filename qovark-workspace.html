@@ -4618,6 +4618,47 @@
     .history-empty strong{font-size:12px!important;color:var(--text)!important}
     .history-empty span{font-size:11px!important}
   </style>
+
+<style id="qovark-history-icon-layout-final-fix">
+/* Final override: the responsive overflow rules above previously changed the
+   history button back to a vertical flex column, displacing its leading icon. */
+.history-chat-entry .history-chat-item {
+  display:grid!important;
+  grid-template-columns:32px minmax(0,1fr)!important;
+  grid-template-rows:auto!important;
+  grid-auto-flow:row!important;
+  flex-direction:initial!important;
+  align-items:center!important;
+  justify-content:initial!important;
+  align-content:center!important;
+  gap:0 9px!important;
+  text-align:left!important;
+}
+.history-chat-entry .history-chat-mark {
+  grid-column:1!important;grid-row:1!important;
+  display:flex!important;align-self:center!important;justify-self:center!important;
+  align-items:center!important;justify-content:center!important;
+  width:32px!important;min-width:32px!important;max-width:32px!important;
+  height:32px!important;min-height:32px!important;max-height:32px!important;
+  flex:0 0 32px!important;margin:0!important;padding:0!important;
+  box-sizing:border-box!important;line-height:1!important;
+}
+.history-chat-entry .history-chat-mark i {
+  display:block!important;position:static!important;float:none!important;
+  width:auto!important;height:auto!important;margin:0!important;padding:0!important;
+  line-height:1!important;transform:none!important;vertical-align:middle!important;
+}
+.history-chat-entry .history-chat-copy {
+  grid-column:2!important;grid-row:1!important;min-width:0!important;
+  width:100%!important;align-self:center!important;
+}
+.history-chat-entry .history-chat-copy strong,
+.history-chat-entry .history-chat-copy .history-chat-preview,
+.history-chat-entry .history-chat-copy small {
+  width:100%!important;max-width:100%!important;white-space:nowrap!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;overflow-wrap:normal!important;
+}
+</style>
 </head>
 <body>
 
