@@ -12780,6 +12780,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     try { activeFastChatController?.abort(); } catch {}
     activeFastChatController = null;
     isTyping = false;
+    hideHUD();
+    updateActionButton();
     persistFastChat();
     activeFastChatId = createFastChatId();
     chatHistory = []; latestAIText = ""; chatContainer.innerHTML = "";
