@@ -12417,13 +12417,19 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         if (!localItem?.dirty || !localItem.chatId) continue;
         const chatId = String(localItem.chatId);
         const messages = qovarkHistoryLocalMessages(uid, chatId);
-        const localPreview = messages.find(message => message.sender === "ai")?.text || messages.find(message => message.sender === "user")?.text || "";
+        const localPreview = messages.filter(message => message.sender === "ai").slice(-1)[0]?.text || messages.find(message => message.sender === "user")?.text || "";
         const previous = map.get(chatId);
+        const derivedLocalTitle = deriveChatTitle(messages);
+        const localTitle = derivedLocalTitle !== "New conversation"
+          ? derivedLocalTitle
+          : (localItem.title && !/^(?:hi|hey|hello|hiya|good morning|good afternoon|good evening|good night|morning|how are you|what's up|what's going on|yo|sup|greetings|thanks|thank you)[\\s!.?,]*$/i.test(String(localItem.title).trim())
+              ? localItem.title
+              : (previous?.title || "New conversation"));
         map.set(chatId, previous ? {
-          ...previous, title:localItem.title || previous.title, preview:localPreview || previous.preview || "",
+          ...previous, title:localTitle, preview:localPreview || previous.preview || "",
           messageCount:Math.max(Number(previous.messageCount || 0), messages.length), updatedAt:localItem.updatedAt || previous.updatedAt
         } : {
-          chatId, title:localItem.title || deriveChatTitle(messages), preview:localPreview,
+          chatId, title:localTitle, preview:localPreview,
           messageCount:messages.length, updatedAt:localItem.updatedAt || null, localOnly:true
         });
       }
