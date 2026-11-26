@@ -10775,23 +10775,23 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if(auth.currentUser?.uid!==uid)return;
     const conversations=Array.isArray(result.conversations)?result.conversations:[];
     const selected=conversations.find(item=>String(item.chatId)===cachedId)||conversations[0]||null;
-    activeFastChatId=selected?String(selected.chatId):(cachedId||previousId||createFastChatId());
+    const selectedId=selected?String(selected.chatId):(cachedId||previousId||createFastChatId());
     activeFastChatOwnerUid=uid;
     if(selected){
-      const remote=await fetchSupabaseFastChat(uid,activeFastChatId);
+      const remote=await fetchSupabaseFastChat(uid,selectedId);
       if(auth.currentUser?.uid!==uid)return;
       if(Array.isArray(remote)&&remote.length){
+        activeFastChatId=selectedId;
         chatHistory=remote;
       }else{
-        const threadCache=loadLocalFastChatThread(uid,activeFastChatId);
-        if(threadCache?.length)chatHistory=threadCache;
-        else if(activeFastChatId===cachedId&&cachedMessages.length)chatHistory=cachedMessages;
-        else if(previousMessages.length){
-          activeFastChatId=previousId||cachedId||createFastChatId();
-          chatHistory=previousMessages;
-        }else chatHistory=[];
+        const threadCache=loadLocalFastChatThread(uid,selectedId);
+        if(threadCache?.length){activeFastChatId=selectedId;chatHistory=threadCache;}
+        else if(selectedId===cachedId&&cachedMessages.length){activeFastChatId=selectedId;chatHistory=cachedMessages;}
+        else if(previousMessages.length){activeFastChatId=previousId||cachedId||createFastChatId();chatHistory=previousMessages;}
+        else{activeFastChatId=selectedId;chatHistory=[];}
       }
-    } else {
+    }else{
+      activeFastChatId=selectedId;
       chatHistory=cachedMessages.length?cachedMessages:previousMessages;
     }
     latestAIText=chatHistory.filter(item=>item.sender==="ai").slice(-1)[0]?.text||"";
