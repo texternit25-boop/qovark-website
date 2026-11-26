@@ -11021,7 +11021,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     event.stopPropagation();
     setSettingsPanelOpen(false);
     setHistoryOpen(true);
-    renderFastChatHistory({ force: true });
+    renderFastChatHistory();
     const uid = auth.currentUser?.uid || null;
     if (uid) refreshCurrentFastChatFromSupabase(uid,true).catch(() => {});
   });
