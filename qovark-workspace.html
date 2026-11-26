@@ -7149,12 +7149,13 @@
     const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     try {
+      const requestChatId=activeFastChatId;
       const body = {
         message: userMessage || (imageData ? "What's in this image?" : ""),
         personality: aiPersonality,
         language: currentLanguage,
         userId: requestUid || "guest",
-        chatId: activeFastChatId || null
+        chatId: requestChatId || null
       };
       if (imageData) body.imageData = imageData;
 
@@ -7169,15 +7170,22 @@
         body: JSON.stringify(body),
         signal: controller.signal
       });
-      if ((auth.currentUser?.uid || null) !== requestUid || requestToken !== activeFastChatRequestToken) return null;
+      if ((auth.currentUser?.uid || null) !== requestUid || activeFastChatId!==requestChatId || requestToken !== activeFastChatRequestToken) return null;
       const contentType = response.headers.get("content-type") || "";
       const data = contentType.includes("application/json") ? await response.json() : { error: await response.text() };
-      if ((auth.currentUser?.uid || null) !== requestUid || requestToken !== activeFastChatRequestToken) return null;
+      if ((auth.currentUser?.uid || null) !== requestUid || activeFastChatId!==requestChatId || requestToken !== activeFastChatRequestToken) return null;
 
       if (!response.ok) {
         const err = new Error(data.error || data.message || `Server returned ${response.status}`);
         err.status = response.status;
+        err.code = data.code || null;
         throw err;
+      }
+      if(requestUser&&data.historyPersisted!==true){
+        const persistenceError=new Error("QOVARK could not confirm that this conversation was saved. Your device copy has been preserved; please retry.");
+        persistenceError.status=503;
+        persistenceError.code="CHAT_HISTORY_SAVE_FAILED";
+        throw persistenceError;
       }
       const answer = data.response ?? data.reply ?? data.answer;
       if (typeof answer !== "string" || !answer.trim()) {
@@ -7392,6 +7400,7 @@
     if (isTyping) return;
     const sendToken = ++activeFastChatSendToken;
     const sendingUid = auth.currentUser?.uid || null;
+    const sendingChatId = activeFastChatId;
     if (isSpeaking || speechStartPending) stopSpeechPlayback();
 
     const editingId = editingUserMessageId;
@@ -7407,7 +7416,7 @@
       const selectedId = String(editingId || "");
       if (sendingUid && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedId)) {
         try {
-          await pxxlRequest(`/api/chat/conversations/${encodeURIComponent(activeFastChatId)}/truncate`, {
+          await pxxlRequest(`/api/chat/conversations/${encodeURIComponent(sendingChatId)}/truncate`, {
             method: "POST",
             body: JSON.stringify({ fromMessageId: selectedId })
           });
@@ -7430,7 +7439,7 @@
       addMessage(message, "user", attachedImage);
       if (attachedImage) clearAttachment();
       const answer = await getAIResponse(message, attachedImage);
-      if ((auth.currentUser?.uid || null) !== sendingUid) return;
+      if ((auth.currentUser?.uid || null) !== sendingUid || activeFastChatId!==sendingChatId || sendToken!==activeFastChatSendToken) return;
       if (answer === null) showConnectionError();
       else {
         await addMessageWithTyping(answer, "ai", message, attachedImage);
@@ -10576,10 +10585,24 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   }
   function chatScopedKey(baseKey, uid) { return `${baseKey}__${uid || "guest"}`; }
   function saveLocalFastChatFor(uid) {
+    const identity=uid||"guest";
+    const messages=Array.isArray(chatHistory)?chatHistory:[];
     try {
-      localStorage.setItem(chatScopedKey("texter_fast_chat_cache",uid||"guest"),JSON.stringify(chatHistory));
-      localStorage.setItem(chatScopedKey("texter_fast_chat_id",uid||"guest"),activeFastChatId);
-    } catch {}
+      localStorage.setItem(chatScopedKey("texter_fast_chat_cache",identity),JSON.stringify(messages));
+      localStorage.setItem(chatScopedKey("texter_fast_chat_id",identity),activeFastChatId);
+      if(activeFastChatId){
+        const snapshot={chatId:String(activeFastChatId),messages,title:deriveChatTitle(messages),updatedAt:new Date().toISOString()};
+        localStorage.setItem(chatScopedKey("qovark_fast_chat_thread_"+activeFastChatId,identity),JSON.stringify(snapshot));
+      }
+    } catch(error) { console.warn("QOVARK local chat backup could not be saved:",error?.message||error); }
+  }
+  function loadLocalFastChatThread(uid,chatId) {
+    if(!uid||!chatId)return null;
+    try{
+      const raw=localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_"+String(chatId),uid));
+      const parsed=raw?JSON.parse(raw):null;
+      return parsed&&Array.isArray(parsed.messages)?parsed.messages:null;
+    }catch{return null;}
   }
   function activateFastChatIdentity(uid) {
     const identity=uid||null;
@@ -10632,6 +10655,16 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const remote=await fetchSupabaseFastChat(uid,targetId);
       if(!remote||auth.currentUser?.uid!==uid||activeFastChatId!==targetId)return;
       if(isTyping&&!force){qovarkFastChatRenderPending=true;return;}
+      if(remote.length===0&&chatHistory.length>0){
+        console.warn("QOVARK kept the local conversation because the server returned an empty history.",targetId);
+        saveLocalFastChatFor(uid);
+        return;
+      }
+      if(remote.length<chatHistory.length){
+        console.warn("QOVARK kept the longer local conversation while server history catches up.",targetId);
+        saveLocalFastChatFor(uid);
+        return;
+      }
       if(JSON.stringify(remote)!==JSON.stringify(chatHistory)){
         chatHistory=remote;
         latestAIText=chatHistory.filter(item=>item.sender==="ai").slice(-1)[0]?.text||"";
@@ -10646,7 +10679,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
   async function migrateLegacyFirestoreChatsToSupabase(uid) {
     if(!uid||auth.currentUser?.uid!==uid||!qovarkIsOnline())return;
-    const marker=`qovark_chat_supabase_migration_v1__${uid}`;
+    const marker=`qovark_chat_supabase_migration_v2__${uid}`;
     if(localStorage.getItem(marker)==="complete")return;
     let complete=true;
     try {
@@ -10690,13 +10723,24 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   async function openFastChatById(chatId,uid) {
     const target=String(chatId||"");
     if(!target||target===QOVARK_ACTIVE_CHAT_STATE_ID||(auth.currentUser?.uid||null)!==uid)return;
+    const previousId=activeFastChatId;
+    const previousMessages=Array.isArray(chatHistory)?chatHistory.slice():[];
     saveLocalFastChatFor(uid);
-    activeFastChatId=target;
     try {
-      const remote=await fetchSupabaseFastChat(uid,target);
-      if((auth.currentUser?.uid||null)!==uid||activeFastChatId!==target)return;
-      if(remote)chatHistory=remote;
-      else chatHistory=[];
+      let remote=await fetchSupabaseFastChat(uid,target);
+      if((auth.currentUser?.uid||null)!==uid)return;
+      if(!Array.isArray(remote)||remote.length===0){
+        const cached=loadLocalFastChatThread(uid,target);
+        if(cached?.length)remote=cached;
+        else if(previousId===target&&previousMessages.length)remote=previousMessages;
+        else {
+          showToast("This conversation has no confirmed server copy yet. Your current chat has been kept unchanged.");
+          return;
+        }
+      }
+      activeFastChatId=target;
+      activeFastChatOwnerUid=uid;
+      chatHistory=remote;
       latestAIText=chatHistory.filter(item=>item.sender==="ai").slice(-1)[0]?.text||"";
       editingUserMessageId=null;
       renderChatMessagesIntoMainFeed();
@@ -10705,7 +10749,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       updateScrollBottomButton();
     } catch(error) {
       console.warn("Could not open Supabase conversation:",error?.message||error);
-      showToast("This conversation could not be loaded. Please reconnect and try again.");
+      showToast("This conversation could not be loaded. Your current chat has been preserved.");
     }
   }
 
@@ -10714,22 +10758,36 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     await migrateLegacyFirestoreChatsToSupabase(uid);
     if(auth.currentUser?.uid!==uid)return;
     let cachedId="";
-    try{cachedId=localStorage.getItem(chatScopedKey("texter_fast_chat_id",uid))||"";}catch{}
+    let cachedMessages=[];
+    const previousId=activeFastChatId;
+    const previousMessages=Array.isArray(chatHistory)?chatHistory.slice():[];
+    try{
+      cachedId=localStorage.getItem(chatScopedKey("texter_fast_chat_id",uid))||"";
+      const raw=JSON.parse(localStorage.getItem(chatScopedKey("texter_fast_chat_cache",uid))||"[]");
+      cachedMessages=Array.isArray(raw)?raw:[];
+    }catch{}
     const result=await pxxlRequest("/api/chat/conversations?limit=1000&includeMessages=0&offset=0");
     if(auth.currentUser?.uid!==uid)return;
     const conversations=Array.isArray(result.conversations)?result.conversations:[];
     const selected=conversations.find(item=>String(item.chatId)===cachedId)||conversations[0]||null;
-    activeFastChatId=selected?String(selected.chatId):(cachedId||createFastChatId());
+    activeFastChatId=selected?String(selected.chatId):(cachedId||previousId||createFastChatId());
     activeFastChatOwnerUid=uid;
     if(selected){
       const remote=await fetchSupabaseFastChat(uid,activeFastChatId);
       if(auth.currentUser?.uid!==uid)return;
-      chatHistory=remote||[];
+      if(Array.isArray(remote)&&remote.length){
+        chatHistory=remote;
+      }else{
+        const threadCache=loadLocalFastChatThread(uid,activeFastChatId);
+        if(threadCache?.length)chatHistory=threadCache;
+        else if(activeFastChatId===cachedId&&cachedMessages.length)chatHistory=cachedMessages;
+        else if(previousMessages.length){
+          activeFastChatId=previousId||cachedId||createFastChatId();
+          chatHistory=previousMessages;
+        }else chatHistory=[];
+      }
     } else {
-      try{
-        const cached=JSON.parse(localStorage.getItem(chatScopedKey("texter_fast_chat_cache",uid))||"[]");
-        chatHistory=Array.isArray(cached)?cached:[];
-      }catch{chatHistory=[];}
+      chatHistory=cachedMessages.length?cachedMessages:previousMessages;
     }
     latestAIText=chatHistory.filter(item=>item.sender==="ai").slice(-1)[0]?.text||"";
     editingUserMessageId=null;
@@ -12013,16 +12071,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   persistFastChat = function() {
     const ownerUid = activeFastChatOwnerUid === undefined ? (auth.currentUser?.uid || null) : activeFastChatOwnerUid;
     saveLocalFastChatFor(ownerUid);
-    if (auth.currentUser && auth.currentUser.uid === ownerUid && activeFastChatId && chatHistory.length) {
-      setDoc(doc(db, "users", auth.currentUser.uid, "chats", activeFastChatId), {
-        title: deriveChatTitle(chatHistory),
-        messages: chatHistory,
-        messageCount: chatHistory.length,
-        updatedAt: new Date().toISOString()
-      }, { merge: true })
-        .then(() => { if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory(); })
-        .catch(error => console.warn("Chat cloud save:", error.message));
-    } else if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
+    if(historyOverlayEl?.classList.contains("open"))renderFastChatHistory();
+    return Promise.resolve(true);
   };
   renderFastChatHistory = async function(snapshotOverride = null) {
     const uidAtStart = auth.currentUser?.uid || null;
