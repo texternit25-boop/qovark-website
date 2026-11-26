@@ -7192,6 +7192,7 @@
         persistenceError.code="CHAT_HISTORY_SAVE_FAILED";
         throw persistenceError;
       }
+      if(requestUid)clearQovarkNewChatPending(requestUid);
       const answer = data.response ?? data.reply ?? data.answer;
       if (typeof answer !== "string" || !answer.trim()) {
         throw new Error("The AI server returned no response text.");
@@ -10589,6 +10590,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     });
   }
   function chatScopedKey(baseKey, uid) { return `${baseKey}__${uid || "guest"}`; }
+  function qovarkNewChatPendingKey(uid) { return `qovark_new_chat_pending_v1__${uid}`; }
+  function clearQovarkNewChatPending(uid) {
+    if(!uid)return;
+    try{localStorage.removeItem(qovarkNewChatPendingKey(uid));}catch{}
+  }
   function saveLocalFastChatFor(uid) {
     const identity=uid||"guest";
     const messages=Array.isArray(chatHistory)?chatHistory:[];
@@ -10786,6 +10792,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       }
       activeFastChatId=target;
       activeFastChatOwnerUid=uid;
+      clearQovarkNewChatPending(uid);
       chatHistory=remote;
       latestAIText=chatHistory.filter(item=>item.sender==="ai").slice(-1)[0]?.text||"";
       editingUserMessageId=null;
@@ -10816,8 +10823,14 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const result=await pxxlRequest("/api/chat/conversations?limit=1000&includeMessages=0&offset=0");
     if(auth.currentUser?.uid!==uid)return;
     const conversations=Array.isArray(result.conversations)?result.conversations:[];
-    const selected=conversations.find(item=>String(item.chatId)===cachedId)||conversations[0]||null;
-    const selectedId=selected?String(selected.chatId):(cachedId||previousId||createFastChatId());
+    let pendingNewChat=false;
+    try{pendingNewChat=localStorage.getItem(qovarkNewChatPendingKey(uid))==="true";}catch{}
+    const selected=pendingNewChat&&cachedId
+      ?null
+      :(conversations.find(item=>String(item.chatId)===cachedId)||conversations[0]||null);
+    const selectedId=pendingNewChat&&cachedId
+      ?cachedId
+      :(selected?String(selected.chatId):(cachedId||previousId||createFastChatId()));
     activeFastChatOwnerUid=uid;
     if(selected){
       const remote=await fetchSupabaseFastChat(uid,selectedId);
@@ -10835,7 +10848,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       }
     }else{
       activeFastChatId=selectedId;
-      chatHistory=cachedMessages.length?cachedMessages:previousMessages;
+      const threadCache=pendingNewChat?loadLocalFastChatThread(uid,selectedId):null;
+      chatHistory=threadCache?.length?threadCache:(cachedMessages.length?cachedMessages:previousMessages);
     }
     latestAIText=chatHistory.filter(item=>item.sender==="ai").slice(-1)[0]?.text||"";
     editingUserMessageId=null;
@@ -10939,6 +10953,17 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         offset=result.nextOffset===null||result.nextOffset===undefined?null:Number(result.nextOffset);
         if(!Number.isFinite(offset))offset=null;
       } while(offset!==null&&pageCount<50);
+      // Keep locally backed-up, not-yet-synced threads visible as well. These
+      // entries are imported on the next sync and are not discarded on server misses.
+      try{
+        const rawLocal=JSON.parse(localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_index",uid))||"[]");
+        for(const localItem of (Array.isArray(rawLocal)?rawLocal:[])){
+          if(!localItem?.dirty||!localItem.chatId)continue;
+          const id=String(localItem.chatId);
+          const existing=allItems.get(id);
+          allItems.set(id,existing?{...existing,title:localItem.title||existing.title,updatedAt:[existing.updatedAt,localItem.updatedAt].filter(Boolean).sort().at(-1)||null}:{...localItem,chatId:id,localOnly:true});
+        }
+      }catch{}
       const items=Array.from(allItems.values()).sort((a,b)=>String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
       const fragment=document.createDocumentFragment();
       items.forEach(item=>{
@@ -12829,6 +12854,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     updateActionButton();
     persistFastChat();
     activeFastChatId = createFastChatId();
+    try{localStorage.setItem(qovarkNewChatPendingKey(uid),"true");}catch{}
     chatHistory = []; latestAIText = ""; chatContainer.innerHTML = "";
     editingUserMessageId = null;
     setHistoryOpen(false);
