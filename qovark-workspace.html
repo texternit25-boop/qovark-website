@@ -4492,6 +4492,101 @@
   }
 </style>
 
+  <style id="qovark-chat-history-natural-overflow">
+    /* History rows keep their natural content height; only the list scrolls. */
+    #chatHistoryList, .chat-history-list {
+      display:flex !important;
+      flex:1 1 auto !important;
+      flex-direction:column !important;
+      min-height:0 !important;
+      min-width:0 !important;
+      overflow-x:hidden !important;
+      overflow-y:auto !important;
+      overscroll-behavior:contain !important;
+      -webkit-overflow-scrolling:touch !important;
+      gap:9px !important;
+    }
+    #chatHistoryList > .history-chat-entry,
+    .chat-history-list > .history-chat-entry {
+      display:flex !important;
+      flex:0 0 auto !important;
+      align-items:stretch !important;
+      gap:5px !important;
+      width:100% !important;
+      min-width:0 !important;
+      min-height:72px !important;
+      height:auto !important;
+      max-height:none !important;
+      border:1px solid var(--border) !important;
+      border-radius:13px !important;
+      background:var(--surface) !important;
+      overflow:visible !important;
+      box-sizing:border-box !important;
+    }
+    .history-chat-entry:has(.history-chat-item.current) {
+      border-color:var(--accent) !important;
+      background:var(--primary-soft) !important;
+    }
+    .history-chat-entry .history-chat-item {
+      display:flex !important;
+      flex:1 1 auto !important;
+      flex-direction:column !important;
+      align-items:flex-start !important;
+      justify-content:center !important;
+      min-width:0 !important;
+      min-height:72px !important;
+      height:auto !important;
+      max-height:none !important;
+      white-space:normal !important;
+      overflow:visible !important;
+      text-align:left !important;
+      background:transparent !important;
+    }
+    .history-chat-item strong,
+    .history-chat-item span,
+    .history-chat-item small {
+      display:block !important;
+      flex:0 0 auto !important;
+      width:100% !important;
+      max-width:100% !important;
+      height:auto !important;
+      max-height:none !important;
+      white-space:normal !important;
+      overflow:visible !important;
+      text-overflow:clip !important;
+      overflow-wrap:anywhere !important;
+      word-break:normal !important;
+      line-height:1.45 !important;
+    }
+    .history-chat-actions {
+      display:flex !important;
+      flex:0 0 auto !important;
+      align-items:center !important;
+      gap:5px !important;
+      padding:6px 7px 6px 0 !important;
+    }
+    .history-chat-action {
+      display:inline-flex !important;
+      flex:0 0 34px !important;
+      align-items:center !important;
+      justify-content:center !important;
+      width:34px !important;
+      height:34px !important;
+      min-width:34px !important;
+      border:1px solid var(--border) !important;
+      border-radius:10px !important;
+      background:var(--surface) !important;
+      color:var(--text-muted) !important;
+      cursor:pointer !important;
+    }
+    .history-chat-action:hover { border-color:var(--accent) !important; color:var(--accent) !important; }
+    .history-chat-action.danger:hover { border-color:var(--danger) !important; color:var(--danger) !important; }
+    .history-chat-action:disabled { opacity:.45 !important; cursor:wait !important; }
+    @media (max-width:390px) {
+      .history-chat-actions { gap:3px !important; padding-right:5px !important; }
+      .history-chat-action { width:31px !important; height:31px !important; min-width:31px !important; flex-basis:31px !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -12152,76 +12247,285 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     await Promise.allSettled([loadPxxlWorkspace(), loadPxxlAlerts()]);
   }
 
-  // Pxxl is the source of truth for signed-in chat history; guest chat remains local.
+  // Supabase is the single source of truth for signed-in conversation history.
+  // Firestore is read only by the legacy migration path; it is not used to render
+  // the current history list.
   persistFastChat = function() {
     const ownerUid = activeFastChatOwnerUid === undefined ? (auth.currentUser?.uid || null) : activeFastChatOwnerUid;
     saveLocalFastChatFor(ownerUid);
-    if(historyOverlayEl?.classList.contains("open"))renderFastChatHistory();
+    if (historyOverlayEl?.classList.contains("open")) renderFastChatHistory();
     return Promise.resolve(true);
   };
-  renderFastChatHistory = async function(snapshotOverride = null) {
+
+  function qovarkHistoryLocalMessages(uid, chatId) {
+    const thread = loadLocalFastChatThread(uid, chatId);
+    return Array.isArray(thread) ? thread : [];
+  }
+
+  function qovarkHistoryRemoveLocalThread(uid, chatId) {
+    if (!uid || !chatId) return;
+    try {
+      const indexKey = chatScopedKey("qovark_fast_chat_thread_index", uid);
+      const raw = JSON.parse(localStorage.getItem(indexKey) || "[]");
+      const index = Array.isArray(raw) ? raw.filter(item => String(item?.chatId || "") !== String(chatId)) : [];
+      localStorage.setItem(indexKey, JSON.stringify(index));
+      localStorage.removeItem(chatScopedKey("qovark_fast_chat_thread_" + String(chatId), uid));
+    } catch (error) {
+      console.warn("QOVARK local chat cleanup:", error?.message || error);
+    }
+  }
+
+  async function shareQovarkHistoryConversation(uid, item, button) {
+    if (qovarkShareBusy || auth.currentUser?.uid !== uid) return;
+    if (!qovarkRequireShareAccount()) return;
+    const chatId = String(item?.chatId || "");
+    if (!chatId) return;
+    const title = String(item.title || "Shared conversation");
+    const confirmed = await confirmInApp(
+      "Create a 7-day link that lets anyone with it view this saved conversation? Attachments are excluded. You can revoke the link later from Manage shared links.",
+      { title: "Share this conversation", confirmText: "Create link" }
+    );
+    if (!confirmed || auth.currentUser?.uid !== uid) return;
+    qovarkShareBusy = true;
+    if (button) button.disabled = true;
+    try {
+      const localMessages = qovarkHistoryLocalMessages(uid, chatId);
+      const body = { chatId, title, expiresInHours: 168 };
+      if (localMessages.length) body.messages = localMessages;
+      const data = await pxxlRequest("/api/share/chat", {
+        method: "POST",
+        body: JSON.stringify(body)
+      });
+      if (!data?.success || !data.url || !data.shareId) {
+        throw new Error("The sharing service did not return a valid link.");
+      }
+      showQovarkCreatedShare(data, "chat");
+    } catch (error) {
+      showToast(error?.message || "Could not create a share link for this conversation.");
+    } finally {
+      qovarkShareBusy = false;
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function deleteQovarkHistoryConversation(uid, item, button) {
+    if (auth.currentUser?.uid !== uid) return;
+    const chatId = String(item?.chatId || "");
+    if (!chatId) return;
+    const title = String(item.title || "this conversation");
+    const confirmed = await confirmInApp(
+      "Delete “" + title + "” from your QOVARK account and synced devices? This cannot be undone. Any share links already created remain separate snapshots until they expire or are revoked.",
+      { title: "Delete conversation", confirmText: "Delete chat", danger: true }
+    );
+    if (!confirmed || auth.currentUser?.uid !== uid) return;
+    if (button) button.disabled = true;
+    try {
+      await pxxlRequest("/api/chat/conversations/" + encodeURIComponent(chatId), { method: "DELETE" });
+      qovarkHistoryRemoveLocalThread(uid, chatId);
+      if (activeFastChatId === chatId && auth.currentUser?.uid === uid) {
+        activeFastChatId = createFastChatId();
+        activeFastChatOwnerUid = uid;
+        chatHistory = [];
+        latestAIText = "";
+        editingUserMessageId = null;
+        chatContainer.innerHTML = "";
+        chatContainer.style.display = "flex";
+        try {
+          localStorage.setItem(chatScopedKey("texter_fast_chat_id", uid), activeFastChatId);
+          localStorage.setItem(chatScopedKey("texter_fast_chat_cache", uid), "[]");
+          localStorage.setItem(qovarkNewChatPendingKey(uid), "true");
+        } catch {}
+        updateScrollBottomButton();
+      }
+      showToast("Conversation deleted from your QOVARK history.");
+      await renderFastChatHistory();
+    } catch (error) {
+      if (button) button.disabled = false;
+      showToast(error?.message || "Could not delete this conversation. Your saved history was not changed.");
+    }
+  }
+
+  renderFastChatHistory = async function() {
     const uidAtStart = auth.currentUser?.uid || null;
     const listEl = document.getElementById("chatHistoryList");
+    const statusEl = document.getElementById("historyAccountStatus");
     if (!listEl) return;
     if (!uidAtStart) {
-      listEl.innerHTML = '<div class="history-empty">Sign in to sync conversations across devices. This device keeps its current chat locally.</div>';
+      listEl.innerHTML = '<div class="history-empty">Sign in to sync conversations across devices. Guest chats remain on this device.</div>';
+      if (statusEl) statusEl.textContent = "Guest conversations are saved on this device only.";
       return;
     }
 
-    // Render this account's local current conversation immediately; cloud history
-    // replaces or extends it once Firestore responds.
-    const cachedId = activeFastChatId;
-    const cachedMessages = Array.isArray(chatHistory) ? chatHistory.slice() : [];
-    const appendEntry = (container, chatId, data, messages) => {
-      const title = deriveChatTitle(messages) !== "New conversation" ? deriveChatTitle(messages) : (data.title || "New conversation");
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "history-chat-item" + (chatId === activeFastChatId ? " current" : "");
-      const preview = messages.find(m => m.sender === "ai")?.text || messages.find(m => m.sender === "user")?.text || "No messages yet";
-      btn.innerHTML = `<strong title="${escapeHTML(title)}">${escapeHTML(title)}</strong><span>${escapeHTML(preview).slice(0, 110)}</span><small>${data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'On this device'} · ${messages.length} messages</small>`;
-      btn.addEventListener("click", () => {
-        if ((auth.currentUser?.uid || null) !== uidAtStart) return;
-        activeFastChatId = chatId;
-        chatHistory = messages;
-        latestAIText = chatHistory.filter(item => item.sender === 'ai').slice(-1)[0]?.text || '';
-        saveLocalFastChatFor(uidAtStart);
-        renderChatMessagesIntoMainFeed();
-        setHistoryOpen(false);
-      });
-      container.appendChild(btn);
-    };
+    const activeId = String(activeFastChatId || "");
+    const activeMessages = Array.isArray(chatHistory) ? chatHistory.slice() : [];
+    listEl.innerHTML = '<div class="history-empty">Loading your saved conversations…</div>';
+    if (statusEl) statusEl.textContent = "Syncing conversations with your QOVARK account…";
 
-    listEl.innerHTML = '<div class="history-empty">Loading saved conversations…</div>';
-    if (cachedMessages.length) {
-      const cachedFragment = document.createDocumentFragment();
-      appendEntry(cachedFragment, cachedId, { title: deriveChatTitle(cachedMessages) }, cachedMessages);
-      listEl.replaceChildren(cachedFragment);
+    const allItems = new Map();
+    let cloudAvailable = false;
+    try {
+      await syncPendingLocalChatBackups(uidAtStart);
+      if (auth.currentUser?.uid !== uidAtStart) return;
+
+      let offset = 0;
+      let pageCount = 0;
+      do {
+        const result = await pxxlRequest("/api/chat/conversations?limit=1000&includeMessages=0&offset=" + offset);
+        if (auth.currentUser?.uid !== uidAtStart) return;
+        cloudAvailable = true;
+        for (const raw of (Array.isArray(result.conversations) ? result.conversations : [])) {
+          const chatId = String(raw.chatId || "");
+          if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
+          const previous = allItems.get(chatId);
+          if (!previous) {
+            allItems.set(chatId, { ...raw, chatId });
+          } else {
+            const previousTime = Date.parse(previous.updatedAt || "") || 0;
+            const nextTime = Date.parse(raw.updatedAt || "") || 0;
+            allItems.set(chatId, {
+              ...previous,
+              ...raw,
+              chatId,
+              // The first page contains the newest preview and update timestamp.
+              // Older pages can contribute earlier title text and message counts.
+              title: pageCount > 0 ? (raw.title || previous.title) : (previous.title || raw.title),
+              preview: previous.preview || raw.preview || "",
+              messageCount: Number(previous.messageCount || 0) + Number(raw.messageCount || 0),
+              updatedAt: new Date(Math.max(previousTime, nextTime)).toISOString()
+            });
+          }
+        }
+        pageCount += 1;
+        const next = result.nextOffset;
+        offset = next === null || next === undefined ? null : Number(next);
+        if (offset !== null && !Number.isFinite(offset)) offset = null;
+      } while (offset !== null && pageCount < 50);
+
+      if (auth.currentUser?.uid !== uidAtStart) return;
+    } catch (error) {
+      console.warn("QOVARK Supabase chat history list:", error?.message || error);
     }
 
+    // Keep dirty device-only threads visible until their import is confirmed.
     try {
-      const q = query(collection(db, "users", uidAtStart, "chats"), orderBy("updatedAt", "desc"));
-      const snap = snapshotOverride || await getDocs(q);
-      if ((auth.currentUser?.uid || null) !== uidAtStart) return;
-      const entries = [];
-      snap.forEach(d => {
-        const data = d.data() || {};
-        const messages = Array.isArray(data.messages) ? data.messages : [];
-        if (messages.length) entries.push({ id: d.id, data, messages });
-      });
-      const containsCached = entries.some(entry => entry.id === cachedId);
-      if (!containsCached && cachedMessages.length) {
-        entries.push({ id: cachedId, data: { title: deriveChatTitle(cachedMessages) }, messages: cachedMessages, localOnly: true });
+      const rawIndex = JSON.parse(localStorage.getItem(chatScopedKey("qovark_fast_chat_thread_index", uidAtStart)) || "[]");
+      for (const localItem of (Array.isArray(rawIndex) ? rawIndex : [])) {
+        if (!localItem?.chatId || !localItem.dirty) continue;
+        const chatId = String(localItem.chatId);
+        const localMessages = qovarkHistoryLocalMessages(uidAtStart, chatId);
+        const localPreview = localMessages.find(message => message.sender === "ai")?.text ||
+          localMessages.find(message => message.sender === "user")?.text || "";
+        const previous = allItems.get(chatId);
+        allItems.set(chatId, previous ? {
+          ...previous,
+          title: localItem.title || previous.title,
+          preview: localPreview || previous.preview || "",
+          messageCount: Math.max(Number(previous.messageCount || 0), localMessages.length),
+          updatedAt: localItem.updatedAt || previous.updatedAt
+        } : {
+          chatId,
+          title: localItem.title || deriveChatTitle(localMessages),
+          preview: localPreview,
+          messageCount: localMessages.length,
+          updatedAt: localItem.updatedAt || null,
+          localOnly: true
+        });
       }
-      if (!entries.length) {
-        listEl.innerHTML = '<div class="history-empty">Your conversations will appear here as soon as you start chatting.</div>';
-        return;
-      }
-      const fragment = document.createDocumentFragment();
-      entries.forEach(entry => appendEntry(fragment, entry.id, entry.data, entry.messages));
-      listEl.replaceChildren(fragment);
     } catch (error) {
-      if ((auth.currentUser?.uid || null) !== uidAtStart) return;
-      if (!cachedMessages.length) listEl.innerHTML = '<div class="history-empty">Could not load chats. Try again.</div>';
+      console.warn("QOVARK local history index:", error?.message || error);
+    }
+
+    // A currently open unsaved thread is displayed locally, but is not invented
+    // as a server conversation until its first message has been persisted.
+    if (activeId && activeMessages.length && !allItems.has(activeId)) {
+      const preview = activeMessages.find(message => message.sender === "ai")?.text ||
+        activeMessages.find(message => message.sender === "user")?.text || "";
+      allItems.set(activeId, {
+        chatId: activeId,
+        title: deriveChatTitle(activeMessages),
+        preview,
+        messageCount: activeMessages.length,
+        updatedAt: new Date().toISOString(),
+        localOnly: true
+      });
+    }
+
+    const items = Array.from(allItems.values()).sort((a, b) =>
+      String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))
+    );
+
+    const fragment = document.createDocumentFragment();
+    for (const item of items) {
+      if (auth.currentUser?.uid !== uidAtStart) return;
+      const chatId = String(item.chatId || "");
+      if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
+
+      const title = String(item.title || "New conversation");
+      const preview = String(item.preview || "No preview available");
+      const wrapper = document.createElement("div");
+      wrapper.className = "history-chat-entry";
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.className = "history-chat-item" + (chatId === activeFastChatId ? " current" : "");
+      openButton.innerHTML =
+        '<strong title="' + escapeHTML(title) + '">' + escapeHTML(title) + '</strong>' +
+        '<span>' + escapeHTML(preview) + '</span>' +
+        '<small>' + escapeHTML(item.updatedAt ? new Date(item.updatedAt).toLocaleString() : "Saved conversation") +
+        ' · ' + Number(item.messageCount || 0) + ' messages' +
+        (item.localOnly ? ' · waiting to sync' : ' · account copy') + '</small>';
+      openButton.addEventListener("click", async () => {
+        if (auth.currentUser?.uid !== uidAtStart || openButton.disabled) return;
+        openButton.disabled = true;
+        try {
+          await openFastChatById(chatId, uidAtStart);
+        } finally {
+          openButton.disabled = false;
+        }
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "history-chat-actions";
+      const shareButton = document.createElement("button");
+      shareButton.type = "button";
+      shareButton.className = "history-chat-action";
+      shareButton.title = "Share conversation";
+      shareButton.setAttribute("aria-label", "Share " + title);
+      shareButton.innerHTML = '<i class="fa-solid fa-share-nodes" aria-hidden="true"></i>';
+      shareButton.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        shareQovarkHistoryConversation(uidAtStart, item, shareButton);
+      });
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "history-chat-action danger";
+      deleteButton.title = "Delete conversation";
+      deleteButton.setAttribute("aria-label", "Delete " + title);
+      deleteButton.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+      deleteButton.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteQovarkHistoryConversation(uidAtStart, item, deleteButton);
+      });
+
+      actions.append(shareButton, deleteButton);
+      wrapper.append(openButton, actions);
+      fragment.appendChild(wrapper);
+    }
+
+    if (auth.currentUser?.uid !== uidAtStart) return;
+    if (!fragment.childNodes.length) {
+      listEl.innerHTML = cloudAvailable
+        ? '<div class="history-empty">No saved conversations yet. Start a chat and it will appear here after saving.</div>'
+        : '<div class="history-empty">Cloud history is unavailable. Your current device conversations are preserved.</div>';
+    } else {
+      listEl.replaceChildren(fragment);
+    }
+    if (statusEl) {
+      statusEl.textContent = cloudAvailable
+        ? "Saved to your QOVARK account · available across signed-in devices"
+        : "Cloud history unavailable · showing preserved device conversations";
     }
   };
 
