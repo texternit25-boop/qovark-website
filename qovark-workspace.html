@@ -10072,7 +10072,10 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
           contextTargetFile = item;
           document.getElementById('contextFileName').innerText = item.name;
           const shareContextButton = document.getElementById('ctxShareFileBtn');
-          if (shareContextButton) shareContextButton.hidden = item.type === 'folder';
+          if (shareContextButton) {
+            shareContextButton.hidden = item.type === 'folder';
+            shareContextButton.style.display = item.type === 'folder' ? "none" : "";
+          }
           document.getElementById('fileContextSheet').classList.add('open');
           document.getElementById('fileContextOverlay').style.display = 'block';
           return;
