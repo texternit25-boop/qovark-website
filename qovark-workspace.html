@@ -13077,9 +13077,13 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
     const btn = document.getElementById("confirmReportFormatBtn");
     if (btn) btn.disabled = true;
+    const submittingUid = auth.currentUser?.uid || null;
+    if (!submittingUid) { showToast("Sign in again before submitting Deep Analysis."); return; }
     showHUD("Submitting analysis task…", true);
     try {
       const result = await pxxlRequest("/api/intellix/submit", { method: "POST", body: form });
+      // A late response from the previous account must never update the new account's workspace.
+      if (auth.currentUser?.uid !== submittingUid) return;
       if (result.page) {
         const mapped = mapPxxlPage(result.page);
         mapped.outputFormat = result.page.output_format || result.page.outputFormat || selectedReportOutputFormat;
@@ -13101,6 +13105,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       await loadPxxlWorkspace(); await loadPxxlAlerts();
       hideHUD(); switchTab(0); showToast(result.message || "Analysis task queued successfully.");
     } catch (error) {
+      if (auth.currentUser?.uid !== submittingUid) return;
       hideHUD();
       if (["PIN_REQUIRED", "PIN_INVALID", "PIN_NOT_SET"].includes(error?.code)) {
         openSecurityPinModal(error.code, { onSuccess: actuallySubmitDeepAnalysis });
@@ -13425,6 +13430,38 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     inMemoryBlindReceipts = []; inMemoryBlindVerificationProofs = [];
     Object.keys(inMemoryBlindCaseKeys).forEach(key => delete inMemoryBlindCaseKeys[key]);
     currentFolderId = null; selectedFilesForDeepWork = []; selectedFileForDeepWork = null;
+    // Deep Analysis is account-scoped too: never leave the previous account's
+    // prompt, category, file selection, report format or PIN choice on screen.
+    selectedFilesForDeepWork = [];
+    selectedFileForDeepWork = null;
+    selectedTaskCategory = null;
+    pendingModalTaskCategory = null;
+    selectedReportOutputFormat = null;
+    pendingDeepAnalysisSubmit = false;
+    deepValidationAttempted = false;
+    activeReaderPage = null;
+    fileToAnalyze = null;
+    contextTargetFile = null;
+    const deepPrompt = document.getElementById("dwPromptInput");
+    if (deepPrompt) deepPrompt.value = "";
+    const deepFileZone = document.getElementById("dwFileZone");
+    if (deepFileZone) deepFileZone.replaceChildren();
+    const deepCategoryLabel = document.getElementById("selectedCategoryLabel");
+    if (deepCategoryLabel) deepCategoryLabel.textContent = "Select a task category";
+    const deepCategoryIcon = document.getElementById("selectedCategoryIcon");
+    if (deepCategoryIcon) deepCategoryIcon.className = "fa-solid fa-layer-group";
+    const secureDeepReport = document.getElementById("secureDeepReportToggle");
+    if (secureDeepReport) secureDeepReport.checked = false;
+    document.getElementById("reportFormatModal")?.classList.remove("active");
+    document.querySelectorAll("#reportFormatOptions .format-option").forEach(option => option.classList.remove("selected"));
+    const runAnalysisButton = document.getElementById("runAnalysisBtn");
+    if (runAnalysisButton) {
+      runAnalysisButton.disabled = true;
+      runAnalysisButton.classList.add("btn-disabled");
+      runAnalysisButton.setAttribute("aria-disabled", "true");
+    }
+    document.getElementById("categoryValidationMessage")?.classList.remove("visible");
+    document.getElementById("promptValidationMessage")?.classList.remove("visible");
     chatImageCache.clear(); editingUserMessageId = null; latestAIText = '';
     chatContainer.innerHTML = '';
     setHistoryOpen(false);
