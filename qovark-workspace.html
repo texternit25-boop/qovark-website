@@ -5011,6 +5011,7 @@
     <div class="sheet-handle"></div>
     <h3 id="contextFileName" style="color:var(--text); padding: 0 24px 14px; font-size: 16px; text-align: center;">File Name</h3>
     <div class="sheet-item" id="ctxOpenFileBtn" style="color:var(--text);"><i class="fa-solid fa-up-right-from-square" style="color:var(--accent);"></i><span>Open / Review File</span></div>
+    <div class="sheet-item" id="ctxShareFileBtn" style="color:var(--text);"><i class="fa-solid fa-share-nodes" style="color:var(--accent);"></i><span>Share File</span></div>
     <div class="sheet-item" id="ctxAnalyzeBtn" style="color:var(--accent);"><i class="fa-solid fa-brain"></i><span>Send to Deep Analysis</span></div>
     <div class="sheet-item" id="ctxSendToExpertBtn" style="color:#00E676;"><i class="fa-solid fa-user-check"></i><span>Consult an Analyst</span></div>
     <div class="sheet-item" id="ctxDeleteBtn" style="color:var(--danger);"><i class="fa-solid fa-trash"></i><span>Delete Item</span></div>
@@ -5296,6 +5297,7 @@
       <p id="viewerFileMeta" style="color: var(--accent); font-size: 12px; margin-bottom: 12px; padding-left: 44px;">Document Preview</p>
       <div class="report-reader-body" id="viewerFileContent" style="max-height: 44vh;"></div>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="button" id="viewerShareFileBtn" style="flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-weight: 600; font-size: 12.5px; cursor: pointer;"><i class="fa-solid fa-share-nodes"></i> Share</button>
         <button type="button" id="openWithSystemAppBtn" style="flex: 1.3; padding: 11px; border-radius: 12px; border: 1px solid var(--accent); background: var(--primary-soft); color: var(--accent); font-weight: 600; font-size: 12.5px; cursor: pointer;"><i class="fa-solid fa-mobile-screen-button"></i> Open With Phone App</button>
         <button type="button" id="viewerAttachDeepBtn" style="flex: 1; padding: 11px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 700; font-size: 12.5px; cursor: pointer;"><i class="fa-solid fa-brain"></i> Analyze</button>
       </div>
@@ -9428,6 +9430,186 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     return ({ pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation", txt: "text/plain", csv: "text/csv", html: "text/html", htm: "text/html", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" })[String(format || "txt").toLowerCase()] || "application/octet-stream";
   }
 
+  function qovarkMarkdownInlineHtml(value = "") {
+    const preserved = [];
+    const keep = html => {
+      const token = "@@QOVARKEXPORT" + preserved.length + "@@";
+      preserved.push(html);
+      return token;
+    };
+    let source = String(value || "");
+
+    source = source.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt) =>
+      keep('<span class="report-image-note">[Image: ' + escapeHTML(alt || "embedded image") + ']</span>')
+    );
+    source = source.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label, rawUrl) => {
+      const url = String(rawUrl || "").trim().replace(/^<|>$/g, "");
+      if (!/^(https?:\/\/|mailto:)/i.test(url)) return escapeHTML(label);
+      return keep('<a href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(label) + '</a>');
+    });
+    source = source.replace(/\$\$([\s\S]+?)\$\$/g, (_match, formula) =>
+      keep('<span class="report-math report-math-block" role="math">' + escapeHTML(formula.trim()) + '</span>')
+    );
+    source = source.replace(/\\\[([\s\S]+?)\\\]/g, (_match, formula) =>
+      keep('<span class="report-math report-math-block" role="math">' + escapeHTML(formula.trim()) + '</span>')
+    );
+    source = source.replace(/\\\((.+?)\\\)/g, (_match, formula) =>
+      keep('<span class="report-math" role="math">' + escapeHTML(formula.trim()) + '</span>')
+    );
+    source = source.replace(/\x60([^\x60\n]+)\x60/g, (_match, code) => keep('<code>' + escapeHTML(code) + '</code>'));
+
+    source = escapeHTML(source)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/~~(.+?)~~/g, "<del>$1</del>")
+      .replace(/(^|[^\w])\*([^*\n]+)\*(?!\w)/g, "$1<em>$2</em>")
+      .replace(/(^|[^\w])_([^_\n]+)_(?!\w)/g, "$1<em>$2</em>");
+
+    return source.replace(/@@QOVARKEXPORT(\d+)@@/g, (_match, index) => preserved[Number(index)] || "");
+  }
+
+  function qovarkSplitMarkdownTableRow(line = "") {
+    let value = String(line).trim();
+    if (value.startsWith("|")) value = value.slice(1);
+    if (value.endsWith("|")) value = value.slice(0, -1);
+    const cells = [];
+    let cell = "", inCode = false;
+    for (let index = 0; index < value.length; index++) {
+      const char = value[index];
+      if (char === "\x60") inCode = !inCode;
+      if (char === "\\" && value[index + 1] === "|") {
+        cell += "|";
+        index++;
+        continue;
+      }
+      if (char === "|" && !inCode) {
+        cells.push(cell.trim());
+        cell = "";
+        continue;
+      }
+      cell += char;
+    }
+    cells.push(cell.trim());
+    return cells;
+  }
+
+  function qovarkIsMarkdownTableSeparator(line = "") {
+    const trimmed = String(line).trim();
+    if (!trimmed.includes("|")) return false;
+    const cells = qovarkSplitMarkdownTableRow(trimmed);
+    return cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s/g, "")));
+  }
+
+  function qovarkBuildMarkdownHtmlDocument(title, markdown) {
+    const lines = String(markdown || "").replace(/\r\n?/g, "\n").split("\n");
+    const blocks = [];
+    let index = 0;
+
+    const isBlockStart = position => {
+      const line = String(lines[position] || "").trim();
+      if (!line) return true;
+      if (/^\x60{3,}/.test(line) || /^#{1,6}\s+/.test(line) || /^>/.test(line)) return true;
+      if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(line)) return true;
+      if (/^\s*(?:[-*+]\s+|\d+[.)]\s+)/.test(line)) return true;
+      return position + 1 < lines.length && line.includes("|") && qovarkIsMarkdownTableSeparator(lines[position + 1]);
+    };
+
+    while (index < lines.length) {
+      const trimmed = lines[index].trim();
+      if (!trimmed) { index++; continue; }
+
+      const fence = trimmed.match(/^\x60{3,}\s*([A-Za-z0-9_+-]*)/);
+      if (fence) {
+        const codeLines = [];
+        index++;
+        while (index < lines.length && !/^\s*\x60{3,}\s*$/.test(lines[index])) codeLines.push(lines[index++]);
+        if (index < lines.length) index++;
+        const language = fence[1] ? ' class="language-' + escapeHTML(fence[1]) + '"' : "";
+        blocks.push('<pre class="report-code"><code' + language + '>' + escapeHTML(codeLines.join("\n")) + "</code></pre>");
+        continue;
+      }
+
+      if (/^\$\$\s*$/.test(trimmed)) {
+        index++;
+        const formula = [];
+        while (index < lines.length && !/^\s*\$\$\s*$/.test(lines[index])) formula.push(lines[index++]);
+        if (index < lines.length) index++;
+        blocks.push('<div class="report-math report-math-block" role="math">' + escapeHTML(formula.join("\n")) + "</div>");
+        continue;
+      }
+
+      const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      if (heading) {
+        const level = heading[1].length;
+        blocks.push("<h" + level + ">" + qovarkMarkdownInlineHtml(heading[2]) + "</h" + level + ">");
+        index++;
+        continue;
+      }
+
+      if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+        blocks.push("<hr>");
+        index++;
+        continue;
+      }
+
+      if (index + 1 < lines.length && trimmed.includes("|") && qovarkIsMarkdownTableSeparator(lines[index + 1])) {
+        const headers = qovarkSplitMarkdownTableRow(trimmed);
+        const alignments = qovarkSplitMarkdownTableRow(lines[index + 1]).map(cell =>
+          cell.startsWith(":") && cell.endsWith(":") ? "center" : cell.endsWith(":") ? "right" : "left"
+        );
+        const headerHtml = headers.map((cell, cellIndex) =>
+          '<th scope="col" style="text-align:' + (alignments[cellIndex] || "left") + '">' + qovarkMarkdownInlineHtml(cell) + "</th>"
+        ).join("");
+        const bodyRows = [];
+        index += 2;
+        while (index < lines.length && lines[index].trim().startsWith("|")) {
+          const cells = qovarkSplitMarkdownTableRow(lines[index]);
+          bodyRows.push("<tr>" + headers.map((_header, cellIndex) =>
+            '<td style="text-align:' + (alignments[cellIndex] || "left") + '">' + qovarkMarkdownInlineHtml(cells[cellIndex] || "") + "</td>"
+          ).join("") + "</tr>");
+          index++;
+        }
+        blocks.push('<div class="report-table-wrap"><table><thead><tr>' + headerHtml + "</tr></thead><tbody>" + bodyRows.join("") + "</tbody></table></div>");
+        continue;
+      }
+
+      if (/^>/.test(trimmed)) {
+        const quoteLines = [];
+        while (index < lines.length && /^\s*>/.test(lines[index])) quoteLines.push(lines[index++].replace(/^\s*>\s?/, ""));
+        blocks.push("<blockquote>" + quoteLines.map(part => qovarkMarkdownInlineHtml(part)).join("<br>") + "</blockquote>");
+        continue;
+      }
+
+      const listMatch = trimmed.match(/^([-*+]\s+|\d+[.)]\s+)/);
+      if (listMatch) {
+        const ordered = /^\d/.test(listMatch[1]);
+        const tag = ordered ? "ol" : "ul";
+        const items = [];
+        while (index < lines.length) {
+          const itemMatch = lines[index].trim().match(/^([-*+]\s+|\d+[.)]\s+)(.*)$/);
+          if (!itemMatch || /^\d/.test(itemMatch[1]) !== ordered) break;
+          items.push("<li>" + qovarkMarkdownInlineHtml(itemMatch[2]) + "</li>");
+          index++;
+        }
+        blocks.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
+        continue;
+      }
+
+      const paragraph = [];
+      while (index < lines.length && !isBlockStart(index)) paragraph.push(lines[index++].trim());
+      if (!paragraph.length) paragraph.push(lines[index++].trim());
+      blocks.push("<p>" + paragraph.map(part => qovarkMarkdownInlineHtml(part)).join("<br>") + "</p>");
+    }
+
+    const safeTitle = escapeHTML(String(title || "QOVARK report"));
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>' + safeTitle + '</title><style>' +
+      ':root{color-scheme:light}*{box-sizing:border-box}body{font:16px/1.68 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;max-width:980px;margin:32px auto;padding:0 22px 48px;color:#182230;background:#fff;overflow-wrap:anywhere}' +
+      'h1{font-size:28px;line-height:1.2;margin:0 0 28px;padding-bottom:16px;border-bottom:1px solid #dce2ea}h2{font-size:22px;margin:30px 0 12px}h3{font-size:19px;margin:24px 0 10px}h4,h5,h6{margin:20px 0 8px}p{margin:10px 0 16px}ul,ol{padding-left:28px;margin:9px 0 18px}li{padding-left:4px;margin:5px 0}' +
+      'blockquote{margin:15px 0;padding:10px 16px;border-left:4px solid #64748b;background:#f5f7fa;color:#334155}hr{border:0;border-top:1px solid #dce2ea;margin:22px 0}.report-table-wrap{width:100%;overflow-x:auto;margin:16px 0;border:1px solid #dce2ea;border-radius:10px}table{border-collapse:collapse;width:100%;min-width:440px;font-size:14px}td,th{border-bottom:1px solid #dce2ea;border-right:1px solid #e5e9ef;padding:9px 11px;text-align:left;vertical-align:top;white-space:pre-wrap}th{background:#f1f5f9;font-weight:700}tr:last-child td{border-bottom:0}td:last-child,th:last-child{border-right:0}' +
+      '.report-code{margin:15px 0;padding:14px;border:1px solid #dce2ea;border-radius:10px;background:#f6f8fa;overflow:auto}.report-code code{font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre}.report-math{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;overflow-wrap:anywhere}.report-math-block{display:block;padding:12px 14px;margin:14px 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;white-space:pre-wrap}.report-image-note{color:#64748b;font-style:italic}a{color:#155eef;text-decoration:underline}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f1f5f9;padding:2px 4px;border-radius:4px}' +
+      '@media(max-width:600px){body{margin:18px auto;padding:0 14px 32px;font-size:15px}h1{font-size:23px}}' +
+      '</style></head><body><h1>' + safeTitle + '</h1>' + blocks.join("\n") + '</body></html>';
+  }
+
   function extensionForOutputFormat(format) {
     const value = String(format || "txt").toLowerCase();
     return ({ pdf: ".pdf", doc: ".doc", docx: ".docx", xls: ".xls", xlsx: ".xlsx", ppt: ".ppt", pptx: ".pptx", txt: ".txt", csv: ".csv", html: ".html", htm: ".html", png: ".png", jpg: ".jpg", jpeg: ".jpg", webp: ".webp", gif: ".gif" })[value] || ".txt";
@@ -9468,117 +9650,8 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
         file = new File([String(fallbackText || "")], `${base}.txt`, { type: "text/plain;charset=utf-8" });
       }
       if (!file && format === "html") {
-        const escaped = escapeHTML(String(fallbackText || "")).replace(/\n/g, "<br>\n");
-        const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHTML(base)}</title><style>body{font:16px/1.65 Arial,sans-serif;max-width:900px;margin:32px auto;padding:0 20px;color:#172033;overflow-wrap:anywhere}
-/* 5.9.1 category-first services layout */
-.service-intro-card{display:flex;gap:13px;align-items:flex-start;margin:14px 0 22px;padding:16px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(135deg,var(--surface),var(--surface-2));}
-.service-intro-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:18px;}
-.service-intro-card strong{display:block;color:var(--text);font-size:14px;margin:1px 0 5px}.service-intro-card p{margin:0;color:var(--text-muted);font-size:11.5px;line-height:1.55}.service-relay-status{display:inline-flex;margin-top:9px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;font-size:10.5px;color:var(--text-muted)}
-.service-category-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}.service-category-heading h2{margin:0;color:var(--text);font-size:17px}.service-category-heading p{margin:4px 0 0;color:var(--text-muted);font-size:11px}.service-category-count{white-space:nowrap;padding:6px 9px;border:1px solid var(--border);border-radius:999px;color:var(--text-muted);font-size:10px}
-.service-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}.service-category-card{min-width:0;min-height:88px;display:flex;align-items:center;gap:10px;padding:12px;text-align:left;border:1px solid var(--border);border-radius:15px;background:var(--surface);color:var(--text);cursor:pointer;transition:border-color .16s,transform .16s,background .16s}.service-category-card:active{transform:scale(.985)}.service-category-card:hover{border-color:var(--accent);background:var(--surface-2)}.service-category-icon{width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;border-radius:11px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);font-size:15px}.service-category-copy{min-width:0;display:grid;gap:4px;flex:1}.service-category-copy strong{font-size:11.5px;line-height:1.25;color:var(--text)}.service-category-copy small{font-size:9.5px;line-height:1.35;color:var(--text-muted)}.service-category-arrow{font-size:10px;color:var(--text-muted);flex:0 0 auto}.service-security-details,.service-receipts-card{margin:15px 0;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}.service-security-details summary{cursor:pointer;font-size:12px;font-weight:750;color:var(--text)}.service-security-copy{display:grid;gap:8px;margin-top:12px}.service-security-copy p{margin:0;color:var(--text-muted);font-size:10.5px;line-height:1.5}.service-security-copy strong{color:var(--text)}.service-receipts-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.service-receipts-heading h3{margin:0 0 3px;font-size:14px;color:var(--text)}.service-receipts-heading p{margin:0;font-size:10px;line-height:1.4;color:var(--text-muted)}.service-receipts-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.service-receipts-empty{padding:10px 0;color:var(--text-muted);font-size:11px}
-@media(max-width:420px){.service-category-grid{grid-template-columns:1fr}.service-category-card{min-height:76px}.service-intro-card{padding:13px}.service-receipts-heading{align-items:flex-start;flex-direction:column}.service-receipts-actions{justify-content:flex-start}}
-
-/* Refinement: aligned page headers, grouped review categories and deep workspace spacing. */
-.view-topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 0 0 auto;
-  min-width: 0;
-  margin: 0 0 12px;
-}
-.view-topbar .dw-back-btn {
-  position: static;
-  top: auto; left: auto;
-  flex: 0 0 38px;
-  width: 38px; height: 38px;
-  margin: 0;
-}
-.view-topbar .view-header {
-  min-width: 0;
-  flex: 1 1 auto;
-  margin: 0;
-}
-.view-topbar .view-title { margin: 0 0 3px; font-size: 21px; line-height: 1.2; }
-.view-topbar .view-subtitle { margin: 0; font-size: 11px; line-height: 1.35; }
-#pagesView .view-header, #servicesView .view-header { margin-top: 0; }
-#pagesView { padding-top: 14px; }
-#servicesView { padding-top: 14px; }
-
-/* The Deep Analysis workspace alone uses a tighter bottom inset; Services is unchanged. */
-#deepWorkPage { padding-bottom: 8px; }
-#deepWorkPage .dw-content { padding-bottom: 8px; }
-#deepWorkPage .dw-eta-banner { margin-bottom: 10px; }
-
-/* Group labels are full-width grid rows; category buttons remain direct grid children. */
-#servicesView .service-category-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 10px;
-}
-#servicesView .service-category-group-title {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 7px 0 0;
-  padding: 4px 2px 2px;
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-#servicesView .service-category-group-title::after {
-  content: ''; height: 1px; flex: 1; background: var(--border);
-}
-#servicesView .service-category-card {
-  min-width: 0; min-height: 82px;
-  padding: 11px; gap: 9px;
-  border-radius: 15px;
-}
-#servicesView .service-category-copy { min-width: 0; }
-#servicesView .service-category-copy strong {
-  font-size: 11.5px; line-height: 1.25;
-  white-space: normal; overflow-wrap: anywhere;
-}
-#servicesView .service-category-copy small {
-  display: block !important;
-  font-size: 9px; line-height: 1.3;
-  overflow-wrap: anywhere;
-}
-#servicesView .service-category-card:nth-child(n) .service-category-icon {
-  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
-  color: var(--accent);
-}
-#servicesView .service-category-card[data-category="Legal & Compliance"] .service-category-icon { background: color-mix(in srgb,#8b5cf6 18%,var(--surface)); color:#8b5cf6; }
-#servicesView .service-category-card[data-category="Finance & Audit"] .service-category-icon { background: color-mix(in srgb,#0d9488 18%,var(--surface)); color:#0d9488; }
-#servicesView .service-category-card[data-category="Business & Strategy"] .service-category-icon { background: color-mix(in srgb,#ea580c 18%,var(--surface)); color:#ea580c; }
-#servicesView .service-category-card[data-category="Engineering & Technology"] .service-category-icon { background: color-mix(in srgb,#3b82f6 18%,var(--surface)); color:#3b82f6; }
-#servicesView .service-category-card[data-category="Cybersecurity"] .service-category-icon { background: color-mix(in srgb,#64748b 20%,var(--surface)); color:#64748b; }
-#servicesView .service-category-card[data-category="Data & Analytics"] .service-category-icon { background: color-mix(in srgb,#0891b2 18%,var(--surface)); color:#0891b2; }
-#servicesView .service-category-card[data-category="Research & Academia"] .service-category-icon { background: color-mix(in srgb,#d97706 18%,var(--surface)); color:#d97706; }
-#servicesView .service-category-card[data-category="Medical & Health"] .service-category-icon { background: color-mix(in srgb,#e11d48 18%,var(--surface)); color:#e11d48; }
-#servicesView .service-category-card[data-category="Writing & Editorial"] .service-category-icon { background: color-mix(in srgb,#a855f7 18%,var(--surface)); color:#a855f7; }
-#servicesView .service-category-card[data-category="Other"] .service-category-icon { background: color-mix(in srgb,#64748b 18%,var(--surface)); color:#64748b; }
-@media (max-width: 380px) {
-  #servicesView .service-category-grid { grid-template-columns: minmax(0,1fr); }
-  #servicesView .service-category-card { min-height: 70px; }
-  #servicesView .service-category-copy strong { font-size: 12px; }
-  #servicesView .service-category-copy small { font-size: 10px; }
-}
-#speakToggle { touch-action: none; user-select: none; -webkit-user-select: none; }
-#speakToggle.voice-holding {
-  transform: scale(.94);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 18%, var(--glass));
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 13%, transparent);
-}
-</style>
-
-
-</head><body>${escaped}</body></html>`;
-        file = new File([html], `${base}.html`, { type: "text/html;charset=utf-8" });
+        const html = qovarkBuildMarkdownHtmlDocument(base, fallbackText);
+        file = new File([html], base + ".html", { type: "text/html;charset=utf-8" });
       }
 
       // A requested binary export must be created by Pxxl (or supplied by the document record).
@@ -9740,10 +9813,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   async function shareQovarkFileNatively(file, title = "Share from QOVARK", message = "") {
     const bridge = window.TexterAndroid;
     if (!(file instanceof Blob) || !bridge || typeof bridge.shareFileWithChooser !== "function") return false;
-    if (file.size > 16 * 1024 * 1024) {
-      showToast("This file is larger than the 16 MB native sharing limit.");
-      return false;
-    }
+    if (file.size > 16 * 1024 * 1024) return false;
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
       let binary = "";
@@ -9751,39 +9821,184 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
       for (let index = 0; index < bytes.length; index += chunkSize) {
         binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
       }
-      const safeName = file.name || `${String(title || "QOVARK-file").replace(/[^A-Za-z0-9._-]/g, "_")}.bin`;
-      const started = bridge.shareFileWithChooser(
+      const safeName = file.name || String(title || "QOVARK-file").replace(/[^A-Za-z0-9._-]/g, "_") + ".bin";
+      return bridge.shareFileWithChooser(
         safeName,
         file.type || "application/octet-stream",
         btoa(binary),
         message
-      );
-      return started !== false;
+      ) !== false;
     } catch (error) {
       console.warn("QOVARK native file sharing failed:", error);
       return false;
     }
   }
 
+  function qovarkFileMimeType(name, supplied = "") {
+    if (supplied && supplied !== "application/octet-stream") return supplied;
+    const ext = String(name || "").split(".").pop().toLowerCase();
+    return ({
+      pdf: "application/pdf", doc: "application/msword",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html",
+      xml: "application/xml", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
+      webp: "image/webp", gif: "image/gif", svg: "image/svg+xml"
+    })[ext] || "application/octet-stream";
+  }
+
+  function qovarkSafeShareFileName(value, fallback = "QOVARK-file") {
+    const name = String(value || fallback).split(/[\\/]/).pop().replace(/[\u0000-\u001f<>:"|?*]+/g, "_").trim();
+    return name || fallback;
+  }
+
+  function qovarkDownloadShareFile(file) {
+    try {
+      const url = URL.createObjectURL(file);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = file.name || "QOVARK-file";
+      anchor.rel = "noopener";
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      showToast("The file was downloaded. Attach that saved file to your message.");
+      return true;
+    } catch (error) {
+      console.warn("QOVARK file download fallback failed:", error);
+      showToast("This device could not share or download the file.");
+      return false;
+    }
+  }
+
+  async function qovarkSharePreparedFile(file, title = "Share from QOVARK", message = "Shared from QOVARK.") {
+    if (!(file instanceof Blob)) {
+      showToast("The selected file content is not available to share.");
+      return false;
+    }
+    const name = qovarkSafeShareFileName(file.name || title + ".bin");
+    const shareFile = file instanceof File && file.name === name
+      ? file
+      : new File([file], name, { type: file.type || qovarkFileMimeType(name) });
+    if (await shareQovarkFileNatively(shareFile, title, message)) return true;
+
+    if (typeof navigator.share === "function") {
+      try {
+        const payload = { title: String(title || "QOVARK file"), text: String(message || "") , files: [shareFile] };
+        if (typeof navigator.canShare !== "function" || navigator.canShare({ files: [shareFile] })) {
+          await navigator.share(payload);
+          return true;
+        }
+      } catch (error) {
+        if (error?.name === "AbortError") return false;
+        console.warn("QOVARK Web Share file fallback unavailable:", error?.message || error);
+      }
+    }
+    return qovarkDownloadShareFile(shareFile);
+  }
+
+  async function qovarkResolveWorkspaceShareFile(item) {
+    if (!item || item.type === "folder") throw new Error("Select a file rather than a folder.");
+    const fileName = qovarkSafeShareFileName(item.name || item.file_name || "QOVARK-file");
+    const suppliedMime = item.mime_type || item.mimeType || item.type_mime || "";
+    let blob = null;
+
+    if (item.rawFile instanceof Blob) {
+      blob = item.rawFile;
+    } else if (item.dataUrl) {
+      const response = await fetch(String(item.dataUrl));
+      if (!response.ok) throw new Error("The local file preview could not be read.");
+      blob = await response.blob();
+    } else {
+      const remoteFileUrl = item.file_url || item.download_url || item.output_url || item.url || "";
+      if (remoteFileUrl) {
+        const resolvedUrl = new URL(remoteFileUrl, PXXL_BASE);
+        const apiOrigin = new URL(PXXL_BASE).origin;
+        const headers = {};
+        if (resolvedUrl.origin === apiOrigin) {
+          if (!auth.currentUser) throw new Error("Sign in again before sharing this workspace file.");
+          headers.Authorization = "Bearer " + await auth.currentUser.getIdToken();
+          if (texterSecurityPin && (item.is_secured || item.secure_document || item.secureDocument || item.secured)) {
+            headers["x-security-pin"] = texterSecurityPin;
+          }
+        }
+        const response = await fetch(resolvedUrl.href, { headers });
+        if (!response.ok) throw new Error(response.status === 401 || response.status === 403
+          ? "QOVARK could not authorize access to this file. Unlock its Security PIN and try again."
+          : "The saved workspace file could not be downloaded (" + response.status + ").");
+        blob = await response.blob();
+      }
+    }
+
+    if (!blob && (item.sampleCode || item.content || activeViewedTextContent)) {
+      const textValue = item.sampleCode || item.content || activeViewedTextContent;
+      blob = new Blob([String(textValue)], { type: "text/plain;charset=utf-8" });
+    }
+    if (!blob) {
+      if (item.offlineMetadataOnly || !qovarkIsOnline()) throw new Error("This file is listed in your workspace, but its content is not available offline. Reconnect and try again.");
+      throw new Error("The file content is not available. Reopen the file from Files and try sharing again.");
+    }
+    return new File([blob], fileName, { type: blob.type || qovarkFileMimeType(fileName, suppliedMime) });
+  }
+
+  async function qovarkShareWorkspaceFile(item) {
+    const protectedFile = Boolean(item?.is_secured || item?.secure_document || item?.secureDocument || item?.secured);
+    if (protectedFile && !texterSecurityPin && typeof requestPinAccess === "function") {
+      requestPinAccess({
+        reason: 'share the protected file "' + String(item.name || "workspace file") + '"',
+        alwaysVerify: true,
+        onSuccess: () => { qovarkShareWorkspaceFile(item).catch(error => showToast(error?.message || "Could not share this file.")); }
+      });
+      return false;
+    }
+    try {
+      const file = await qovarkResolveWorkspaceShareFile(item);
+      return await qovarkSharePreparedFile(file, item.name || "QOVARK file", "Shared from QOVARK.");
+    } catch (error) {
+      showToast(error?.message || "Could not prepare this file for sharing.");
+      return false;
+    }
+  }
+
+  document.getElementById('ctxShareFileBtn')?.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const item = contextTargetFile;
+    closeFileContext();
+    if (item && item.type !== "folder") qovarkShareWorkspaceFile(item);
+  });
+
+  document.getElementById('viewerShareFileBtn')?.addEventListener('click', () => {
+    if (activeViewedFile) qovarkShareWorkspaceFile(activeViewedFile);
+  });
+
   document.getElementById('shareReportBtn')?.addEventListener('click', async () => {
     const content = activeReaderPage?.content || activeReaderPage?.final_report || "";
     if (!content) { showToast('There is no report content to share yet.'); return; }
     const title = activeReaderPage?.title || 'QOVARK report';
-    try {
-      if (activeReaderPage?.rawFile instanceof Blob) {
-        const shared = await shareQovarkFileNatively(activeReaderPage.rawFile, title, "Shared from QOVARK.");
-        if (shared) return;
+    const doShareReport = async () => {
+      try {
+        const base = qovarkSafeShareFileName(title.replace(/\.[^.]+$/, "") + ".html", "QOVARK-report.html");
+        const html = qovarkBuildMarkdownHtmlDocument(title, content);
+        const file = new File([html], base, { type: "text/html;charset=utf-8" });
+        await qovarkSharePreparedFile(file, title, "QOVARK report · HTML document");
+      } catch (error) {
+        showToast(error?.message || "Could not prepare the HTML report for sharing.");
       }
-      const nativeBridge = window.TexterAndroid;
-      if (nativeBridge && typeof nativeBridge.shareText === "function") {
-        nativeBridge.shareText(title, content);
-        return;
-      }
-      if (navigator.share) await navigator.share({ title, text: content });
-      else { await navigator.clipboard.writeText(content); showToast('Report copied. You can paste it into a message.'); }
-    } catch (error) {
-      if (error?.name !== 'AbortError') showToast('Sharing is unavailable on this device.');
+    };
+    const protectedReport = Boolean(activeReaderPage?.is_secured || activeReaderPage?.secure_document || activeReaderPage?.secureDocument);
+    if (protectedReport && typeof requestPinAccess === "function") {
+      requestPinAccess({
+        reason: 'share the protected report "' + title + '"',
+        alwaysVerify: true,
+        onSuccess: doShareReport
+      });
+      return;
     }
+    await doShareReport();
   });
   document.getElementById('sendReportToExpertBtn')?.addEventListener('click', () => {
     document.getElementById('reportReaderModal').classList.remove('active');
@@ -9856,6 +10071,8 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
         if (e.target.classList.contains('fa-ellipsis-vertical')) {
           contextTargetFile = item;
           document.getElementById('contextFileName').innerText = item.name;
+          const shareContextButton = document.getElementById('ctxShareFileBtn');
+          if (shareContextButton) shareContextButton.hidden = item.type === 'folder';
           document.getElementById('fileContextSheet').classList.add('open');
           document.getElementById('fileContextOverlay').style.display = 'block';
           return;
