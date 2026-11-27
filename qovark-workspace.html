@@ -8066,14 +8066,14 @@
     voiceModalOverlay.setAttribute('aria-hidden', 'true');
     closeVoicePicker();
     if (qovarkSettingsReturnPending) {
-      qovarkSettingsReturnPending = false;
+      setQovarkSettingsReturnPending(false);
       setSettingsPanelOpen(true);
     } else {
       setSettingsPanelOpen(false);
     }
   }
   const openVoiceSettingsFromHold = () => {
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setSettingsPanelOpen(false);
     openVoiceSettingsModal();
   };
@@ -11176,7 +11176,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   }
   function setHistoryOpen(open) {
     if (open) {
-      qovarkSettingsReturnPending = false;
+      setQovarkSettingsReturnPending(false);
       setSettingsPanelOpen(false);
       closeAllOverlays();
     }
