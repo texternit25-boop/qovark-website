@@ -4913,6 +4913,56 @@
 }
 </style>
 
+<style id="qovark-brand-image-match-2026-11">
+/* Keep the selected Falcon emblem intact at every workspace size. */
+.top-bar .brand-symbol {
+  object-fit:contain !important; width:34px !important; height:34px !important;
+  flex:0 0 34px !important; padding:0 !important; border:0 !important;
+  border-radius:10px !important; background:transparent !important; box-shadow:none !important;
+}
+@media(max-width:767px) {
+  .top-bar .brand-symbol { width:31px !important; height:31px !important; flex-basis:31px !important; }
+}
+/* The original QOVARK emblem is a rounded square, not a circular crop. */
+.welcome-stationary-logo {
+  width:96px !important; height:96px !important; border-radius:22px !important;
+  overflow:hidden !important; padding:0 !important; background:transparent !important;
+  border:0 !important; box-shadow:none !important; text-shadow:none !important;
+}
+.welcome-stationary-logo img {
+  display:block !important; width:100% !important; height:100% !important;
+  object-fit:contain !important; border-radius:inherit !important; padding:0 !important;
+  background:transparent !important;
+}
+/* Settings and About use the same master image without cropping or oversized padding. */
+.settings-logo {
+  width:38px !important; height:38px !important; flex:0 0 38px !important;
+  border-radius:11px !important; padding:0 !important; overflow:hidden !important;
+  background:transparent !important; border:0 !important; box-shadow:none !important;
+}
+.settings-logo img {
+  display:block !important; width:100% !important; height:100% !important;
+  object-fit:contain !important; padding:0 !important; border-radius:inherit !important;
+}
+.qovark-about-mark {
+  width:82px !important; height:82px !important; object-fit:contain !important;
+  border-radius:18px !important; padding:0 !important; background:transparent !important;
+  border:0 !important; box-shadow:none !important;
+}
+/* Keep the workspace startup animation inside the Falcon's cyan/blue/violet palette. */
+.welcome-stationary-hud .s-ring1 {
+  border-color:#38dcff transparent #38dcff transparent !important;
+  border-width:5px !important; box-shadow:0 0 17px rgba(56,220,255,.25) !important;
+}
+.welcome-stationary-hud .s-ring2 {
+  border-color:transparent #ac7bff transparent #6b94ff !important;
+  border-width:6px !important; box-shadow:0 0 16px rgba(108,126,255,.23) !important;
+}
+.welcome-stationary-hud .s-ring3 {
+  border-color:#6b94ff transparent #ac7bff transparent !important;
+  border-width:5px !important; box-shadow:0 0 15px rgba(172,123,255,.2) !important;
+}
+</style>
 </head>
 <body>
 
@@ -4955,7 +5005,7 @@
       <i class="fa-solid fa-bars-staggered"></i>
     </button>
     <div class="brand">
-      <img class="brand-symbol" src="qovark-logo.png" alt="QOVARK orbital symbol">
+      <img class="brand-symbol" src="qovark-logo.png" alt="QOVARK Falcon emblem">
       <div class="brand-copy">
         <h1 class="brand-name"><span>Q</span>OVARK</h1>
         <div class="brand-glow"></div>
@@ -5789,7 +5839,7 @@
   <!-- SETTINGS PANEL -->
   <div class="settings-panel" id="settingsPanel" aria-label="Settings">
     <div class="settings-header">
-      <div class="settings-logo"><img src="qovark-logo.png" alt="QOVARK orbital Q"></div>
+      <div class="settings-logo"><img src="qovark-logo.png" alt="QOVARK Falcon emblem"></div>
       <h2>Settings</h2>
       <button type="button" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
     </div>
@@ -5858,7 +5908,7 @@
     <button type="button" id="aboutBackBtn" style="position:absolute;top:14px;left:18px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);color:var(--accent);font-size:15px;cursor:pointer;z-index:20;"><i class="fa-solid fa-chevron-left"></i></button>
     <div class="overlay-title">About QOVARK</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin:28px auto 22px;text-align:center;max-width:340px;">
-      <img class="qovark-about-mark" src="qovark-logo.png" alt="QOVARK orbital Q emblem">
+      <img class="qovark-about-mark" src="qovark-logo.png" alt="QOVARK Falcon emblem">
       <h2 style="color:var(--text);font-size:24px;">QOVARK</h2>
       <p style="color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;">THINK. CREATE. EXPLORE.</p>
     </div>
