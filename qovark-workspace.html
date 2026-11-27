@@ -11705,9 +11705,21 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const message = response.status === 423
         ? (data?.message || data?.error || "Security PIN temporarily locked after repeated incorrect attempts. Try again after the 15-minute lockout.")
         : pxxlErrorMessage(data, response.status);
+      const lowerMessage = String(message || "").toLowerCase();
+      const inferredPinCode = data?.code || (
+        response.status === 423 || /security pin is temporarily locked|pin temporarily locked/.test(lowerMessage)
+          ? "PIN_LOCKED"
+          : /please create (?:a )?security pin first|security pin not set|pin not set/.test(lowerMessage)
+            ? "PIN_NOT_SET"
+            : /(?:security )?pin required/.test(lowerMessage)
+              ? "PIN_REQUIRED"
+              : /incorrect security pin|invalid security pin/.test(lowerMessage)
+                ? "PIN_INVALID"
+                : undefined
+      );
       const error = new Error(message);
       error.status = response.status;
-      error.code = data?.code;
+      error.code = inferredPinCode;
       error.payload = data;
       throw error;
     }
@@ -13158,8 +13170,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         const pinDescription = document.getElementById("texterPinDescription");
         if (pinDescription) {
           pinDescription.textContent = error.code === "PIN_NOT_SET"
-            ? "Create a 4–6 digit Security PIN before running the owner-only Groq test."
-            : "Verify your Security PIN to submit this Deep Analysis test securely.";
+            ? "Create a 4–6 digit Security PIN to continue with this Deep Analysis task."
+            : error.code === "PIN_INVALID"
+              ? "That PIN was not accepted. Verify your Security PIN to retry this Deep Analysis submission."
+              : "Enter your Security PIN to continue submitting this Deep Analysis task.";
         }
         return;
       }
@@ -13204,14 +13218,23 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     }
     if (!pendingDeepAnalysisSubmit) return;
     const secure = Boolean(document.getElementById("secureDeepReportToggle")?.checked);
-    if (secure && !hasConfiguredSecurityPin()) {
-      openSecurityPinModal("PIN_NOT_SET", { onSuccess: actuallySubmitDeepAnalysis });
-      document.getElementById("texterPinDescription").textContent = "Create and confirm a Security PIN before this report is secured. You will need this PIN every time you open the report.";
-      return;
-    }
-    if (secure && !texterSecurityPin) {
-      openSecurityPinModal("PIN_REQUIRED", { onSuccess: actuallySubmitDeepAnalysis });
-      document.getElementById("texterPinDescription").textContent = "Verify your Security PIN to secure this report.";
+    const deepWorkScopeRequiresPin = Boolean(texterSecurityScopes?.deepWork);
+    if (secure || deepWorkScopeRequiresPin) {
+      await requestPinAccess({
+        reason: secure ? "secure this Deep Analysis report" : "submit Deep Analysis",
+        onSuccess: actuallySubmitDeepAnalysis,
+        alwaysVerify: false,
+        allowSet: true
+      });
+      const pinOverlay = document.getElementById("texterPinOverlay");
+      if (secure && pinOverlay?.style.display === "flex") {
+        const pinDescription = document.getElementById("texterPinDescription");
+        if (pinDescription) {
+          pinDescription.textContent = hasConfiguredSecurityPin()
+            ? "Verify your Security PIN to secure this report. You will need it whenever you open the report."
+            : "Create and confirm a 4–6 digit Security PIN. You will need it whenever you open this secured report.";
+        }
+      }
       return;
     }
     await actuallySubmitDeepAnalysis();
