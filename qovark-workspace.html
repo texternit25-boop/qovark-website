@@ -9458,6 +9458,10 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     );
     source = source.replace(/\x60([^\x60\n]+)\x60/g, (_match, code) => keep('<code>' + escapeHTML(code) + '</code>'));
 
+    source = source.replace(/(^|[^$])\$([^$\n]+)\$(?!\$)/g, (_match, prefix, formula) =>
+      prefix + keep('<span class="report-math" role="math">' + escapeHTML(formula.trim()) + '</span>')
+    );
+
     source = escapeHTML(source)
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/~~(.+?)~~/g, "<del>$1</del>")
