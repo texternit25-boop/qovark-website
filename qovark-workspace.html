@@ -11179,9 +11179,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       setQovarkSettingsReturnPending(false);
       setSettingsPanelOpen(false);
       closeAllOverlays();
+    } else {
+      stopQovarkHistoryTitleRefresh();
     }
     historyOverlayEl?.classList.toggle("open", open);
     historyOverlayEl?.setAttribute("aria-hidden", String(!open));
+    if (open) startQovarkHistoryTitleRefresh();
   }
   document.getElementById("openChatHistoryBtn")?.addEventListener("click", event => {
     event.preventDefault();
@@ -12551,6 +12554,40 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
   // Cached history view: refresh quietly, and rebuild rows only when data changes.
   let qovarkHistoryCacheState = { uid:null, items:[], fetchedAt:0, pending:null, cloudAvailable:false };
+  let qovarkHistoryTitleRefreshTimer = null;
+  let qovarkHistoryTitleRefreshAttempts = 0;
+
+  function stopQovarkHistoryTitleRefresh() {
+    if (qovarkHistoryTitleRefreshTimer) clearInterval(qovarkHistoryTitleRefreshTimer);
+    qovarkHistoryTitleRefreshTimer = null;
+    qovarkHistoryTitleRefreshAttempts = 0;
+  }
+
+  // AI title generation runs safely in the backend after messages are saved.
+  // Refresh cached history while the panel is visible so saved titles appear
+  // without requiring a manual close/reopen or a page reload.
+  function startQovarkHistoryTitleRefresh() {
+    stopQovarkHistoryTitleRefresh();
+    qovarkHistoryTitleRefreshTimer = setInterval(() => {
+      if (!historyOverlayEl?.classList.contains("open")) {
+        stopQovarkHistoryTitleRefresh();
+        return;
+      }
+      const uid = auth.currentUser?.uid || null;
+      if (!uid || qovarkHistoryCacheState.uid !== uid) return;
+      const waitingForTitles = qovarkHistoryCacheState.items.some(item =>
+        item?.titleSource !== "ai" && Number(item?.messageCount || 0) >= 2
+      );
+      if (!waitingForTitles || qovarkHistoryTitleRefreshAttempts >= 10) {
+        stopQovarkHistoryTitleRefresh();
+        return;
+      }
+      qovarkHistoryTitleRefreshAttempts++;
+      renderFastChatHistory({ force:true }).catch(error =>
+        console.warn("QOVARK chat-title refresh:", error?.message || error)
+      );
+    }, 12000);
+  }
 
   function qovarkHistoryCompactPreview(value, maxLength = 92) {
     const clean = String(value || "")
