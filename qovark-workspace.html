@@ -7456,7 +7456,17 @@
   let activeFastChatRequestToken = 0;
   // Shared cancellation token for sends; incremented on account changes to discard stale replies.
   let activeFastChatSendToken = 0;
-  async function getAIResponse(userMessage, imageData = null) {
+  // Synchronous lock blocks double taps / keyboard-plus-button races before any await.
+  let activeFastChatSendLock = null;
+
+  function createQovarkClientRequestId() {
+    try {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    } catch {}
+    return "qv_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 14);
+  }
+
+  async function getAIResponse(userMessage, imageData = null, clientRequestId = null) {
     const requestUser = auth.currentUser;
     const requestUid = requestUser?.uid || null;
     const requestToken = ++activeFastChatRequestToken;
@@ -7473,7 +7483,8 @@
         personality: aiPersonality,
         language: currentLanguage,
         userId: requestUid || "guest",
-        chatId: requestChatId || null
+        chatId: requestChatId || null,
+        clientRequestId: String(clientRequestId || createQovarkClientRequestId())
       };
       if (imageData) body.imageData = imageData;
 
@@ -7716,12 +7727,10 @@
   }
 
   async function sendMessage() {
-    if (isTyping) return;
-    const sendToken = ++activeFastChatSendToken;
+    if (isTyping || activeFastChatSendLock !== null) return;
+
     const sendingUid = auth.currentUser?.uid || null;
     const sendingChatId = activeFastChatId;
-    if (isSpeaking || speechStartPending) stopSpeechPlayback();
-
     const editingId = editingUserMessageId;
     const editingIndex = editingId ? chatHistory.findIndex(item => item.sender === 'user' && String(item.id || item.timestamp || '') === String(editingId)) : -1;
     const originalEntry = editingIndex >= 0 ? chatHistory[editingIndex] : null;
@@ -7729,44 +7738,56 @@
     const attachedImage = pendingAttachment?.dataUrl || (originalEntry ? (chatImageCache.get(String(originalEntry.id || originalEntry.timestamp || '')) || null) : null);
     if (!message && !attachedImage) return;
 
-    // Editing trims the canonical Supabase thread first when this message has a
-    // database ID. Legacy/local-only messages are already covered by migration.
-    if (editingIndex >= 0) {
-      const selectedId = String(editingId || "");
-      if (sendingUid && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedId)) {
-        try {
+    // Lock synchronously before the edit/truncate request or any other await.
+    const sendToken = ++activeFastChatSendToken;
+    const clientRequestId = createQovarkClientRequestId();
+    activeFastChatSendLock = sendToken;
+    isTyping = true;
+    actionBtn.disabled = true;
+    if (isSpeaking || speechStartPending) stopSpeechPlayback();
+
+    try {
+      // Editing trims the canonical Supabase thread first when this message has a
+      // database ID. Legacy/local-only messages are already covered by migration.
+      if (editingIndex >= 0) {
+        const selectedId = String(editingId || "");
+        if (sendingUid && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedId)) {
           await pxxlRequest(`/api/chat/conversations/${encodeURIComponent(sendingChatId)}/truncate`, {
             method: "POST",
             body: JSON.stringify({ fromMessageId: selectedId })
           });
-        } catch (error) {
-          showToast(error?.message || "Could not edit this saved conversation.");
-          return;
         }
+        if ((auth.currentUser?.uid || null) !== sendingUid || activeFastChatId !== sendingChatId || sendToken !== activeFastChatSendToken) return;
+        chatHistory = chatHistory.slice(0, editingIndex);
+        persistFastChat();
+        renderChatMessagesIntoMainFeed();
       }
-      chatHistory = chatHistory.slice(0, editingIndex);
-      persistFastChat();
-      renderChatMessagesIntoMainFeed();
-    }
-    editingUserMessageId = null;
-    userInput.value = "";
-    userInput.style.height = "auto";
-    updateActionButton();
 
-    isTyping = true;
-    try {
+      editingUserMessageId = null;
+      userInput.value = "";
+      userInput.style.height = "auto";
+      updateActionButton();
+
+      // One local user entry and one /api/chat request contain both text and image.
+      // The backend receives them together as a single multimodal user turn.
       addMessage(message, "user", attachedImage);
       if (attachedImage) clearAttachment();
-      const answer = await getAIResponse(message, attachedImage);
-      if ((auth.currentUser?.uid || null) !== sendingUid || activeFastChatId!==sendingChatId || sendToken!==activeFastChatSendToken) return;
+      const answer = await getAIResponse(message, attachedImage, clientRequestId);
+      if ((auth.currentUser?.uid || null) !== sendingUid || activeFastChatId !== sendingChatId || sendToken !== activeFastChatSendToken) return;
       if (answer === null) showConnectionError();
       else {
         await addMessageWithTyping(answer, "ai", message, attachedImage, sendingChatId, sendToken);
-        if (sendingUid) await refreshCurrentFastChatFromSupabase(sendingUid,true);
+        if (sendingUid) await refreshCurrentFastChatFromSupabase(sendingUid, true);
+      }
+    } catch (error) {
+      if ((auth.currentUser?.uid || null) === sendingUid && activeFastChatId === sendingChatId && sendToken === activeFastChatSendToken) {
+        showToast(error?.message || "Could not send this message. Please try again.");
       }
     } finally {
+      if (activeFastChatSendLock === sendToken) activeFastChatSendLock = null;
       if (sendToken === activeFastChatSendToken) {
         isTyping = false;
+        actionBtn.disabled = false;
         updateActionButton();
         if (qovarkFastChatRenderPending) {
           qovarkFastChatRenderPending = false;
@@ -7777,7 +7798,7 @@
           qovarkPendingSharedChatId = null;
           await openFastChatById(pendingId, sendingUid, { publish: false });
         }
-        if (sendingUid) refreshCurrentFastChatFromSupabase(sendingUid,true).catch(() => {});
+        if (sendingUid) refreshCurrentFastChatFromSupabase(sendingUid, true).catch(() => {});
       }
     }
   }
@@ -9164,9 +9185,16 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   // DEEP WORK FILE ZONE — selected files render here, with + inside the section itself.
   function syncDeepWorkFileSelection() {
     if (!Array.isArray(selectedFilesForDeepWork)) selectedFilesForDeepWork = [];
-    if (selectedFileForDeepWork && !selectedFilesForDeepWork.some(f => f.id === selectedFileForDeepWork.id)) {
-      selectedFilesForDeepWork.unshift(selectedFileForDeepWork);
-    }
+    // The array is the source of truth. Never reinsert the legacy primary-file
+    // pointer after the user deliberately removes that file.
+    const seen = new Set();
+    selectedFilesForDeepWork = selectedFilesForDeepWork.filter(file => {
+      if (!file || file.type !== "file") return false;
+      const key = String(file.id || file.name || "");
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     selectedFileForDeepWork = selectedFilesForDeepWork[0] || null;
   }
 
@@ -9190,10 +9218,15 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
         switchTab(1);
       });
       dwFileZone.querySelectorAll('[data-remove-deep-file]').forEach(button => button.addEventListener('click', e => {
+        e.preventDefault();
         e.stopPropagation();
         const index = Number(button.dataset.removeDeepFile);
+        if (!Number.isInteger(index) || index < 0 || index >= selectedFilesForDeepWork.length) return;
         selectedFilesForDeepWork.splice(index, 1);
-        syncDeepWorkFileSelection(); renderDeepWorkFileZone();
+        selectedFileForDeepWork = selectedFilesForDeepWork[0] || null;
+        syncDeepWorkFileSelection();
+        renderDeepWorkFileZone();
+        updateDeepFileSelectionUI();
       }));
     } else {
       dwFileZone.innerHTML = `
@@ -13587,6 +13620,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   function clearAccountScopedWorkspace({ identityChanged = false } = {}) {
     activeFastChatRequestToken += 1;
     activeFastChatSendToken += 1;
+    activeFastChatSendLock = null;
     try { activeFastChatController?.abort(); } catch {}
     activeFastChatController = null;
     isTyping = false;
@@ -13842,6 +13876,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const uid = auth.currentUser?.uid || null;
     activeFastChatSendToken += 1;
     activeFastChatRequestToken += 1;
+    activeFastChatSendLock = null;
     try { activeFastChatController?.abort(); } catch {}
     activeFastChatController = null;
     isTyping = false;
