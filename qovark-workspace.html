@@ -1693,9 +1693,20 @@
   .report-reader-view .report-reader-body { max-height:none; flex:1 1 auto; min-height:180px; }
   .report-reader-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:10px; border-top:1px solid var(--border); }
   .report-reader-actions button { flex:1 1 110px; min-height:42px; }
-  .report-export-picker { display:flex; flex:1 1 190px; min-width:165px; align-items:center; gap:7px; padding:5px 9px; border:1px solid var(--border); border-radius:11px; background:var(--surface); color:var(--text-muted); font-size:11px; }
-  .report-export-picker span { flex:0 0 auto; }
-  .report-export-picker select { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-weight:700; cursor:pointer; }
+  .report-export-picker { display:flex; flex:1 1 190px; min-width:165px; min-height:42px; align-items:center; justify-content:space-between; gap:10px; padding:8px 12px; border:1px solid var(--border); border-radius:11px; background:var(--surface); color:var(--text-muted); font-size:11px; cursor:pointer; text-align:left; }
+  .report-export-picker .export-picker-copy { display:flex; align-items:center; gap:7px; min-width:0; }
+  .report-export-picker strong { color:var(--text); font-size:12px; font-weight:800; white-space:nowrap; }
+  .report-export-picker i { color:var(--accent); flex:0 0 auto; }
+  .report-export-format-state { display:none !important; }
+  .report-export-modal { width:min(100%,430px); max-height:min(88dvh,720px); overflow-y:auto; }
+  .report-export-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:7px; }
+  .report-export-modal-head h3 { margin:0; color:var(--text); font-size:19px; font-weight:850; }
+  .report-export-modal-head p { color:var(--text-muted); font-size:12px; line-height:1.5; margin-top:5px; }
+  .report-export-file-name { display:flex; align-items:center; gap:10px; padding:11px 12px; margin:13px 0; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); min-width:0; }
+  .report-export-file-name i { color:var(--accent); font-size:17px; }
+  .report-export-file-name span { min-width:0; overflow-wrap:anywhere; color:var(--text); font-size:12px; font-weight:700; }
+  .report-export-modal-actions { display:flex; gap:9px; margin-top:14px; }
+  .report-export-modal-actions button { flex:1; min-height:44px; }
 
   /* REQUIRED OUTPUT FORMAT PICKER */
   .format-option-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin:14px 0; }
@@ -5195,6 +5206,31 @@
     <div class="sheet-item" id="cancelAndroidChooserBtn"><i class="fa-solid fa-xmark" style="color:var(--text-muted);"></i><span>Cancel</span></div>
   </div>
 
+  <!-- Designed QOVARK report export panel. The browser or Android save dialog only appears after the user confirms. -->
+  <div class="custom-modal-overlay" id="reportExportModal" role="dialog" aria-modal="true" aria-labelledby="reportExportModalTitle">
+    <div class="custom-modal report-export-modal">
+      <div class="report-export-modal-head">
+        <div><h3 id="reportExportModalTitle">Export your report</h3><p>Choose the file type you want QOVARK to prepare.</p></div>
+        <button type="button" id="closeReportExportModalBtn" aria-label="Close export panel" style="background:transparent;border:0;color:var(--text-muted);font-size:19px;padding:3px 5px;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="report-export-file-name"><i class="fa-solid fa-file-arrow-down"></i><span id="reportExportFileName">QOVARK report</span></div>
+      <div class="format-option-grid" id="reportExportModalOptions">
+        <button type="button" class="format-option selected" data-export-format="pdf" aria-pressed="true"><i class="fa-solid fa-file-pdf"></i><span><strong>PDF document</strong><small>Portable and ready to read</small></span></button>
+        <button type="button" class="format-option" data-export-format="docx" aria-pressed="false"><i class="fa-solid fa-file-word"></i><span><strong>Word document</strong><small>Editable .docx file</small></span></button>
+        <button type="button" class="format-option" data-export-format="xlsx" aria-pressed="false"><i class="fa-solid fa-file-excel"></i><span><strong>Excel workbook</strong><small>Tables and structured data</small></span></button>
+        <button type="button" class="format-option" data-export-format="pptx" aria-pressed="false"><i class="fa-solid fa-file-powerpoint"></i><span><strong>PowerPoint</strong><small>Presentation .pptx file</small></span></button>
+        <button type="button" class="format-option" data-export-format="html" aria-pressed="false"><i class="fa-solid fa-globe"></i><span><strong>HTML document</strong><small>Open in a web browser</small></span></button>
+        <button type="button" class="format-option" data-export-format="txt" aria-pressed="false"><i class="fa-solid fa-file-lines"></i><span><strong>Plain text</strong><small>Lightweight .txt file</small></span></button>
+        <button type="button" class="format-option" data-export-format="csv" aria-pressed="false"><i class="fa-solid fa-table"></i><span><strong>CSV data</strong><small>Spreadsheet-compatible rows</small></span></button>
+      </div>
+      <p id="reportExportModalHint" style="color:var(--text-muted);font-size:11px;line-height:1.5;margin:4px 0 0;">Your report content stays the same; only the exported file format changes.</p>
+      <div class="report-export-modal-actions">
+        <button type="button" id="cancelReportExportModalBtn" class="page-action-btn">Cancel</button>
+        <button type="button" id="confirmReportExportBtn" class="dw-btn primary-submit"><i class="fa-solid fa-download"></i> Prepare PDF</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FULL-SCREEN REPORT READER -->
   <div class="app-view report-reader-view" id="reportReaderModal" aria-label="Report reader">
     <div class="report-reader-header">
@@ -5224,7 +5260,13 @@
       <div class="report-reader-actions">
         <button type="button" id="copyReportBtn" class="page-action-btn"><i class="fa-solid fa-copy"></i> Copy</button>
         <button type="button" id="shareReportBtn" class="page-action-btn"><i class="fa-solid fa-share-nodes"></i> Share link</button>
-        <label class="report-export-picker"><span>Download as</span><select id="reportExportFormat" aria-label="Choose report download format"><option value="pdf" selected>PDF · Recommended</option><option value="docx">Word · DOCX</option><option value="xlsx">Excel · XLSX</option><option value="pptx">PowerPoint · PPTX</option><option value="html">HTML file</option><option value="txt">Text file</option><option value="csv">CSV data</option></select></label>
+        <button type="button" id="openReportExportModalBtn" class="report-export-picker" aria-haspopup="dialog" aria-controls="reportExportModal">
+          <span class="export-picker-copy"><span>Download as</span><strong id="reportExportSelectionLabel">PDF</strong></span>
+          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <select id="reportExportFormat" class="report-export-format-state" aria-hidden="true" tabindex="-1">
+          <option value="pdf" selected>PDF</option><option value="docx">Word · DOCX</option><option value="xlsx">Excel · XLSX</option><option value="pptx">PowerPoint · PPTX</option><option value="html">HTML</option><option value="txt">Text</option><option value="csv">CSV</option>
+        </select>
         <button type="button" id="downloadReportBtn" class="page-action-btn accent"><i class="fa-solid fa-download"></i> Download PDF</button>
         <button type="button" id="openReportExternalBtn" class="page-action-btn"><i class="fa-solid fa-mobile-screen-button"></i> Open With App</button>
         <button type="button" id="sendReportToExpertBtn" class="page-action-btn"><i class="fa-solid fa-user-tie"></i> Analyst</button>
@@ -9823,6 +9865,51 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     showToast("Saved the file. To show installed apps here, add the Android openFileWithChooser bridge in MainActivity.");
   });
 
+  const qovarkReportExportLabels = { pdf: "PDF", docx: "Word", xlsx: "Excel", pptx: "PowerPoint", html: "HTML", txt: "Text", csv: "CSV" };
+  function syncQovarkReportExportUI(format = "pdf") {
+    const allowed = new Set(["pdf", "docx", "xlsx", "pptx", "html", "txt", "csv"]);
+    const safe = allowed.has(String(format).toLowerCase()) ? String(format).toLowerCase() : "pdf";
+    const select = document.getElementById("reportExportFormat");
+    if (select) select.value = safe;
+    const label = document.getElementById("reportExportSelectionLabel");
+    if (label) label.textContent = qovarkReportExportLabels[safe];
+    const downloadButton = document.getElementById("downloadReportBtn");
+    if (downloadButton) downloadButton.innerHTML = '<i class="fa-solid fa-download"></i> Download ' + escapeHTML(safe.toUpperCase());
+    document.querySelectorAll("#reportExportModalOptions [data-export-format]").forEach(option => {
+      const selected = option.dataset.exportFormat === safe;
+      option.classList.toggle("selected", selected);
+      option.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+    const confirm = document.getElementById("confirmReportExportBtn");
+    if (confirm) confirm.innerHTML = '<i class="fa-solid fa-download"></i> Prepare ' + escapeHTML(qovarkReportExportLabels[safe]);
+    return safe;
+  }
+
+  document.getElementById("openReportExportModalBtn")?.addEventListener("click", () => {
+    if (!activeReaderPage) return;
+    const title = activeReaderPage.title || activeReaderPage.file_name || "QOVARK report";
+    const name = document.getElementById("reportExportFileName");
+    if (name) name.textContent = String(title).replace(/\.[^.]+$/, "");
+    syncQovarkReportExportUI(document.getElementById("reportExportFormat")?.value || "pdf");
+    document.getElementById("reportExportModal")?.classList.add("active");
+  });
+  document.getElementById("reportExportModalOptions")?.addEventListener("click", event => {
+    const option = event.target.closest("[data-export-format]");
+    if (!option) return;
+    syncQovarkReportExportUI(option.dataset.exportFormat);
+  });
+  const closeQovarkReportExportModal = () => document.getElementById("reportExportModal")?.classList.remove("active");
+  document.getElementById("closeReportExportModalBtn")?.addEventListener("click", closeQovarkReportExportModal);
+  document.getElementById("cancelReportExportModalBtn")?.addEventListener("click", closeQovarkReportExportModal);
+  document.getElementById("reportExportModal")?.addEventListener("click", event => {
+    if (event.target.id === "reportExportModal") closeQovarkReportExportModal();
+  });
+  document.getElementById("confirmReportExportBtn")?.addEventListener("click", async () => {
+    const format = syncQovarkReportExportUI(document.getElementById("reportExportFormat")?.value || "pdf");
+    closeQovarkReportExportModal();
+    await downloadActiveQovarkReport(format);
+  });
+
   function showReportReader(page) {
     activeReaderPage = page;
     const reader = document.getElementById('reportReaderModal');
@@ -9843,9 +9930,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     const exportPicker = document.getElementById("reportExportFormat");
     if (exportPicker) {
       const requestedFormat = String(page.outputFormat || page.output_format || "pdf").toLowerCase();
-      exportPicker.value = ["pdf","docx","xlsx","pptx","html","txt","csv"].includes(requestedFormat) ? requestedFormat : "pdf";
-      const downloadButton = document.getElementById("downloadReportBtn");
-      if (downloadButton) downloadButton.innerHTML = '<i class="fa-solid fa-download"></i> Download ' + escapeHTML(exportPicker.value.toUpperCase());
+      syncQovarkReportExportUI(requestedFormat);
     }
     const content = page.status === 'failed' || page.sourceStatus === 'failed'
       ? 'Something went wrong while preparing this report. Please try again from Pages.'
@@ -10001,9 +10086,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   }
 
   document.getElementById("reportExportFormat")?.addEventListener("change", event => {
-    const format = String(event.target.value || "pdf").toUpperCase();
-    const button = document.getElementById("downloadReportBtn");
-    if (button) button.innerHTML = '<i class="fa-solid fa-download"></i> Download ' + escapeHTML(format);
+    syncQovarkReportExportUI(event.target.value || "pdf");
   });
   document.getElementById("downloadReportBtn")?.addEventListener("click", () => {
     const format = document.getElementById("reportExportFormat")?.value || "pdf";
@@ -13319,7 +13402,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     });
     document.getElementById("reportFormatValidation")?.classList.remove("visible");
     const start = document.getElementById("confirmReportFormatBtn");
-    if (start) start.disabled = false;
+    if (start) {
+      start.disabled = false;
+      start.classList.remove("btn-disabled");
+      start.setAttribute("aria-disabled", "false");
+    }
   });
 
   document.getElementById("cancelReportFormatBtn")?.addEventListener("click", () => {
@@ -13451,7 +13538,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     } finally {
       if (submissionGeneration === deepAnalysisSubmissionGeneration && auth.currentUser?.uid === submittingUid) {
         qovarkDeepAnalysisSubmitting = false;
-        if (btn) btn.disabled = !selectedReportOutputFormat;
+        if (btn) {
+          const needsFormat = !selectedReportOutputFormat;
+          btn.disabled = needsFormat;
+          btn.classList.toggle("btn-disabled", needsFormat);
+          btn.setAttribute("aria-disabled", String(needsFormat));
+        }
       }
     }
   }
@@ -13488,7 +13580,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         option.setAttribute("aria-pressed", selected ? "true" : "false");
       });
       const confirm = document.getElementById("confirmReportFormatBtn");
-      if (confirm) confirm.disabled = false;
+      if (confirm) {
+        confirm.disabled = false;
+        confirm.classList.remove("btn-disabled");
+        confirm.setAttribute("aria-disabled", "false");
+      }
       document.getElementById("reportFormatValidation")?.classList.remove("visible");
       document.getElementById("reportFormatModal")?.classList.add("active");
       return;
@@ -13840,12 +13936,6 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     updateDeepFileSelectionUI();
     renderDeepWorkFileZone();
     validateDeepAnalysisForm(false);
-    const runAnalysisButton = document.getElementById("runAnalysisBtn");
-    if (runAnalysisButton) {
-      runAnalysisButton.disabled = true;
-      runAnalysisButton.classList.add("btn-disabled");
-      runAnalysisButton.setAttribute("aria-disabled", "true");
-    }
   }
 
   function clearAccountScopedWorkspace({ identityChanged = false } = {}) {
