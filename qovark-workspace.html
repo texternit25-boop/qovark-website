@@ -13094,7 +13094,18 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       await loadPxxlWorkspace(); await loadPxxlAlerts();
       hideHUD(); switchTab(0); showToast(result.message || "Analysis task queued successfully.");
     } catch (error) {
-      hideHUD(); showToast(error.message || "Could not submit the analysis task.");
+      hideHUD();
+      if (["PIN_REQUIRED", "PIN_INVALID", "PIN_NOT_SET"].includes(error?.code)) {
+        openSecurityPinModal(error.code, { onSuccess: actuallySubmitDeepAnalysis });
+        const pinDescription = document.getElementById("texterPinDescription");
+        if (pinDescription) {
+          pinDescription.textContent = error.code === "PIN_NOT_SET"
+            ? "Create a 4–6 digit Security PIN before running the owner-only Groq test."
+            : "Verify your Security PIN to submit this Deep Analysis test securely.";
+        }
+        return;
+      }
+      showToast(error.message || "Could not submit the analysis task.");
     } finally {
       if (btn) btn.disabled = !selectedReportOutputFormat;
     }
