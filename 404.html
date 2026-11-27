@@ -29,7 +29,7 @@
   <script>
     (() => {
       const requestedPath = window.location.pathname;
-      const match = requestedPath.match(/^\/share\/(chat|message)\/([A-Za-z0-9_-]{32,64})\/?$/i);
+      const match = requestedPath.match(/^\/share\/(chat|message|report)\/([A-Za-z0-9_-]{32,64})\/?$/i);
       if (!match) return;
 
       const fallback = document.getElementById("fallback");
