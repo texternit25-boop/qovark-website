@@ -1692,6 +1692,9 @@
   .report-reader-view .report-reader-body { max-height:none; flex:1 1 auto; min-height:180px; }
   .report-reader-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:10px; border-top:1px solid var(--border); }
   .report-reader-actions button { flex:1 1 110px; min-height:42px; }
+  .report-export-picker { display:flex; flex:1 1 190px; min-width:165px; align-items:center; gap:7px; padding:5px 9px; border:1px solid var(--border); border-radius:11px; background:var(--surface); color:var(--text-muted); font-size:11px; }
+  .report-export-picker span { flex:0 0 auto; }
+  .report-export-picker select { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-weight:700; cursor:pointer; }
 
   /* REQUIRED OUTPUT FORMAT PICKER */
   .format-option-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin:14px 0; }
@@ -5139,27 +5142,6 @@
     </div>
   </div>
 
-  <!-- REQUIRED REPORT OUTPUT FORMAT PICKER: shown after valid Deep Analysis submission request -->
-  <div class="custom-modal-overlay" id="reportFormatModal" role="dialog" aria-modal="true" aria-labelledby="reportFormatTitle">
-    <div class="custom-modal" style="max-width:390px;">
-      <h3 id="reportFormatTitle" style="color:var(--text);font-size:18px;font-weight:800;margin-bottom:6px;">Choose report appearance</h3>
-      <p style="color:var(--text-muted);font-size:12.5px;line-height:1.5;">Select how Deep Analysis should prepare the final report. Analysis will start only after you confirm a format.</p>
-      <div class="format-option-grid" id="reportFormatOptions">
-        <button type="button" class="format-option" data-output-format="pdf"><i class="fa-solid fa-file-pdf"></i><span><strong>PDF document</strong><small>.pdf · Read and share</small></span></button>
-        <button type="button" class="format-option" data-output-format="docx"><i class="fa-solid fa-file-word"></i><span><strong>Word document</strong><small>.docx · Editable</small></span></button>
-        <button type="button" class="format-option" data-output-format="xlsx"><i class="fa-solid fa-file-excel"></i><span><strong>Excel workbook</strong><small>.xlsx · Tables and data</small></span></button>
-        <button type="button" class="format-option" data-output-format="pptx"><i class="fa-solid fa-file-powerpoint"></i><span><strong>Presentation</strong><small>.pptx · Slides</small></span></button>
-        <button type="button" class="format-option" data-output-format="txt"><i class="fa-solid fa-file-lines"></i><span><strong>Plain text</strong><small>.txt · Lightweight</small></span></button>
-        <button type="button" class="format-option" data-output-format="html"><i class="fa-solid fa-globe"></i><span><strong>Web document</strong><small>.html · Browser-ready</small></span></button>
-      </div>
-      <p id="reportFormatValidation" class="dw-validation-message" role="alert">Please choose an output format.</p>
-      <div style="display:flex;gap:9px;margin-top:12px;">
-        <button type="button" id="cancelReportFormatBtn" class="page-action-btn" style="padding:12px;">Back</button>
-        <button type="button" id="confirmReportFormatBtn" class="dw-btn primary-submit btn-disabled" style="flex:1;" disabled>Start Analysis</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Protected areas chooser -->
   <div class="custom-modal-overlay" id="securityScopesModal" role="dialog" aria-modal="true" aria-labelledby="securityScopesTitle">
     <div class="custom-modal" style="max-width:390px;">
@@ -5207,7 +5189,7 @@
         <div class="report-overview-grid">
           <div class="report-overview-item"><small>Task category</small><strong id="readerOverviewCategory">—</strong></div>
           <div class="report-overview-item"><small>Processing status</small><strong id="readerOverviewStatus">—</strong></div>
-          <div class="report-overview-item"><small>Output format</small><strong id="readerOverviewFormat">—</strong></div>
+          <div class="report-overview-item"><small>Report view</small><strong id="readerOverviewFormat">HTML · Online</strong></div>
           <div class="report-overview-item"><small>Source file</small><strong id="readerOverviewSource">—</strong></div>
         </div>
         <p class="report-summary-text" id="readerReportSummary">A concise executive overview will appear here when it is returned by Deep Analysis.</p>
@@ -5218,8 +5200,10 @@
       <div class="report-reader-body" id="readerReportContent"></div>
       <div class="report-reader-actions">
         <button type="button" id="copyReportBtn" class="page-action-btn"><i class="fa-solid fa-copy"></i> Copy</button>
-        <button type="button" id="shareReportBtn" class="page-action-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
-        <button type="button" id="openReportExternalBtn" class="page-action-btn accent"><i class="fa-solid fa-mobile-screen-button"></i> Open With App</button>
+        <button type="button" id="shareReportBtn" class="page-action-btn"><i class="fa-solid fa-share-nodes"></i> Share link</button>
+        <label class="report-export-picker"><span>Download as</span><select id="reportExportFormat" aria-label="Choose report download format"><option value="pdf" selected>PDF · Recommended</option><option value="docx">Word · DOCX</option><option value="xlsx">Excel · XLSX</option><option value="pptx">PowerPoint · PPTX</option><option value="html">HTML file</option><option value="txt">Text file</option><option value="csv">CSV data</option></select></label>
+        <button type="button" id="downloadReportBtn" class="page-action-btn accent"><i class="fa-solid fa-download"></i> Download PDF</button>
+        <button type="button" id="openReportExternalBtn" class="page-action-btn"><i class="fa-solid fa-mobile-screen-button"></i> Open With App</button>
         <button type="button" id="sendReportToExpertBtn" class="page-action-btn"><i class="fa-solid fa-user-tie"></i> Analyst</button>
       </div>
     </div>
@@ -9823,11 +9807,11 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     document.getElementById('readerReportTitle').textContent = page.title || page.file_name || "Report";
     const timeLabel = page.createdAt ? formatRelativeTime(page.createdAt) : (page.submittedAt || "");
     document.getElementById('readerReportMeta').textContent = `${page.category || "Report"} • ${timeLabel} • ${((page.status === 'ready' || page.status === 'completed') ? 'Ready' : 'In Progress')}`;
-    const format = String(page.outputFormat || page.output_format || "Report").toUpperCase();
+    const format = "HTML";
     document.getElementById('readerFormatBadge').textContent = format;
     document.getElementById('readerOverviewCategory').textContent = page.category || "Not specified";
     document.getElementById('readerOverviewStatus').textContent = (page.status === 'ready' || page.status === 'completed') ? 'Ready' : 'In Progress';
-    document.getElementById('readerOverviewFormat').textContent = format;
+    document.getElementById('readerOverviewFormat').textContent = "HTML · Online";
     document.getElementById('readerOverviewSource').textContent = page.fileName || page.file_name || page.title || "Workspace file";
     const summaryNode = document.getElementById('readerReportSummary');
     if (summaryNode) { summaryNode.textContent = ''; summaryNode.style.display = 'none'; }
@@ -9893,6 +9877,94 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     try { await navigator.clipboard.writeText(content); showToast("Copied report content."); }
     catch { showToast("Copy unavailable on this device."); }
   });
+  async function downloadActiveQovarkReport(format = "pdf") {
+    const page = activeReaderPage;
+    if (!page?.id || !(page.content || page.final_report)) {
+      showToast("Open a completed report before downloading it.");
+      return false;
+    }
+    const user = auth.currentUser;
+    if (!user) { requireSignedIn(); return false; }
+
+    const safeFormat = String(format || "pdf").toLowerCase();
+    const allowedFormats = new Set(["pdf", "docx", "xlsx", "pptx", "html", "txt", "csv"]);
+    if (!allowedFormats.has(safeFormat)) {
+      showToast("Choose a supported download format.");
+      return false;
+    }
+
+    const protectedReport = Boolean(
+      page.is_secured || page.secure_document || page.secureDocument ||
+      texterSecurityScopes?.pages || texterSecurityScopes?.files
+    );
+    if (protectedReport && !texterSecurityPin && typeof requestPinAccess === "function") {
+      requestPinAccess({
+        reason: 'download the protected report "' + String(page.title || "report") + '"',
+        alwaysVerify: true,
+        onSuccess: () => downloadActiveQovarkReport(safeFormat)
+      });
+      return false;
+    }
+
+    const button = document.getElementById("downloadReportBtn");
+    if (button) button.disabled = true;
+    try {
+      const token = await user.getIdToken();
+      const headers = { "Content-Type": "application/json", Authorization: "Bearer " + token };
+      if (protectedReport && texterSecurityPin) headers["x-security-pin"] = texterSecurityPin;
+      const response = await fetch(`${PXXL_BASE}/api/documents/${encodeURIComponent(page.id)}/export`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ outputFormat: safeFormat, output_format: safeFormat })
+      });
+      if (!response.ok) {
+        const raw = await response.text().catch(() => "");
+        let message = raw;
+        try { message = JSON.parse(raw).error || raw; } catch {}
+        throw new Error(message || `Could not generate ${safeFormat.toUpperCase()} download (${response.status}).`);
+      }
+
+      const blob = await response.blob();
+      if (!blob.size) throw new Error("The export service returned an empty file.");
+      const disposition = response.headers.get("content-disposition") || "";
+      const nameMatch = disposition.match(/filename\*?=(?:UTF-8''|")?([^";]+)/i);
+      let fileName = nameMatch ? decodeURIComponent(nameMatch[1].replace(/"$/, "")) : "";
+      if (!fileName) {
+        const base = String(page.title || "QOVARK_Report")
+          .replace(/\.[^.]+$/, "")
+          .replace(/[\\/:*?"<>|]+/g, "_")
+          .slice(0, 90) || "QOVARK_Report";
+        fileName = base + extensionForOutputFormat(safeFormat);
+      }
+      const file = new File([blob], fileName, { type: blob.type || mimeForOutputFormat(safeFormat) });
+      const nativeBridge = window.TexterAndroid || window.Android || window.TEXTER;
+      if (nativeBridge && typeof nativeBridge.openFileWithChooser === "function") {
+        await triggerAndroidAppChooser(
+          file, page.title || "QOVARK report",
+          page.content || page.final_report || "", safeFormat, "", "report", page.id
+        );
+      } else {
+        qovarkDownloadShareFile(file);
+      }
+      return true;
+    } catch (error) {
+      showToast(error?.message || "Could not download this report.");
+      return false;
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  document.getElementById("reportExportFormat")?.addEventListener("change", event => {
+    const format = String(event.target.value || "pdf").toUpperCase();
+    const button = document.getElementById("downloadReportBtn");
+    if (button) button.innerHTML = '<i class="fa-solid fa-download"></i> Download ' + escapeHTML(format);
+  });
+  document.getElementById("downloadReportBtn")?.addEventListener("click", () => {
+    const format = document.getElementById("reportExportFormat")?.value || "pdf";
+    downloadActiveQovarkReport(format);
+  });
+
   async function shareQovarkFileNatively(file, title = "Share from QOVARK", message = "") {
     const bridge = window.TexterAndroid;
     if (!(file instanceof Blob) || !bridge || typeof bridge.shareFileWithChooser !== "function") return false;
@@ -10059,29 +10131,54 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   });
 
   document.getElementById('shareReportBtn')?.addEventListener('click', async () => {
-    const content = activeReaderPage?.content || activeReaderPage?.final_report || "";
-    if (!content) { showToast('There is no report content to share yet.'); return; }
-    const title = activeReaderPage?.title || 'QOVARK report';
-    const doShareReport = async () => {
+    const page = activeReaderPage;
+    if (!page?.id || !(page.content || page.final_report)) {
+      showToast("Open a completed report before creating a share link.");
+      return;
+    }
+    if (qovarkShareBusy || !qovarkRequireShareAccount()) return;
+
+    const title = String(page.title || "QOVARK report");
+    const createReportLink = async () => {
+      const confirmed = await confirmInApp(
+        "Anyone with this link can read the report for 7 days. Original uploaded files are not included. You can revoke the link later from Shared links.",
+        { title: "Share this report", confirmText: "Create secure link" }
+      );
+      if (!confirmed || activeReaderPage?.id !== page.id) return;
+
+      qovarkShareBusy = true;
+      const button = document.getElementById("shareReportBtn");
+      if (button) button.disabled = true;
       try {
-        const base = qovarkSafeShareFileName(title.replace(/\.[^.]+$/, "") + ".html", "QOVARK-report.html");
-        const html = qovarkBuildMarkdownHtmlDocument(title, content);
-        const file = new File([html], base, { type: "text/html;charset=utf-8" });
-        await qovarkSharePreparedFile(file, title, "QOVARK report · HTML document");
+        const data = await pxxlRequest("/api/share/report", {
+          method: "POST",
+          body: JSON.stringify({ documentId: page.id, expiresInHours: 168 })
+        });
+        if (!data?.success || !data.url || !data.shareId) {
+          throw new Error("The sharing service did not return a valid report link.");
+        }
+        showQovarkCreatedShare(data, "report");
       } catch (error) {
-        showToast(error?.message || "Could not prepare the HTML report for sharing.");
+        showToast(error?.message || "Could not create a report share link.");
+      } finally {
+        qovarkShareBusy = false;
+        if (button) button.disabled = false;
       }
     };
-    const protectedReport = Boolean(activeReaderPage?.is_secured || activeReaderPage?.secure_document || activeReaderPage?.secureDocument);
+
+    const protectedReport = Boolean(
+      page.is_secured || page.secure_document || page.secureDocument ||
+      texterSecurityScopes?.pages || texterSecurityScopes?.files
+    );
     if (protectedReport && typeof requestPinAccess === "function") {
       requestPinAccess({
         reason: 'share the protected report "' + title + '"',
         alwaysVerify: true,
-        onSuccess: doShareReport
+        onSuccess: createReportLink
       });
       return;
     }
-    await doShareReport();
+    await createReportLink();
   });
   document.getElementById('sendReportToExpertBtn')?.addEventListener('click', () => {
     document.getElementById('reportReaderModal').classList.remove('active');
@@ -11859,11 +11956,13 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   }
 
   function showQovarkCreatedShare(data, kind) {
-    const title = kind === "chat" ? "Chat link created" : "Message link created";
+    const title = kind === "report" ? "Report link created" : kind === "chat" ? "Chat link created" : "Message link created";
     openQovarkShareDialog(title);
     const note = document.createElement("p");
     note.className = "qovark-share-note";
-    note.textContent = "Anyone who has this link can view the shared text until it expires or you revoke it. Attachments are not included. Only share content you are comfortable making accessible by link.";
+    note.textContent = kind === "report"
+      ? "Anyone with this link can read the report until it expires or you revoke it. Original source files are not included. Only share reports you are comfortable making accessible by link."
+      : "Anyone who has this link can view the shared text until it expires or you revoke it. Attachments are not included. Only share content you are comfortable making accessible by link.";
     const input = document.createElement("input");
     input.className = "qovark-share-url";
     input.type = "text";
@@ -11872,7 +11971,9 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     input.setAttribute("aria-label", "Created share link");
     const expiry = document.createElement("small");
     expiry.className = "qovark-share-expiry";
-    expiry.textContent = `Expires: ${qovarkShareDate(data.expiresAt)} · ${Number(data.messageCount || 1)} text item(s)`;
+    expiry.textContent = kind === "report"
+      ? `Report link expires: ${qovarkShareDate(data.expiresAt)}`
+      : `Expires: ${qovarkShareDate(data.expiresAt)} · ${Number(data.messageCount || 1)} text item(s)`;
     qovarkShareBody.append(note, input, expiry);
     addQovarkShareAction("Done", "fa-solid fa-check", closeQovarkShareDialog, true);
     addQovarkShareAction("Share link", "fa-solid fa-arrow-up-from-bracket", () => qovarkShareLinkOut(data.url, "QOVARK shared link"));
@@ -11977,13 +12078,13 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
   async function openQovarkIncomingShare(type, token) {
     const cleanToken = String(token || "").trim();
-    if (!/^[A-Za-z0-9_-]{20,128}$/.test(cleanToken)) {
+    if (!["chat", "message", "report"].includes(type) || !/^[A-Za-z0-9_-]{20,128}$/.test(cleanToken)) {
       showToast("This QOVARK share link is not valid.");
       return;
     }
     if (qovarkIncomingShareToken === cleanToken) return;
     qovarkIncomingShareToken = cleanToken;
-    openQovarkShareDialog(type === "chat" ? "Shared conversation" : "Shared message");
+    openQovarkShareDialog(type === "report" ? "Shared report" : type === "chat" ? "Shared conversation" : "Shared message");
     const loading = document.createElement("p");
     loading.className = "qovark-share-note";
     loading.textContent = "Opening the secure shared content…";
@@ -11994,34 +12095,55 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       });
       const contentType = response.headers.get("content-type") || "";
       const data = contentType.includes("application/json") ? await response.json() : { error: await response.text() };
-      if (!response.ok || !data?.success || !data.share) throw new Error(data?.error || "This link is invalid, expired or revoked.");
+      if (!response.ok || !data?.success || !data.share) {
+        throw new Error(data?.error || "This link is invalid, expired or revoked.");
+      }
+
       qovarkShareBody.replaceChildren();
       const share = data.share;
       const heading = document.createElement("p");
       heading.className = "qovark-share-note";
-      heading.textContent = `${String(share.title || (type === "chat" ? "Shared conversation" : "Shared message"))} · Expires ${qovarkShareDate(data.expiresAt)}. Attachments are not included.`;
+      heading.textContent = `${String(share.title || (type === "report" ? "Shared report" : type === "chat" ? "Shared conversation" : "Shared message"))} · Expires ${qovarkShareDate(data.expiresAt)}. ${type === "report" ? "Original source files are not included." : "Attachments are not included."}`;
       qovarkShareBody.appendChild(heading);
-      const thread = document.createElement("div");
-      thread.className = "qovark-share-thread";
-      const items = type === "chat" ? (Array.isArray(share.messages) ? share.messages : []) : (share.message ? [share.message] : []);
-      items.forEach(item => {
-        const role = item?.role === "assistant" ? "assistant" : "user";
-        const card = document.createElement("article");
-        card.className = `qovark-shared-message ${role}`;
-        const roleLabel = document.createElement("strong");
-        roleLabel.textContent = role === "assistant" ? "QOVARK AI" : "User message";
-        const content = document.createElement("p");
-        content.textContent = String(item?.content || "");
-        card.append(roleLabel, content);
-        thread.appendChild(card);
-      });
-      if (!items.length) {
-        const empty = document.createElement("p");
-        empty.className = "qovark-share-note";
-        empty.textContent = "There is no text available in this shared item.";
-        thread.appendChild(empty);
+
+      if (type === "report") {
+        if (typeof share.reportHtml !== "string" || !share.reportHtml.trim()) {
+          throw new Error("This shared report has no readable content.");
+        }
+        const frame = document.createElement("iframe");
+        frame.title = "Shared QOVARK report";
+        frame.setAttribute("sandbox", "allow-same-origin");
+        frame.style.width = "100%";
+        frame.style.minHeight = "620px";
+        frame.style.border = "1px solid var(--border)";
+        frame.style.borderRadius = "12px";
+        frame.srcdoc = share.reportHtml;
+        qovarkShareBody.appendChild(frame);
+      } else {
+        const thread = document.createElement("div");
+        thread.className = "qovark-share-thread";
+        const items = type === "chat"
+          ? (Array.isArray(share.messages) ? share.messages : [])
+          : (share.message ? [share.message] : []);
+        items.forEach(item => {
+          const role = item?.role === "assistant" ? "assistant" : "user";
+          const card = document.createElement("article");
+          card.className = `qovark-shared-message ${role}`;
+          const roleLabel = document.createElement("strong");
+          roleLabel.textContent = role === "assistant" ? "QOVARK AI" : "User message";
+          const content = document.createElement("p");
+          content.textContent = String(item?.content || "");
+          card.append(roleLabel, content);
+          thread.appendChild(card);
+        });
+        if (!items.length) {
+          const empty = document.createElement("p");
+          empty.className = "qovark-share-note";
+          empty.textContent = "There is no text available in this shared item.";
+          thread.appendChild(empty);
+        }
+        qovarkShareBody.appendChild(thread);
       }
-      qovarkShareBody.appendChild(thread);
       addQovarkShareAction("Close", "fa-solid fa-check", closeQovarkShareDialog, true);
     } catch (error) {
       qovarkShareBody.replaceChildren();
@@ -12059,7 +12181,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
           row.className = "qovark-share-list-item";
           const details = document.createElement("div");
           const name = document.createElement("strong");
-          name.textContent = item.share_type === "chat" ? "Shared conversation" : "Shared message";
+          name.textContent = item.share_type === "report" ? "Shared report" : item.share_type === "chat" ? "Shared conversation" : "Shared message";
           const meta = document.createElement("small");
           const expired = item.expires_at && new Date(item.expires_at).getTime() <= Date.now();
           const revoked = Boolean(item.revoked_at);
@@ -12217,8 +12339,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
           }
         }
       }
-    } else if (destination?.type === "shared_chat" || destination?.type === "shared_message") {
-      const shareType = destination.type === "shared_chat" ? "chat" : "message";
+    } else if (["shared_chat", "shared_message", "shared_report"].includes(destination?.type)) {
+      const shareType = destination.type === "shared_chat" ? "chat" : destination.type === "shared_report" ? "report" : "message";
       openQovarkIncomingShare(shareType, destination.token);
     }
 
@@ -12675,7 +12797,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const created = page.created_at ? new Date(page.created_at).getTime() : Date.now();
     const mappedStatus = statusMap[rawStatus] || "in-progress";
     const etaText = rawStatus === "queued" ? "Queued" : (rawStatus === "failed" ? "Try again" : (mappedStatus === "ready" ? "Ready" : "Processing"));
-    return { ...page, id: page.id, sourceStatus: rawStatus, title: page.file_name || page.source_file_name || page.title || "Untitled report", fileName: page.file_name || page.source_file_name || page.title || "Workspace file", category: page.category || "Research & Docs", status: mappedStatus, createdAt: created, submittedAt: formatRelativeTime(created), etaText, durationText: page.duration_seconds ? `${Math.round(page.duration_seconds / 60)} mins` : (mappedStatus === "ready" ? "Ready" : "Processing"), outputFormat: page.output_format || page.outputFormat || "", is_secured: Boolean(page.is_secured || page.secured || page.secure_document || page.secureDocument), executive_summary: page.executive_summary || page.summary || page.overview || page.document_overview || "", file_url: page.file_url || page.download_url || page.output_url || page.export_url || "", content: rawStatus === "failed" ? "" : (page.final_report || page.content || ""), prompt: page.user_instructions || page.instructions || page.prompt || page.description || "" };
+    return { ...page, id: page.id, sourceStatus: rawStatus, title: page.file_name || page.source_file_name || page.title || "Untitled report", fileName: page.file_name || page.source_file_name || page.title || "Workspace file", category: page.category || "Research & Docs", status: mappedStatus, createdAt: created, submittedAt: formatRelativeTime(created), etaText, durationText: page.duration_seconds ? `${Math.round(page.duration_seconds / 60)} mins` : (mappedStatus === "ready" ? "Ready" : "Processing"), outputFormat: "html", is_secured: Boolean(page.is_secured || page.secured || page.secure_document || page.secureDocument), executive_summary: page.executive_summary || page.summary || page.overview || page.document_overview || "", file_url: page.file_url || page.download_url || page.output_url || page.export_url || "", content: rawStatus === "failed" ? "" : (page.final_report || page.content || ""), prompt: page.user_instructions || page.instructions || page.prompt || page.description || "" };
   }
 
   function offlineWorkspaceCacheKey(uid) { return `qovark_offline_workspace_v1__${uid}`; }
@@ -13138,34 +13260,41 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     updateScrollBottomButton();
   };
 
-  // Replace local-only deep analysis submission with the real multipart Pxxl job endpoint.
-  // Report format is a required preference step between validating the form and starting INTELLIX.
-  document.getElementById("reportFormatOptions")?.addEventListener("click", event => {
-    const option = event.target.closest("[data-output-format]");
-    if (!option) return;
-    selectedReportOutputFormat = option.dataset.outputFormat;
-    document.querySelectorAll("#reportFormatOptions .format-option").forEach(button => button.classList.toggle("selected", button === option));
-    document.getElementById("reportFormatValidation")?.classList.remove("visible");
-    const start = document.getElementById("confirmReportFormatBtn");
-    if (start) { start.disabled = false; start.classList.remove("btn-disabled"); }
-  });
-  document.getElementById("cancelReportFormatBtn")?.addEventListener("click", () => {
-    document.getElementById("reportFormatModal")?.classList.remove("active");
-    pendingDeepAnalysisSubmit = false;
-  });
+  // Deep Analysis prepares one browser-ready HTML report. Download formats are selected
+  // after completion, not as an extra step before the user can start their work.
+  let qovarkDeepAnalysisSubmitting = false;
 
   async function actuallySubmitDeepAnalysis() {
+    if (qovarkDeepAnalysisSubmitting) return;
+    qovarkDeepAnalysisSubmitting = true;
+    const outputFormat = "html";
     const promptText = document.getElementById("dwPromptInput")?.value.trim() || "";
     syncDeepWorkFileSelection();
     const selected = [...selectedFilesForDeepWork];
     const localFiles = selected.map(item => item.rawFile instanceof File ? item.rawFile : null).filter(Boolean);
     const savedFileIds = selected.filter(item => !(item.rawFile instanceof File)).map(item => String(item.id));
-    if (!selected.length) { showToast("Choose at least one file."); return; }
-    if (localFiles.some(file => file.size > 50 * 1024 * 1024)) { showToast("Each file must be 50 MB or smaller."); return; }
-    if (!selectedReportOutputFormat) { showToast("Choose a report format first."); return; }
-    if (!requireSignedIn()) return;
 
-    const categoryMap = { "Code & Tech": "Code & Software Architecture", "Research & Docs": "Research & Docs", "Business Plans": "Business Plans", "Data Synthesis": "Data Synthesis" };
+    if (!selected.length) { qovarkDeepAnalysisSubmitting = false; showToast("Choose at least one file."); return; }
+    if (localFiles.some(file => file.size > 50 * 1024 * 1024)) {
+      qovarkDeepAnalysisSubmitting = false;
+      showToast("Each file must be 50 MB or smaller.");
+      return;
+    }
+    if (!requireSignedIn()) { qovarkDeepAnalysisSubmitting = false; return; }
+
+    const submittingUid = auth.currentUser?.uid || null;
+    if (!submittingUid) {
+      qovarkDeepAnalysisSubmitting = false;
+      showToast("Sign in again before submitting Deep Analysis.");
+      return;
+    }
+
+    const categoryMap = {
+      "Code & Tech": "Code & Software Architecture",
+      "Research & Docs": "Research & Docs",
+      "Business Plans": "Business Plans",
+      "Data Synthesis": "Data Synthesis"
+    };
     const form = new FormData();
     localFiles.forEach((file, index) => {
       form.append(index === 0 ? "file" : "files", file, file.name);
@@ -13176,44 +13305,50 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     }
     form.append("instructions", promptText);
     form.append("category", categoryMap[selectedTaskCategory.id] || selectedTaskCategory.label);
-    form.append("outputFormat", selectedReportOutputFormat);
-    form.append("output_format", selectedReportOutputFormat);
+    form.append("outputFormat", outputFormat);
+    form.append("output_format", outputFormat);
     const secureDocument = document.getElementById("secureDeepReportToggle")?.checked ? "true" : "false";
     form.append("secureDocument", secureDocument);
     form.append("secure_document", secureDocument);
-    form.append("webResearchEngine", latestWebResearchSnippet ? "Google" : "Google");
+    form.append("webResearchEngine", "Google");
     if (currentFolderId) form.append("folderId", currentFolderId);
 
-    const btn = document.getElementById("confirmReportFormatBtn");
+    const btn = document.getElementById("runAnalysisBtn");
     if (btn) btn.disabled = true;
-    const submittingUid = auth.currentUser?.uid || null;
-    if (!submittingUid) { showToast("Sign in again before submitting Deep Analysis."); return; }
     const submissionGeneration = deepAnalysisSubmissionGeneration;
     showHUD("Submitting analysis task…", true);
     try {
       const result = await pxxlRequest("/api/intellix/submit", { method: "POST", body: form });
-      // A late response from an earlier session/account must never update the current workspace.
       if (auth.currentUser?.uid !== submittingUid || submissionGeneration !== deepAnalysisSubmissionGeneration) return;
       if (result.page) {
         const mapped = mapPxxlPage(result.page);
-        mapped.outputFormat = result.page.output_format || result.page.outputFormat || selectedReportOutputFormat;
-        mapped.is_secured = Boolean(document.getElementById("secureDeepReportToggle")?.checked || result.page.is_secured || result.page.secure_document);
+        mapped.outputFormat = "html";
+        mapped.is_secured = Boolean(
+          document.getElementById("secureDeepReportToggle")?.checked ||
+          result.page.is_secured || result.page.secure_document
+        );
         mapped.fileName = selected.map(file => file.name).join(", ");
         mapped.title = mapped.fileName || mapped.title;
         myPagesData.unshift(mapped);
       }
+
       document.getElementById("dwPromptInput").value = "";
-      selectedFilesForDeepWork = []; selectedFileForDeepWork = null;
-      selectedTaskCategory = null; pendingModalTaskCategory = null; deepValidationAttempted = false;
+      selectedFilesForDeepWork = [];
+      selectedFileForDeepWork = null;
+      selectedTaskCategory = null;
+      pendingModalTaskCategory = null;
+      deepValidationAttempted = false;
       document.getElementById("selectedCategoryLabel").innerText = "Select a task category";
       document.getElementById("selectedCategoryIcon").className = "fa-solid fa-layer-group";
       document.getElementById("secureDeepReportToggle").checked = false;
-      selectedReportOutputFormat = null; pendingDeepAnalysisSubmit = false;
-      document.getElementById("reportFormatModal")?.classList.remove("active");
-      document.querySelectorAll("#reportFormatOptions .format-option").forEach(option => option.classList.remove("selected"));
+      selectedReportOutputFormat = null;
+      pendingDeepAnalysisSubmit = false;
       renderDeepWorkFileZone();
-      await loadPxxlWorkspace(); await loadPxxlAlerts();
-      hideHUD(); switchTab(0); showToast(result.message || "Analysis task queued successfully.");
+      await loadPxxlWorkspace();
+      await loadPxxlAlerts();
+      hideHUD();
+      switchTab(0);
+      showToast(result.message || "Analysis task queued successfully.");
     } catch (error) {
       if (auth.currentUser?.uid !== submittingUid || submissionGeneration !== deepAnalysisSubmissionGeneration) return;
       hideHUD();
@@ -13231,44 +13366,39 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       }
       showToast(error.message || "Could not submit the analysis task.");
     } finally {
-      if (submissionGeneration === deepAnalysisSubmissionGeneration && btn) btn.disabled = !selectedReportOutputFormat;
+      qovarkDeepAnalysisSubmitting = false;
+      if (submissionGeneration === deepAnalysisSubmissionGeneration && btn) {
+        btn.disabled = !validateDeepAnalysisForm(false).isValid;
+      }
     }
   }
 
   document.addEventListener("click", async function pxxlDeepSubmitCapture(e) {
-    const btn = e.target.closest("#runAnalysisBtn, #confirmReportFormatBtn");
+    const btn = e.target.closest("#runAnalysisBtn");
     if (!btn) return;
-    e.preventDefault(); e.stopImmediatePropagation();
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (qovarkDeepAnalysisSubmitting) return;
 
-    if (btn.id === "runAnalysisBtn") {
-      deepValidationAttempted = true;
-      const validation = validateDeepAnalysisForm(true);
-      if (!validation.isValid) {
-        const missing = [];
-        if (!validation.hasCategory) missing.push("task category");
-        if (!validation.hasFile) missing.push("file");
-        if (!validation.hasPrompt) missing.push("instructions");
-        showToast("Please complete: " + missing.join(", ") + ".");
-        const firstMissing = !validation.hasCategory ? document.getElementById("openTaskCategoryModalBtn") : (!validation.hasFile ? document.getElementById("dwFileZone") : document.getElementById("dwPromptInput"));
-        firstMissing?.scrollIntoView({ behavior: "smooth", block: "center" });
-        if (firstMissing?.id === "dwPromptInput") firstMissing.focus();
-        return;
-      }
-      if (!requireSignedIn()) return;
-      selectedReportOutputFormat = null; pendingDeepAnalysisSubmit = true;
-      document.querySelectorAll("#reportFormatOptions .format-option").forEach(option => option.classList.remove("selected"));
-      const confirm = document.getElementById("confirmReportFormatBtn");
-      if (confirm) { confirm.disabled = true; confirm.classList.add("btn-disabled"); }
-      document.getElementById("reportFormatValidation")?.classList.remove("visible");
-      document.getElementById("reportFormatModal")?.classList.add("active");
+    deepValidationAttempted = true;
+    const validation = validateDeepAnalysisForm(true);
+    if (!validation.isValid) {
+      const missing = [];
+      if (!validation.hasCategory) missing.push("task category");
+      if (!validation.hasFile) missing.push("file");
+      if (!validation.hasPrompt) missing.push("instructions");
+      showToast("Please complete: " + missing.join(", ") + ".");
+      const firstMissing = !validation.hasCategory
+        ? document.getElementById("openTaskCategoryModalBtn")
+        : (!validation.hasFile ? document.getElementById("dwFileZone") : document.getElementById("dwPromptInput"));
+      firstMissing?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (firstMissing?.id === "dwPromptInput") firstMissing.focus();
       return;
     }
+    if (!requireSignedIn()) return;
+    selectedReportOutputFormat = "html";
+    pendingDeepAnalysisSubmit = true;
 
-    if (!selectedReportOutputFormat) {
-      document.getElementById("reportFormatValidation")?.classList.add("visible");
-      return;
-    }
-    if (!pendingDeepAnalysisSubmit) return;
     const secure = Boolean(document.getElementById("secureDeepReportToggle")?.checked);
     const deepWorkScopeRequiresPin = Boolean(texterSecurityScopes?.deepWork);
     if (secure || deepWorkScopeRequiresPin) {
@@ -14062,7 +14192,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
 
   // Public web fallback: if the host serves this app shell for /share/{type}/{token},
   // open the same read-only viewer used by Android App Links.
-  const qovarkDirectShareMatch = String(window.location?.pathname || "").match(/^\/share\/(chat|message)\/([A-Za-z0-9_-]{20,128})\/?$/i);
+  const qovarkDirectShareMatch = String(window.location?.pathname || "").match(/^\/share\/(chat|message|report)\/([A-Za-z0-9_-]{20,128})\/?$/i);
   if (qovarkDirectShareMatch) openQovarkIncomingShare(qovarkDirectShareMatch[1].toLowerCase(), qovarkDirectShareMatch[2]);
 
   // INITIALIZE
