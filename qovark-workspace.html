@@ -12466,11 +12466,16 @@ Size: ${activeViewedFile.size || 'N/A'}`,
           : (localItem.title && !/^(?:hi|hey|hello|hiya|good morning|good afternoon|good evening|good night|morning|how are you|what's up|what's going on|yo|sup|greetings|thanks|thank you)[\\s!.?,]*$/i.test(String(localItem.title).trim())
               ? localItem.title
               : (previous?.title || "New conversation"));
+        const preserveAiTitle = previous?.titleSource === "ai" && previous?.title;
         map.set(chatId, previous ? {
-          ...previous, title:localTitle, preview:localPreview || previous.preview || "",
-          messageCount:Math.max(Number(previous.messageCount || 0), messages.length), updatedAt:localItem.updatedAt || previous.updatedAt
+          ...previous,
+          title: preserveAiTitle ? previous.title : localTitle,
+          titleSource: preserveAiTitle ? "ai" : (previous.titleSource || "extractive"),
+          preview: localPreview || previous.preview || "",
+          messageCount:Math.max(Number(previous.messageCount || 0), messages.length),
+          updatedAt:localItem.updatedAt || previous.updatedAt
         } : {
-          chatId, title:localTitle, preview:localPreview,
+          chatId, title:localTitle, titleSource:"extractive", preview:localPreview,
           messageCount:messages.length, updatedAt:localItem.updatedAt || null, localOnly:true
         });
       }
@@ -12494,7 +12499,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if (!listEl || auth.currentUser?.uid !== uid) return;
     const items = qovarkHistoryComposeItems(uid, sourceItems);
     const signature = JSON.stringify([uid, String(activeFastChatId || ""), cloudAvailable,
-      items.map(item => [item.chatId,item.title,item.summary || "",qovarkHistoryCompactPreview(item.summary || item.preview),item.updatedAt,Number(item.messageCount || 0),Boolean(item.localOnly)])]);
+      items.map(item => [item.chatId,item.title,item.titleSource || "extractive",item.updatedAt,Number(item.messageCount || 0),Boolean(item.localOnly)])]);
     if (listEl.dataset.qovarkHistorySignature === signature) {
       if (statusEl) statusEl.textContent = cloudAvailable ? "Your conversations are synced across signed-in devices" : "Cloud history unavailable · device copies preserved";
       return;
@@ -12506,7 +12511,6 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const chatId = String(item.chatId || "");
       if (!chatId || chatId === QOVARK_ACTIVE_CHAT_STATE_ID) continue;
       const title = String(item.title || "New conversation");
-      const summary = qovarkHistoryCompactPreview(item.summary || item.preview || "Conversation");
       const wrapper = document.createElement("article");
       wrapper.className = "history-chat-entry";
       const openButton = document.createElement("button");
@@ -12515,7 +12519,6 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       openButton.innerHTML =
         '<span class="history-chat-mark"><i class="fa-regular fa-message" aria-hidden="true"></i></span>' +
         '<span class="history-chat-copy"><strong title="' + escapeHTML(title) + '">' + escapeHTML(title) + '</strong>' +
-        '<span class="history-chat-preview">' + escapeHTML(summary) + '</span>' +
         '<small>' + escapeHTML(qovarkHistoryDateLabel(item.updatedAt)) + ' · ' + Number(item.messageCount || 0) + ' messages</small></span>';
       openButton.addEventListener("click", async () => {
         if (auth.currentUser?.uid !== uid || openButton.disabled) return;
@@ -13672,6 +13675,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   font-size:10px!important;
   line-height:1.4!important;
 }
+
+/* Chat history uses one clear identifying title, not a generated paragraph preview. */
+.history-chat-entry .history-chat-copy .history-chat-preview { display:none!important; }
+.history-chat-entry .history-chat-copy { gap:4px!important; }
 </style>
 <script id="qovark-global-localization-v1">
 (() => {
