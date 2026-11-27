@@ -4695,6 +4695,221 @@
   #reportReaderModal .report-reader-header h2 { font-size:14px; }
 }
 </style>
+
+<style id="qovark-refined-workspace-layout-2026-11">
+/* Refined workspace shell: compact phone header, correctly scaled brand assets,
+   and a report reader that occupies the content canvas without covering nav. */
+.top-bar .brand-symbol {
+  object-fit: contain !important;
+  padding: 2px !important;
+  background: #020617 !important;
+  border-radius: 10px !important;
+}
+.settings-logo {
+  width: 40px !important;
+  height: 40px !important;
+  flex: 0 0 40px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  background: #020617 !important;
+}
+.settings-logo img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  padding: 5px !important;
+}
+.settings-header { gap: 12px !important; min-width: 0; }
+.settings-header h2 { min-width: 0; flex: 1 1 auto; }
+
+/* Phones: give the wordmark room between the history and account controls. */
+@media (max-width: 767px) {
+  .top-bar {
+    gap: 8px !important;
+    padding-left: max(10px, env(safe-area-inset-left)) !important;
+    padding-right: max(10px, env(safe-area-inset-right)) !important;
+  }
+  .top-bar .history-trigger,
+  .top-bar .top-icons .icon {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    border-radius: 11px !important;
+  }
+  .top-bar .history-trigger { flex: 0 0 36px !important; }
+  .top-bar .top-icons { gap: 6px !important; }
+  .top-bar .brand { flex: 1 1 auto !important; gap: 7px !important; }
+  .top-bar .brand-symbol {
+    width: 31px !important;
+    height: 31px !important;
+    flex: 0 0 31px !important;
+    border-radius: 9px !important;
+  }
+  .top-bar .brand-name {
+    font-size: clamp(19px, 5.7vw, 22px) !important;
+    letter-spacing: -.55px !important;
+    line-height: 1 !important;
+  }
+  .top-bar .brand-glow { width: 34px !important; height: 2px !important; }
+  .top-bar .brand small {
+    font-size: 7px !important;
+    letter-spacing: 1.45px !important;
+    line-height: 1.1 !important;
+  }
+  .settings-panel {
+    width: min(320px, calc(100vw - 18px)) !important;
+    right: max(-340px, calc(-1 * min(320px, calc(100vw - 18px)))) !important;
+    padding: 18px !important;
+  }
+  .settings-panel.open { right: 0 !important; }
+  .settings-list { width: 100% !important; }
+  .settings-item { width: 100% !important; max-width: none !important; }
+  #reportReaderModal .report-reader-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  #reportReaderModal .report-reader-actions > button,
+  #reportReaderModal .report-export-picker {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    flex: initial !important;
+    justify-content: center !important;
+  }
+  #reportReaderModal .report-export-picker { text-align: left !important; }
+}
+
+/* Tablet: keep the report below the workspace header and to the right of nav. */
+@media (min-width: 768px) and (max-width: 899px) {
+  #reportReaderModal.report-reader-view {
+    position: fixed !important;
+    inset: 68px 0 0 88px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 20px 22px 24px !important;
+    overflow: hidden !important;
+  }
+  #reportReaderModal .report-reader-details,
+  #reportReaderModal .report-reader-scroll {
+    width: min(100%, 1080px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* Desktop: report reader fills the actual workspace canvas, not the global
+   top bar or the left navigation rail. Report content stays centred/readable. */
+@media (min-width: 900px) {
+  .top-bar .brand-symbol {
+    width: 34px !important;
+    height: 34px !important;
+    flex-basis: 34px !important;
+  }
+  .top-bar .brand-name { font-size: 24px !important; }
+  .top-bar .brand small { font-size: 8px !important; letter-spacing: 1.8px !important; }
+  .settings-panel { width: 340px !important; }
+  .settings-logo {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+
+  #reportReaderModal.report-reader-view {
+    position: fixed !important;
+    inset: 72px 0 0 104px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 22px clamp(28px, 3.5vw, 58px) 28px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  #reportReaderModal .report-reader-header,
+  #reportReaderModal .report-reader-details,
+  #reportReaderModal .report-reader-scroll {
+    width: min(100%, 1220px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  #reportReaderModal .report-reader-header {
+    min-height: 48px !important;
+    gap: 14px !important;
+    padding-bottom: 14px !important;
+  }
+  #reportReaderModal .report-reader-header h2 {
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+  }
+  #reportReaderModal .report-overview-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  #reportReaderModal .report-reader-scroll {
+    min-height: 0 !important;
+  }
+  #reportReaderModal .report-reader-body {
+    padding: 22px 26px !important;
+    font-size: 14px !important;
+    line-height: 1.72 !important;
+  }
+  #reportReaderModal .report-reader-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    padding: 16px 0 8px !important;
+  }
+  #reportReaderModal .report-reader-actions > button.page-action-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 116px !important;
+    min-height: 40px !important;
+    padding: 9px 14px !important;
+  }
+  #reportReaderModal .report-reader-actions > #openReportExportModalBtn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 180px !important;
+  }
+  #runAnalysisBtn.dw-btn.primary-submit {
+    display: flex !important;
+    width: min(100%, 320px) !important;
+    min-height: 48px !important;
+    margin: 14px auto 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 13px 22px !important;
+  }
+  .page-card-actions {
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 9px !important;
+  }
+  .page-card-actions .page-action-btn {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 108px !important;
+    padding: 9px 14px !important;
+  }
+  .dw-content { width: min(100%, 1020px) !important; }
+}
+
+/* Smaller report action controls should remain usable in short landscape phones. */
+@media (max-width: 899px) and (max-height: 560px) and (orientation: landscape) {
+  #reportReaderModal.report-reader-view { padding-top: max(8px, env(safe-area-inset-top)) !important; }
+  #reportReaderModal .report-reader-overview { max-height: 24vh; overflow: auto; }
+}
+</style>
+
 </head>
 <body>
 
