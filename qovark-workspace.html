@@ -5142,6 +5142,28 @@
     </div>
   </div>
 
+  <!-- Deep Analysis output format: controls both report structure and exported file type. -->
+  <div class="custom-modal-overlay" id="reportFormatModal" role="dialog" aria-modal="true" aria-labelledby="reportFormatTitle">
+    <div class="custom-modal" style="max-width:390px;">
+      <h3 id="reportFormatTitle" style="color:var(--text);font-size:18px;font-weight:800;margin-bottom:6px;">Choose your report format</h3>
+      <p style="color:var(--text-muted);font-size:12.5px;line-height:1.5;">Choose the format QOVARK should prepare for this analysis. You can also download another format after the report is ready.</p>
+      <div class="format-option-grid" id="reportFormatOptions">
+        <button type="button" class="format-option selected" data-output-format="pdf" aria-pressed="true"><i class="fa-solid fa-file-pdf"></i><span><strong>PDF document</strong><small>.pdf · Recommended for reading and sharing</small></span></button>
+        <button type="button" class="format-option" data-output-format="docx" aria-pressed="false"><i class="fa-solid fa-file-word"></i><span><strong>Word document</strong><small>.docx · Editable report</small></span></button>
+        <button type="button" class="format-option" data-output-format="xlsx" aria-pressed="false"><i class="fa-solid fa-file-excel"></i><span><strong>Excel workbook</strong><small>.xlsx · Tables and structured data</small></span></button>
+        <button type="button" class="format-option" data-output-format="pptx" aria-pressed="false"><i class="fa-solid fa-file-powerpoint"></i><span><strong>PowerPoint</strong><small>.pptx · Presentation format</small></span></button>
+        <button type="button" class="format-option" data-output-format="html" aria-pressed="false"><i class="fa-solid fa-globe"></i><span><strong>HTML report</strong><small>.html · Browser-ready document</small></span></button>
+        <button type="button" class="format-option" data-output-format="txt" aria-pressed="false"><i class="fa-solid fa-file-lines"></i><span><strong>Plain text</strong><small>.txt · Lightweight text</small></span></button>
+        <button type="button" class="format-option" data-output-format="csv" aria-pressed="false"><i class="fa-solid fa-table"></i><span><strong>CSV data</strong><small>.csv · Exported tabular data</small></span></button>
+      </div>
+      <p id="reportFormatValidation" class="dw-validation-message" role="alert">Please choose an output format.</p>
+      <div style="display:flex;gap:9px;margin-top:12px;">
+        <button type="button" id="cancelReportFormatBtn" class="page-action-btn" style="padding:12px;">Back</button>
+        <button type="button" id="confirmReportFormatBtn" class="dw-btn primary-submit" style="flex:1;">Start Analysis</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Protected areas chooser -->
   <div class="custom-modal-overlay" id="securityScopesModal" role="dialog" aria-modal="true" aria-labelledby="securityScopesTitle">
     <div class="custom-modal" style="max-width:390px;">
@@ -5189,7 +5211,7 @@
         <div class="report-overview-grid">
           <div class="report-overview-item"><small>Task category</small><strong id="readerOverviewCategory">—</strong></div>
           <div class="report-overview-item"><small>Processing status</small><strong id="readerOverviewStatus">—</strong></div>
-          <div class="report-overview-item"><small>Report view</small><strong id="readerOverviewFormat">HTML · Online</strong></div>
+          <div class="report-overview-item"><small>Output format</small><strong id="readerOverviewFormat">PDF</strong></div>
           <div class="report-overview-item"><small>Source file</small><strong id="readerOverviewSource">—</strong></div>
         </div>
         <p class="report-summary-text" id="readerReportSummary">A concise executive overview will appear here when it is returned by Deep Analysis.</p>
@@ -9807,14 +9829,21 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     document.getElementById('readerReportTitle').textContent = page.title || page.file_name || "Report";
     const timeLabel = page.createdAt ? formatRelativeTime(page.createdAt) : (page.submittedAt || "");
     document.getElementById('readerReportMeta').textContent = `${page.category || "Report"} • ${timeLabel} • ${((page.status === 'ready' || page.status === 'completed') ? 'Ready' : 'In Progress')}`;
-    const format = "HTML";
+    const format = String(page.outputFormat || page.output_format || "pdf").toUpperCase();
     document.getElementById('readerFormatBadge').textContent = format;
     document.getElementById('readerOverviewCategory').textContent = page.category || "Not specified";
     document.getElementById('readerOverviewStatus').textContent = (page.status === 'ready' || page.status === 'completed') ? 'Ready' : 'In Progress';
-    document.getElementById('readerOverviewFormat').textContent = "HTML · Online";
+    document.getElementById('readerOverviewFormat').textContent = format;
     document.getElementById('readerOverviewSource').textContent = page.fileName || page.file_name || page.title || "Workspace file";
     const summaryNode = document.getElementById('readerReportSummary');
     if (summaryNode) { summaryNode.textContent = ''; summaryNode.style.display = 'none'; }
+    const exportPicker = document.getElementById("reportExportFormat");
+    if (exportPicker) {
+      const requestedFormat = String(page.outputFormat || page.output_format || "pdf").toLowerCase();
+      exportPicker.value = ["pdf","docx","xlsx","pptx","html","txt","csv"].includes(requestedFormat) ? requestedFormat : "pdf";
+      const downloadButton = document.getElementById("downloadReportBtn");
+      if (downloadButton) downloadButton.innerHTML = '<i class="fa-solid fa-download"></i> Download ' + escapeHTML(exportPicker.value.toUpperCase());
+    }
     const content = page.status === 'failed' || page.sourceStatus === 'failed'
       ? 'Something went wrong while preparing this report. Please try again from Pages.'
       : String(page.content ?? page.final_report ?? "This report is still being prepared. Its status will update automatically when it is ready.");
@@ -12810,7 +12839,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const created = page.created_at ? new Date(page.created_at).getTime() : Date.now();
     const mappedStatus = statusMap[rawStatus] || "in-progress";
     const etaText = rawStatus === "queued" ? "Queued" : (rawStatus === "failed" ? "Try again" : (mappedStatus === "ready" ? "Ready" : "Processing"));
-    return { ...page, id: page.id, sourceStatus: rawStatus, title: page.file_name || page.source_file_name || page.title || "Untitled report", fileName: page.file_name || page.source_file_name || page.title || "Workspace file", category: page.category || "Research & Docs", status: mappedStatus, createdAt: created, submittedAt: formatRelativeTime(created), etaText, durationText: page.duration_seconds ? `${Math.round(page.duration_seconds / 60)} mins` : (mappedStatus === "ready" ? "Ready" : "Processing"), outputFormat: "html", is_secured: Boolean(page.is_secured || page.secured || page.secure_document || page.secureDocument), executive_summary: page.executive_summary || page.summary || page.overview || page.document_overview || "", file_url: page.file_url || page.download_url || page.output_url || page.export_url || "", content: rawStatus === "failed" ? "" : (page.final_report || page.content || ""), prompt: page.user_instructions || page.instructions || page.prompt || page.description || "" };
+    return { ...page, id: page.id, sourceStatus: rawStatus, title: page.file_name || page.source_file_name || page.title || "Untitled report", fileName: page.file_name || page.source_file_name || page.title || "Workspace file", category: page.category || "Research & Docs", status: mappedStatus, createdAt: created, submittedAt: formatRelativeTime(created), etaText, durationText: page.duration_seconds ? `${Math.round(page.duration_seconds / 60)} mins` : (mappedStatus === "ready" ? "Ready" : "Processing"), outputFormat: page.output_format || page.outputFormat || "pdf", is_secured: Boolean(page.is_secured || page.secured || page.secure_document || page.secureDocument), executive_summary: page.executive_summary || page.summary || page.overview || page.document_overview || "", file_url: page.file_url || page.download_url || page.output_url || page.export_url || "", content: rawStatus === "failed" ? "" : (page.final_report || page.content || ""), prompt: page.user_instructions || page.instructions || page.prompt || page.description || "" };
   }
 
   function offlineWorkspaceCacheKey(uid) { return `qovark_offline_workspace_v1__${uid}`; }
@@ -13273,27 +13302,53 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     updateScrollBottomButton();
   };
 
-  // Deep Analysis prepares one browser-ready HTML report. Download formats are selected
-  // after completion, not as an extra step before the user can start their work.
+  // Deep Analysis output format is selected before the job starts and persisted with the report.
   let qovarkDeepAnalysisSubmitting = false;
+
+  document.getElementById("reportFormatOptions")?.addEventListener("click", event => {
+    const option = event.target.closest("[data-output-format]");
+    if (!option) return;
+    selectedReportOutputFormat = String(option.dataset.outputFormat || "").toLowerCase();
+    document.querySelectorAll("#reportFormatOptions .format-option").forEach(button => {
+      const selected = button === option;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+    document.getElementById("reportFormatValidation")?.classList.remove("visible");
+    const start = document.getElementById("confirmReportFormatBtn");
+    if (start) start.disabled = false;
+  });
+
+  document.getElementById("cancelReportFormatBtn")?.addEventListener("click", () => {
+    document.getElementById("reportFormatModal")?.classList.remove("active");
+    pendingDeepAnalysisSubmit = false;
+  });
 
   async function actuallySubmitDeepAnalysis() {
     if (qovarkDeepAnalysisSubmitting) return;
     qovarkDeepAnalysisSubmitting = true;
-    const outputFormat = "html";
+
+    const outputFormat = String(selectedReportOutputFormat || "pdf").toLowerCase();
     const promptText = document.getElementById("dwPromptInput")?.value.trim() || "";
     syncDeepWorkFileSelection();
     const selected = [...selectedFilesForDeepWork];
     const localFiles = selected.map(item => item.rawFile instanceof File ? item.rawFile : null).filter(Boolean);
     const savedFileIds = selected.filter(item => !(item.rawFile instanceof File)).map(item => String(item.id));
 
-    if (!selected.length) { qovarkDeepAnalysisSubmitting = false; showToast("Choose at least one file."); return; }
+    if (!selected.length) {
+      qovarkDeepAnalysisSubmitting = false;
+      showToast("Choose at least one file.");
+      return;
+    }
     if (localFiles.some(file => file.size > 50 * 1024 * 1024)) {
       qovarkDeepAnalysisSubmitting = false;
       showToast("Each file must be 50 MB or smaller.");
       return;
     }
-    if (!requireSignedIn()) { qovarkDeepAnalysisSubmitting = false; return; }
+    if (!requireSignedIn()) {
+      qovarkDeepAnalysisSubmitting = false;
+      return;
+    }
 
     const submittingUid = auth.currentUser?.uid || null;
     if (!submittingUid) {
@@ -13326,8 +13381,15 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     form.append("webResearchEngine", "Google");
     if (currentFolderId) form.append("folderId", currentFolderId);
 
-    const btn = document.getElementById("runAnalysisBtn");
+    const btn = document.getElementById("confirmReportFormatBtn");
     if (btn) btn.disabled = true;
+    const submittingUidAtStart = auth.currentUser?.uid || null;
+    if (!submittingUidAtStart || submittingUidAtStart !== submittingUid) {
+      qovarkDeepAnalysisSubmitting = false;
+      if (btn) btn.disabled = false;
+      showToast("Sign in again before submitting Deep Analysis.");
+      return;
+    }
     const submissionGeneration = deepAnalysisSubmissionGeneration;
     showHUD("Submitting analysis task…", true);
     try {
@@ -13335,7 +13397,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       if (auth.currentUser?.uid !== submittingUid || submissionGeneration !== deepAnalysisSubmissionGeneration) return;
       if (result.page) {
         const mapped = mapPxxlPage(result.page);
-        mapped.outputFormat = "html";
+        mapped.outputFormat = result.page.output_format || result.page.outputFormat || outputFormat;
         mapped.is_secured = Boolean(
           document.getElementById("secureDeepReportToggle")?.checked ||
           result.page.is_secured || result.page.secure_document
@@ -13356,12 +13418,17 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       document.getElementById("secureDeepReportToggle").checked = false;
       selectedReportOutputFormat = null;
       pendingDeepAnalysisSubmit = false;
+      document.getElementById("reportFormatModal")?.classList.remove("active");
+      document.querySelectorAll("#reportFormatOptions .format-option").forEach(option => {
+        option.classList.remove("selected");
+        option.setAttribute("aria-pressed", "false");
+      });
       renderDeepWorkFileZone();
       await loadPxxlWorkspace();
       await loadPxxlAlerts();
       hideHUD();
       switchTab(0);
-      showToast(result.message || "Analysis task queued successfully.");
+      showToast(result.message || `Analysis task queued. Your ${outputFormat.toUpperCase()} report will appear in Pages.`);
     } catch (error) {
       if (auth.currentUser?.uid !== submittingUid || submissionGeneration !== deepAnalysisSubmissionGeneration) return;
       hideHUD();
@@ -13381,37 +13448,54 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     } finally {
       if (submissionGeneration === deepAnalysisSubmissionGeneration && auth.currentUser?.uid === submittingUid) {
         qovarkDeepAnalysisSubmitting = false;
-        if (btn) btn.disabled = !validateDeepAnalysisForm(false).isValid;
+        if (btn) btn.disabled = !selectedReportOutputFormat;
       }
     }
   }
 
   document.addEventListener("click", async function pxxlDeepSubmitCapture(e) {
-    const btn = e.target.closest("#runAnalysisBtn");
+    const btn = e.target.closest("#runAnalysisBtn, #confirmReportFormatBtn");
     if (!btn) return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    if (qovarkDeepAnalysisSubmitting) return;
 
-    deepValidationAttempted = true;
-    const validation = validateDeepAnalysisForm(true);
-    if (!validation.isValid) {
-      const missing = [];
-      if (!validation.hasCategory) missing.push("task category");
-      if (!validation.hasFile) missing.push("file");
-      if (!validation.hasPrompt) missing.push("instructions");
-      showToast("Please complete: " + missing.join(", ") + ".");
-      const firstMissing = !validation.hasCategory
-        ? document.getElementById("openTaskCategoryModalBtn")
-        : (!validation.hasFile ? document.getElementById("dwFileZone") : document.getElementById("dwPromptInput"));
-      firstMissing?.scrollIntoView({ behavior: "smooth", block: "center" });
-      if (firstMissing?.id === "dwPromptInput") firstMissing.focus();
+    if (btn.id === "runAnalysisBtn") {
+      if (qovarkDeepAnalysisSubmitting) return;
+      deepValidationAttempted = true;
+      const validation = validateDeepAnalysisForm(true);
+      if (!validation.isValid) {
+        const missing = [];
+        if (!validation.hasCategory) missing.push("task category");
+        if (!validation.hasFile) missing.push("file");
+        if (!validation.hasPrompt) missing.push("instructions");
+        showToast("Please complete: " + missing.join(", ") + ".");
+        const firstMissing = !validation.hasCategory
+          ? document.getElementById("openTaskCategoryModalBtn")
+          : (!validation.hasFile ? document.getElementById("dwFileZone") : document.getElementById("dwPromptInput"));
+        firstMissing?.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (firstMissing?.id === "dwPromptInput") firstMissing.focus();
+        return;
+      }
+      if (!requireSignedIn()) return;
+      selectedReportOutputFormat = "pdf";
+      pendingDeepAnalysisSubmit = true;
+      document.querySelectorAll("#reportFormatOptions .format-option").forEach(option => {
+        const selected = option.dataset.outputFormat === selectedReportOutputFormat;
+        option.classList.toggle("selected", selected);
+        option.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+      const confirm = document.getElementById("confirmReportFormatBtn");
+      if (confirm) confirm.disabled = false;
+      document.getElementById("reportFormatValidation")?.classList.remove("visible");
+      document.getElementById("reportFormatModal")?.classList.add("active");
       return;
     }
-    if (!requireSignedIn()) return;
-    selectedReportOutputFormat = "html";
-    pendingDeepAnalysisSubmit = true;
 
+    if (!pendingDeepAnalysisSubmit || qovarkDeepAnalysisSubmitting) return;
+    if (!selectedReportOutputFormat) {
+      document.getElementById("reportFormatValidation")?.classList.add("visible");
+      return;
+    }
     const secure = Boolean(document.getElementById("secureDeepReportToggle")?.checked);
     const deepWorkScopeRequiresPin = Boolean(texterSecurityScopes?.deepWork);
     if (secure || deepWorkScopeRequiresPin) {
@@ -13426,7 +13510,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         const pinDescription = document.getElementById("texterPinDescription");
         if (pinDescription) {
           pinDescription.textContent = hasConfiguredSecurityPin()
-            ? "Verify your Security PIN to secure this report. You will need it whenever you open the report."
+            ? "Verify your Security PIN to secure this report. You will need it whenever you open this secured report."
             : "Create and confirm a 4–6 digit Security PIN. You will need it whenever you open this secured report.";
         }
       }
