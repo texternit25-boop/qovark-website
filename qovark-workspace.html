@@ -6267,7 +6267,9 @@
   const finishOverlay = document.getElementById('finishOverlay');
   const accountProfileOverlay = document.getElementById('accountProfileOverlay');
   const settingsPanel = document.getElementById('settingsPanel');
+  const settingsBackdrop = document.getElementById('settingsBackdrop');
   const helpOverlay = document.getElementById('helpOverlay');
+  let qovarkSettingsReturnPending = false;
 
   function setSettingsPanelOpen(open) {
     const shouldOpen = Boolean(open);
@@ -6277,13 +6279,27 @@
       history?.setAttribute("aria-hidden", "true");
     }
     settingsPanel?.classList.toggle("open", shouldOpen);
-    const backdrop = document.getElementById("settingsBackdrop");
-    backdrop?.classList.toggle("active", shouldOpen);
-    backdrop?.setAttribute("aria-hidden", String(!shouldOpen));
+    settingsBackdrop?.classList.toggle("active", shouldOpen);
+    settingsBackdrop?.setAttribute("aria-hidden", String(!shouldOpen));
   }
 
+  function openSettingsChildOverlay(target) {
+    qovarkSettingsReturnPending = true;
+    setSettingsPanelOpen(false);
+    openOverlay(target);
+  }
+
+  function returnFromSettingsChild(target) {
+    if (typeof target === "string") document.getElementById(target)?.classList.remove("active");
+    else target?.classList.remove("active");
+    const shouldReturn = qovarkSettingsReturnPending;
+    qovarkSettingsReturnPending = false;
+    setSettingsPanelOpen(shouldReturn);
+  }
 
   accountBtn?.addEventListener("click", () => {
+    qovarkSettingsReturnPending = false;
+    setSettingsPanelOpen(false);
     if (auth.currentUser) openAccountProfile();
     else { resetAuthFields(); openOverlay(accountOverlay); }
   });
@@ -6291,34 +6307,44 @@
   document.getElementById("closeAccountOverlayBtn")?.addEventListener("click", () => {
     closeAllOverlays();
     resetAuthFields();
+    const shouldReturn = qovarkSettingsReturnPending;
+    qovarkSettingsReturnPending = false;
+    setSettingsPanelOpen(shouldReturn);
   });
 
   document.getElementById("settingsBtn")?.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
+    qovarkSettingsReturnPending = false;
     setHistoryOpen(false);
     setSettingsPanelOpen(true);
   });
   document.getElementById("closeSettingsBtn")?.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
+    qovarkSettingsReturnPending = false;
+    setSettingsPanelOpen(false);
+  });
+  settingsBackdrop?.addEventListener("click", () => {
+    qovarkSettingsReturnPending = false;
     setSettingsPanelOpen(false);
   });
 
   document.getElementById("voiceSettingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.remove("open");
+    qovarkSettingsReturnPending = true;
+    setSettingsPanelOpen(false);
     openVoiceSettingsModal();
   });
 
   document.getElementById("accountSettingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.remove("open");
+    qovarkSettingsReturnPending = true;
+    setSettingsPanelOpen(false);
     if (auth.currentUser) openAccountProfile();
     else { resetAuthFields(); openOverlay(accountOverlay); }
   });
 
   document.getElementById("helpSettingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.remove("open");
-    openOverlay(helpOverlay);
+    openSettingsChildOverlay(helpOverlay);
   });
 
   const securityOverlay = document.getElementById("securityOverlay");
@@ -6491,20 +6517,16 @@
   });
 
   document.getElementById("securitySettingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.remove("open");
-    openOverlay(securityOverlay);
+    openSettingsChildOverlay(securityOverlay);
   });
   document.getElementById("securityBackBtn")?.addEventListener("click", () => {
-    securityOverlay?.classList.remove("active");
-    settingsPanel.classList.add("open");
+    returnFromSettingsChild(securityOverlay);
   });
   document.getElementById("aboutSettingsBtn")?.addEventListener("click", () => {
-    settingsPanel.classList.remove("open");
-    openOverlay(document.getElementById("aboutOverlay"));
+    openSettingsChildOverlay(document.getElementById("aboutOverlay"));
   });
   document.getElementById("aboutBackBtn")?.addEventListener("click", () => {
-    document.getElementById("aboutOverlay")?.classList.remove("active");
-    settingsPanel.classList.add("open");
+    returnFromSettingsChild(document.getElementById("aboutOverlay"));
   });
   document.getElementById("openSecurityScopesBtn")?.addEventListener("click", async () => {
     const openChoices = () => openSecurityScopesModal({ onboarding: false });
@@ -6512,8 +6534,7 @@
   });
 
   document.getElementById("helpBackBtn")?.addEventListener("click", () => {
-    helpOverlay.classList.remove("active");
-    settingsPanel.classList.add("open");
+    returnFromSettingsChild(helpOverlay);
   });
 
   // Each Help Center topic opens its own scrollable guide overlay.
@@ -6547,9 +6568,33 @@
   });
 
   document.getElementById("accountProfileBackBtn")?.addEventListener("click", () => {
-    accountProfileOverlay.classList.remove("active");
-    settingsPanel.classList.add("open");
+    returnFromSettingsChild(accountProfileOverlay);
   });
+
+  document.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || !window.__TEXTER_MODULE_READY) return;
+    const activeHelpDetail = document.querySelector(".help-detail-overlay.active");
+    if (activeHelpDetail) {
+      openOverlay(helpOverlay);
+      return;
+    }
+    if (voiceModalOverlay?.classList.contains("active")) {
+      closeVoiceSettingsModal();
+      return;
+    }
+    const activeChild = [accountProfileOverlay, accountOverlay, securityOverlay, document.getElementById("aboutOverlay"), helpOverlay]
+      .find(node => node?.classList.contains("active"));
+    if (activeChild) {
+      returnFromSettingsChild(activeChild);
+      return;
+    }
+    if (settingsPanel?.classList.contains("open")) {
+      qovarkSettingsReturnPending = false;
+      setSettingsPanelOpen(false);
+      return;
+    }
+    if (historyOverlayEl?.classList.contains("open")) setHistoryOpen(false);
+  }, true);
 
   // ==================== FIREBASE AUTH & LIVE FIELD VALIDATION ====================
   const overlayTitle = document.getElementById('overlayTitle');
@@ -7951,9 +7996,16 @@
     voiceModalOverlay.style.display = 'none';
     voiceModalOverlay.setAttribute('aria-hidden', 'true');
     closeVoicePicker();
+    if (qovarkSettingsReturnPending) {
+      qovarkSettingsReturnPending = false;
+      setSettingsPanelOpen(true);
+    } else {
+      setSettingsPanelOpen(false);
+    }
   }
   const openVoiceSettingsFromHold = () => {
-    document.getElementById('settingsPanel')?.classList.remove('open');
+    qovarkSettingsReturnPending = false;
+    setSettingsPanelOpen(false);
     openVoiceSettingsModal();
   };
   const clearVoiceHold = () => {
@@ -11054,7 +11106,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     },30000);
   }
   function setHistoryOpen(open) {
-    if (open) setSettingsPanelOpen(false);
+    if (open) {
+      qovarkSettingsReturnPending = false;
+      setSettingsPanelOpen(false);
+      closeAllOverlays();
+    }
     historyOverlayEl?.classList.toggle("open", open);
     historyOverlayEl?.setAttribute("aria-hidden", String(!open));
   }
@@ -12599,8 +12655,12 @@ Size: ${activeViewedFile.size || 'N/A'}`,
             else {
               const previousTime = Date.parse(previous.updatedAt || "") || 0;
               const nextTime = Date.parse(raw.updatedAt || "") || 0;
-              allItems.set(chatId,{...previous,...raw,chatId,title:previous.title || raw.title,preview:previous.preview || raw.preview || "",
-                messageCount:Number(previous.messageCount || 0)+Number(raw.messageCount || 0),
+              const previousAiTitle = previous.titleSource === "ai" && String(previous.title || "").trim();
+              const rawAiTitle = raw.titleSource === "ai" && String(raw.title || "").trim();
+              const mergedTitle = previousAiTitle ? previous.title : (rawAiTitle ? raw.title : (raw.title || previous.title));
+              const mergedTitleSource = previousAiTitle || rawAiTitle ? "ai" : (raw.titleSource || previous.titleSource || "extractive");
+              allItems.set(chatId,{...previous,...raw,chatId,title:mergedTitle,titleSource:mergedTitleSource,preview:previous.preview || raw.preview || "",
+                messageCount:Math.max(Number(previous.messageCount || 0),Number(raw.messageCount || 0)),
                 updatedAt:new Date(Math.max(previousTime,nextTime)).toISOString()});
             }
           }
