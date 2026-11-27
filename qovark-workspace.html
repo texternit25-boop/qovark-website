@@ -13366,9 +13366,9 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       }
       showToast(error.message || "Could not submit the analysis task.");
     } finally {
-      qovarkDeepAnalysisSubmitting = false;
-      if (submissionGeneration === deepAnalysisSubmissionGeneration && btn) {
-        btn.disabled = !validateDeepAnalysisForm(false).isValid;
+      if (submissionGeneration === deepAnalysisSubmissionGeneration && auth.currentUser?.uid === submittingUid) {
+        qovarkDeepAnalysisSubmitting = false;
+        if (btn) btn.disabled = !validateDeepAnalysisForm(false).isValid;
       }
     }
   }
@@ -13672,6 +13672,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   function resetDeepAnalysisDraft() {
     // Invalidate any submit/verification continuation started by the previous account.
     deepAnalysisSubmissionGeneration += 1;
+    qovarkDeepAnalysisSubmitting = false;
     pendingPinContinuation = null;
     pinOnboardingFlow = false;
     texterPinMode = "verify";
