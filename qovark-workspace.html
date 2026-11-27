@@ -5776,10 +5776,48 @@
     history?.classList.remove("open");
     history?.setAttribute("aria-hidden", "true");
   }
+  let earlySettingsReturnPending = window.__qovarkSettingsReturnPending === true;
+  function earlySetSettingsReturnPending(value) {
+    earlySettingsReturnPending = Boolean(value);
+    window.__qovarkSettingsReturnPending = earlySettingsReturnPending;
+  }
+  function earlySetSettingsPanelOpen(open) {
+    const shouldOpen = Boolean(open);
+    $("settingsPanel")?.classList.toggle("open", shouldOpen);
+    const backdrop = $("settingsBackdrop");
+    backdrop?.classList.toggle("active", shouldOpen);
+    backdrop?.setAttribute("aria-hidden", String(!shouldOpen));
+  }
+  function earlyOpenSettingsChild(id) {
+    earlySetSettingsReturnPending(true);
+    earlySetSettingsPanelOpen(false);
+    openOverlay(id);
+  }
+  function earlyReturnFromSettingsChild(id) {
+    $(id)?.classList.remove("active");
+    const shouldReturn = earlySettingsReturnPending;
+    earlySetSettingsReturnPending(false);
+    earlySetSettingsPanelOpen(shouldReturn);
+  }
+  function earlyOpenVoiceSettingsModal() {
+    const overlay = $("voiceModalOverlay");
+    if (!overlay) return;
+    overlay.style.display = "flex";
+    overlay.classList.add("active");
+    overlay.setAttribute("aria-hidden", "false");
+  }
+  function earlyCloseVoiceSettingsModal() {
+    const overlay = $("voiceModalOverlay");
+    overlay?.classList.remove("active");
+    if (overlay) overlay.style.display = "none";
+    overlay?.setAttribute("aria-hidden", "true");
+    const shouldReturn = earlySettingsReturnPending;
+    earlySetSettingsReturnPending(false);
+    earlySetSettingsPanelOpen(shouldReturn);
+  }
   function openHistory() {
-    $("settingsPanel")?.classList.remove("open");
-    $("settingsBackdrop")?.classList.remove("active");
-    $("settingsBackdrop")?.setAttribute("aria-hidden", "true");
+    earlySetSettingsReturnPending(false);
+    earlySetSettingsPanelOpen(false);
     const history = $("historyOverlay");
     history?.classList.add("open");
     history?.setAttribute("aria-hidden", "false");
@@ -5926,7 +5964,18 @@
       sendGuestMessage();
     }
     if (event.key === "Escape") {
-      closeHistory();
+      const activeHelpDetail = document.querySelector(".help-detail-overlay.active");
+      if (activeHelpDetail) openOverlay("helpOverlay");
+      else {
+        const active = ["accountProfileOverlay", "accountOverlay", "helpOverlay", "securityOverlay", "aboutOverlay"]
+          .map(id => $(id)).find(node => node?.classList.contains("active"));
+        if (active) earlyReturnFromSettingsChild(active.id);
+        else if ($("voiceModalOverlay")?.classList.contains("active")) earlyCloseVoiceSettingsModal();
+        else if ($("settingsPanel")?.classList.contains("open")) {
+          earlySetSettingsReturnPending(false);
+          earlySetSettingsPanelOpen(false);
+        } else closeHistory();
+      }
       document.querySelectorAll(".custom-modal-overlay.active").forEach(node => node.classList.remove("active"));
     }
   }, true);
@@ -5948,6 +5997,8 @@
       closeHistory(); toast("New conversation started. Previous chats remain in your saved history where available.");
     });
     else if (hit("#accountBtn")) doHandle(() => {
+      earlySetSettingsReturnPending(false);
+      earlySetSettingsPanelOpen(false);
       const uid = safeGet("qovark_last_auth_uid", "");
       let cachedProfile = null;
       try { cachedProfile = uid ? JSON.parse(safeGet(`qovark_profile_cache_v1__${uid}`, "null")) : null; } catch {}
@@ -5959,17 +6010,31 @@
         openOverlay("accountProfileOverlay");
       } else openOverlay("accountOverlay");
     });
-    else if (hit("#closeAccountOverlayBtn")) doHandle(() => { clearEarlyAuthFields(); closeOverlays(); });
-    else if (hit("#settingsBtn")) doHandle(() => { $("historyOverlay")?.classList.remove("open"); $("historyOverlay")?.setAttribute("aria-hidden", "true"); $("settingsPanel")?.classList.add("open"); $("settingsBackdrop")?.classList.add("active"); $("settingsBackdrop")?.setAttribute("aria-hidden", "false"); });
-    else if (hit("#closeSettingsBtn")) doHandle(() => $("settingsPanel")?.classList.remove("open"));
-    else if (hit("#accountProfileBackBtn")) doHandle(() => { $("accountProfileOverlay")?.classList.remove("active"); $("settingsPanel")?.classList.add("open"); });
-    else if (hit("#voiceSettingsBtn") || hit("#speakToggle")) doHandle(() => {
-      $("settingsPanel")?.classList.remove("open");
-      openVoiceSettingsModal();
+    else if (hit("#closeAccountOverlayBtn")) doHandle(() => {
+      clearEarlyAuthFields(); closeOverlays();
+      const shouldReturn = earlySettingsReturnPending;
+      earlySetSettingsReturnPending(false);
+      earlySetSettingsPanelOpen(shouldReturn);
     });
-    else if (hit("#closeVoiceModal")) doHandle(closeVoiceSettingsModal);
+    else if (hit("#settingsBtn")) doHandle(() => { earlySetSettingsReturnPending(false); earlySetSettingsPanelOpen(true); });
+    else if (hit("#closeSettingsBtn") || (hit("#settingsBackdrop") && event.target === $("settingsBackdrop"))) doHandle(() => {
+      earlySetSettingsReturnPending(false); earlySetSettingsPanelOpen(false);
+    });
+    else if (hit("#accountProfileBackBtn")) doHandle(() => earlyReturnFromSettingsChild("accountProfileOverlay"));
+    else if (hit("#voiceSettingsBtn")) doHandle(() => {
+      earlySetSettingsReturnPending(true);
+      earlySetSettingsPanelOpen(false);
+      earlyOpenVoiceSettingsModal();
+    });
+    else if (hit("#speakToggle")) doHandle(() => {
+      earlySetSettingsReturnPending(false);
+      earlySetSettingsPanelOpen(false);
+      earlyOpenVoiceSettingsModal();
+    });
+    else if (hit("#closeVoiceModal")) doHandle(earlyCloseVoiceSettingsModal);
     else if (hit("#accountSettingsBtn")) doHandle(() => {
-      $("settingsPanel")?.classList.remove("open");
+      earlySetSettingsReturnPending(true);
+      earlySetSettingsPanelOpen(false);
       const uid = safeGet("qovark_last_auth_uid", "");
       let cachedProfile = null;
       try { cachedProfile = uid ? JSON.parse(safeGet(`qovark_profile_cache_v1__${uid}`, "null")) : null; } catch {}
@@ -5981,12 +6046,12 @@
         openOverlay("accountProfileOverlay");
       } else openOverlay("accountOverlay");
     });
-    else if (hit("#helpSettingsBtn")) doHandle(() => { $("settingsPanel")?.classList.remove("open"); openOverlay("helpOverlay"); });
-    else if (hit("#securitySettingsBtn")) doHandle(() => { $("settingsPanel")?.classList.remove("open"); openOverlay("securityOverlay"); });
-    else if (hit("#aboutSettingsBtn")) doHandle(() => { $("settingsPanel")?.classList.remove("open"); openOverlay("aboutOverlay"); });
-    else if (hit("#helpBackBtn")) doHandle(() => { $("helpOverlay")?.classList.remove("active"); $("settingsPanel")?.classList.add("open"); });
-    else if (hit("#securityBackBtn")) doHandle(() => { $("securityOverlay")?.classList.remove("active"); $("settingsPanel")?.classList.add("open"); });
-    else if (hit("#aboutBackBtn")) doHandle(() => { $("aboutOverlay")?.classList.remove("active"); $("settingsPanel")?.classList.add("open"); });
+    else if (hit("#helpSettingsBtn")) doHandle(() => earlyOpenSettingsChild("helpOverlay"));
+    else if (hit("#securitySettingsBtn")) doHandle(() => earlyOpenSettingsChild("securityOverlay"));
+    else if (hit("#aboutSettingsBtn")) doHandle(() => earlyOpenSettingsChild("aboutOverlay"));
+    else if (hit("#helpBackBtn")) doHandle(() => earlyReturnFromSettingsChild("helpOverlay"));
+    else if (hit("#securityBackBtn")) doHandle(() => earlyReturnFromSettingsChild("securityOverlay"));
+    else if (hit("#aboutBackBtn")) doHandle(() => earlyReturnFromSettingsChild("aboutOverlay"));
     else if (hit("#plusBtn")) doHandle(() => openSheet("bottomSheet", "sheetOverlay"));
     else if (hit("#sheetOverlay")) doHandle(() => closeSheet("bottomSheet", "sheetOverlay"));
     else if (hit("#bottomSheet .sheet-handle")) doHandle(() => closeSheet("bottomSheet", "sheetOverlay"));
@@ -6269,7 +6334,11 @@
   const settingsPanel = document.getElementById('settingsPanel');
   const settingsBackdrop = document.getElementById('settingsBackdrop');
   const helpOverlay = document.getElementById('helpOverlay');
-  let qovarkSettingsReturnPending = false;
+  let qovarkSettingsReturnPending = window.__qovarkSettingsReturnPending === true;
+  function setQovarkSettingsReturnPending(value) {
+    qovarkSettingsReturnPending = Boolean(value);
+    window.__qovarkSettingsReturnPending = qovarkSettingsReturnPending;
+  }
 
   function setSettingsPanelOpen(open) {
     const shouldOpen = Boolean(open);
@@ -6284,7 +6353,7 @@
   }
 
   function openSettingsChildOverlay(target) {
-    qovarkSettingsReturnPending = true;
+    setQovarkSettingsReturnPending(true);
     setSettingsPanelOpen(false);
     openOverlay(target);
   }
@@ -6293,12 +6362,12 @@
     if (typeof target === "string") document.getElementById(target)?.classList.remove("active");
     else target?.classList.remove("active");
     const shouldReturn = qovarkSettingsReturnPending;
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setSettingsPanelOpen(shouldReturn);
   }
 
   accountBtn?.addEventListener("click", () => {
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setSettingsPanelOpen(false);
     if (auth.currentUser) openAccountProfile();
     else { resetAuthFields(); openOverlay(accountOverlay); }
@@ -6308,36 +6377,36 @@
     closeAllOverlays();
     resetAuthFields();
     const shouldReturn = qovarkSettingsReturnPending;
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setSettingsPanelOpen(shouldReturn);
   });
 
   document.getElementById("settingsBtn")?.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setHistoryOpen(false);
     setSettingsPanelOpen(true);
   });
   document.getElementById("closeSettingsBtn")?.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setSettingsPanelOpen(false);
   });
   settingsBackdrop?.addEventListener("click", () => {
-    qovarkSettingsReturnPending = false;
+    setQovarkSettingsReturnPending(false);
     setSettingsPanelOpen(false);
   });
 
   document.getElementById("voiceSettingsBtn")?.addEventListener("click", () => {
-    qovarkSettingsReturnPending = true;
+    setQovarkSettingsReturnPending(true);
     setSettingsPanelOpen(false);
     openVoiceSettingsModal();
   });
 
   document.getElementById("accountSettingsBtn")?.addEventListener("click", () => {
-    qovarkSettingsReturnPending = true;
+    setQovarkSettingsReturnPending(true);
     setSettingsPanelOpen(false);
     if (auth.currentUser) openAccountProfile();
     else { resetAuthFields(); openOverlay(accountOverlay); }
@@ -6589,7 +6658,7 @@
       return;
     }
     if (settingsPanel?.classList.contains("open")) {
-      qovarkSettingsReturnPending = false;
+      setQovarkSettingsReturnPending(false);
       setSettingsPanelOpen(false);
       return;
     }
