@@ -9877,6 +9877,27 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     try { await navigator.clipboard.writeText(content); showToast("Copied report content."); }
     catch { showToast("Copy unavailable on this device."); }
   });
+  async function qovarkSaveReportFile(file) {
+    if (!(file instanceof Blob)) throw new Error("The report file is not available.");
+    const bridge = window.TexterAndroid;
+    if (bridge && typeof bridge.openFileWithChooser === "function") {
+      if (file.size > 16 * 1024 * 1024) {
+        throw new Error("This report exceeds Android's 16 MB save limit. Use QOVARK in a browser to download the larger file.");
+      }
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let index = 0; index < bytes.length; index += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+      }
+      const name = file.name || "QOVARK-Report.bin";
+      const started = bridge.openFileWithChooser(name, file.type || "application/octet-stream", btoa(binary));
+      if (started === false) throw new Error("Android could not open the Save dialog.");
+      return true;
+    }
+    return qovarkDownloadShareFile(file);
+  }
+
   async function downloadActiveQovarkReport(format = "pdf") {
     const page = activeReaderPage;
     if (!page?.id || !(page.content || page.final_report)) {
@@ -9937,15 +9958,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
         fileName = base + extensionForOutputFormat(safeFormat);
       }
       const file = new File([blob], fileName, { type: blob.type || mimeForOutputFormat(safeFormat) });
-      const nativeBridge = window.TexterAndroid || window.Android || window.TEXTER;
-      if (nativeBridge && typeof nativeBridge.openFileWithChooser === "function") {
-        await triggerAndroidAppChooser(
-          file, page.title || "QOVARK report",
-          page.content || page.final_report || "", safeFormat, "", "report", page.id
-        );
-      } else {
-        qovarkDownloadShareFile(file);
-      }
+      await qovarkSaveReportFile(file);
       return true;
     } catch (error) {
       showToast(error?.message || "Could not download this report.");
