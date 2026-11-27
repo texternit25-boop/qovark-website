@@ -5218,7 +5218,7 @@
       </section>
     </div>
     <div class="report-reader-scroll">
-      <div class="reader-report-label">Full report</div>
+      <div class="reader-report-label" id="readerReportPreviewLabel">Report preview</div>
       <div class="report-reader-body" id="readerReportContent"></div>
       <div class="report-reader-actions">
         <button type="button" id="copyReportBtn" class="page-action-btn"><i class="fa-solid fa-copy"></i> Copy</button>
@@ -9831,6 +9831,8 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     document.getElementById('readerReportMeta').textContent = `${page.category || "Report"} • ${timeLabel} • ${((page.status === 'ready' || page.status === 'completed') ? 'Ready' : 'In Progress')}`;
     const format = String(page.outputFormat || page.output_format || "pdf").toUpperCase();
     document.getElementById('readerFormatBadge').textContent = format;
+    const previewLabel = document.getElementById("readerReportPreviewLabel");
+    if (previewLabel) previewLabel.textContent = "Report preview · " + format + " export";
     document.getElementById('readerOverviewCategory').textContent = page.category || "Not specified";
     document.getElementById('readerOverviewStatus').textContent = (page.status === 'ready' || page.status === 'completed') ? 'Ready' : 'In Progress';
     document.getElementById('readerOverviewFormat').textContent = format;
@@ -13477,7 +13479,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
         return;
       }
       if (!requireSignedIn()) return;
-      selectedReportOutputFormat = "pdf";
+      selectedReportOutputFormat = selectedReportOutputFormat || "pdf";
       pendingDeepAnalysisSubmit = true;
       document.querySelectorAll("#reportFormatOptions .format-option").forEach(option => {
         const selected = option.dataset.outputFormat === selectedReportOutputFormat;
