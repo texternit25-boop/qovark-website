@@ -10966,7 +10966,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
     await createReportLink();
   });
   document.getElementById('sendReportToExpertBtn')?.addEventListener('click', () => {
-    document.getElementById('reportReaderModal').classList.remove('active');
+    // Keep the report visible behind the category picker; confirmation switches to the request form.
     if (activeReaderPage) selectFirstBlindReviewerForExistingFile(activeReaderPage.title, { destination: 'pages' });
   });
 
@@ -11086,7 +11086,11 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   }
 
   window.addEventListener('resize', () => {
-    if (!isDesktopWorkspace() && fileViewerPanel && fileViewerPanel.parentElement !== fileViewerOverlay) {
+    if (isDesktopWorkspace() && activeViewedFile && fileViewerPanel && fileViewerPanel.parentElement !== desktopFilePreviewPane) {
+      desktopFilePreviewPane?.appendChild(fileViewerPanel);
+      desktopFilePreviewPane?.classList.add('has-preview');
+      fileViewerOverlay?.classList.remove('active');
+    } else if (!isDesktopWorkspace() && fileViewerPanel && fileViewerPanel.parentElement !== fileViewerOverlay) {
       fileViewerOverlay?.appendChild(fileViewerPanel);
       desktopFilePreviewPane?.classList.remove('has-preview');
       if (activeViewedFile) fileViewerOverlay?.classList.add('active');
