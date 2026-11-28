@@ -9164,6 +9164,10 @@
   let activeBookingAnalyst = null;
   let currentExpertLocation = 'local';
   let currentExpertCategory = 'All';
+  let pendingExpertRequest = null;
+  let selectedExpertCategoryForPicker = '';
+  let activeBookingDestination = null;
+  const isDesktopWorkspace = () => Boolean(window.matchMedia && window.matchMedia('(min-width: 900px)').matches);
   let fileToAnalyze = null;
   let contextTargetFile = null;
 
@@ -9758,7 +9762,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
         } catch { showToast('Something went wrong. Please try again.'); }
       });
       card.querySelector('.expert-page-btn').addEventListener('click', () => {
-        selectFirstBlindReviewerForExistingFile(page.title);
+        selectFirstBlindReviewerForExistingFile(page.title, { destination: 'pages' });
       });
       pagesList.appendChild(card);
     });
@@ -10624,7 +10628,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   });
   document.getElementById('sendReportToExpertBtn')?.addEventListener('click', () => {
     document.getElementById('reportReaderModal').classList.remove('active');
-    if (activeReaderPage) selectFirstBlindReviewerForExistingFile(activeReaderPage.title);
+    if (activeReaderPage) selectFirstBlindReviewerForExistingFile(activeReaderPage.title, { destination: 'pages' });
   });
 
   // FILES
@@ -10709,8 +10713,12 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
           renderFiles(document.getElementById('folderFileList'), currentFolderId, '');
         } else {
           fileToAnalyze = item;
-          document.getElementById('previewFileName').innerText = item.name;
-          document.getElementById('filePreviewModal').classList.add('active');
+          if (isDesktopWorkspace()) {
+            openFileViewer(item);
+          } else {
+            document.getElementById('previewFileName').innerText = item.name;
+            document.getElementById('filePreviewModal').classList.add('active');
+          }
         }
       });
       container.appendChild(div);
@@ -10725,6 +10733,26 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
   let activeViewedFile = null;
   let activeViewedTextContent = "";
   const fileViewerOverlay = document.getElementById('fileViewerOverlay');
+  const fileViewerPanel = fileViewerOverlay?.querySelector('.custom-modal');
+  const desktopFilePreviewPane = document.getElementById('desktopFilePreviewPane');
+
+  function closeFileViewer() {
+    if (isDesktopWorkspace()) {
+      desktopFilePreviewPane?.classList.remove('has-preview');
+      document.querySelectorAll('#fileListContainer .file-item.preview-selected').forEach(node => node.classList.remove('preview-selected'));
+    } else {
+      fileViewerOverlay?.classList.remove('active');
+    }
+    activeViewedFile = null;
+  }
+
+  window.addEventListener('resize', () => {
+    if (!isDesktopWorkspace() && fileViewerPanel && fileViewerPanel.parentElement !== fileViewerOverlay) {
+      fileViewerOverlay?.appendChild(fileViewerPanel);
+      desktopFilePreviewPane?.classList.remove('has-preview');
+      if (activeViewedFile) fileViewerOverlay?.classList.add('active');
+    }
+  });
 
   function openFileViewer(item) {
     if (!item || item.type === 'folder') return;
@@ -10771,12 +10799,21 @@ Size: ${item.size || 'Saved'}`;
         <div style="color:var(--text-muted); font-size:12.5px;">Workspace Document (${item.size || 'Saved'}).<br>Tap <strong>Open With Phone App</strong> or <strong>Analyze</strong> to run Deep Analysis.</div>
       </div>`;
     }
-    fileViewerOverlay?.classList.add('active');
+    if (isDesktopWorkspace() && desktopFilePreviewPane && fileViewerPanel) {
+      desktopFilePreviewPane.appendChild(fileViewerPanel);
+      desktopFilePreviewPane.classList.add('has-preview');
+      fileViewerOverlay?.classList.remove('active');
+      document.querySelectorAll('#fileListContainer .file-item.preview-selected').forEach(node => node.classList.remove('preview-selected'));
+      document.querySelectorAll('#fileListContainer .file-item').forEach(node => {
+        if (node.dataset.fileId === String(item.id || '')) node.classList.add('preview-selected');
+      });
+    } else {
+      if (fileViewerPanel && fileViewerPanel.parentElement !== fileViewerOverlay) fileViewerOverlay?.appendChild(fileViewerPanel);
+      fileViewerOverlay?.classList.add('active');
+    }
   }
 
-  document.getElementById('closeFileViewerBtn')?.addEventListener('click', () => {
-    fileViewerOverlay?.classList.remove('active');
-  });
+  document.getElementById('closeFileViewerBtn')?.addEventListener('click', closeFileViewer);
 
   document.getElementById('openWithSystemAppBtn')?.addEventListener('click', () => {
     if (!activeViewedFile) return;
@@ -10793,7 +10830,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   });
 
   document.getElementById('viewerAttachDeepBtn')?.addEventListener('click', () => {
-    fileViewerOverlay?.classList.remove('active');
+    closeFileViewer();
     if (activeViewedFile) {
       if (!selectedFilesForDeepWork.some(file => file.id === activeViewedFile.id)) selectedFilesForDeepWork.push(activeViewedFile);
       syncDeepWorkFileSelection();
@@ -10833,7 +10870,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   document.getElementById('ctxSendToExpertBtn')?.addEventListener('click', () => {
     closeFileContext();
     if (contextTargetFile) {
-      selectFirstBlindReviewerForExistingFile(contextTargetFile.name);
+      selectFirstBlindReviewerForExistingFile(contextTargetFile.name, { destination: 'services' });
     }
   });
   document.getElementById('ctxDeleteBtn')?.addEventListener('click', () => {
@@ -11005,7 +11042,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const category = card.getAttribute('data-category') || '';
     if (!category) return;
     currentExpertCategory = category;
-    openBookingModal(null, '');
+    openBookingModal(null, '', { destination: 'services' });
   });
 
   async function refreshBlindRelayStatus() {
@@ -11036,7 +11073,58 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     });
   }
 
-  async function selectFirstBlindReviewerForExistingFile(fileName) {
+  function openExpertCategoryPicker(fileName, destination = 'pages') {
+    pendingExpertRequest = { fileName: String(fileName || ''), destination: destination === 'pages' ? 'pages' : 'services' };
+    selectedExpertCategoryForPicker = '';
+    document.querySelectorAll('#expertCategoryPickerGrid .expert-category-option').forEach(button => button.classList.remove('selected'));
+    const confirm = document.getElementById('confirmExpertCategoryPickerBtn');
+    if (confirm) confirm.disabled = true;
+    const modal = document.getElementById('expertCategoryPickerModal');
+    modal?.classList.add('active');
+    modal?.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeExpertCategoryPicker() {
+    const modal = document.getElementById('expertCategoryPickerModal');
+    modal?.classList.remove('active');
+    modal?.setAttribute('aria-hidden', 'true');
+    pendingExpertRequest = null;
+    selectedExpertCategoryForPicker = '';
+    document.querySelectorAll('#expertCategoryPickerGrid .expert-category-option').forEach(button => button.classList.remove('selected'));
+    const confirm = document.getElementById('confirmExpertCategoryPickerBtn');
+    if (confirm) confirm.disabled = true;
+  }
+
+  document.getElementById('expertCategoryPickerGrid')?.addEventListener('click', event => {
+    const button = event.target.closest('[data-expert-category]');
+    if (!button) return;
+    selectedExpertCategoryForPicker = button.getAttribute('data-expert-category') || '';
+    document.querySelectorAll('#expertCategoryPickerGrid .expert-category-option').forEach(option => {
+      option.classList.toggle('selected', option === button);
+    });
+    const confirm = document.getElementById('confirmExpertCategoryPickerBtn');
+    if (confirm) confirm.disabled = !selectedExpertCategoryForPicker;
+  });
+  document.getElementById('cancelExpertCategoryPickerBtn')?.addEventListener('click', closeExpertCategoryPicker);
+  document.getElementById('expertCategoryPickerModal')?.addEventListener('click', event => {
+    if (event.target.id === 'expertCategoryPickerModal') closeExpertCategoryPicker();
+  });
+  document.getElementById('confirmExpertCategoryPickerBtn')?.addEventListener('click', () => {
+    if (!pendingExpertRequest || !selectedExpertCategoryForPicker) return;
+    const request = pendingExpertRequest;
+    currentExpertCategory = selectedExpertCategoryForPicker;
+    closeExpertCategoryPicker();
+    if (request.destination === 'pages') switchTab(0);
+    else switchTab(4);
+    openBookingModal(null, request.fileName, { destination: request.destination });
+  });
+
+  function selectFirstBlindReviewerForExistingFile(fileName, options = {}) {
+    const destination = options.destination === 'pages' ? 'pages' : 'services';
+    if (isDesktopWorkspace()) {
+      openExpertCategoryPicker(fileName, destination);
+      return;
+    }
     switchTab(4);
     openBookingModal(null, fileName);
   }
@@ -11599,7 +11687,48 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   document.getElementById('unlockBlindReportBtn')?.addEventListener('click', unlockAndDownloadBlindReport);
 
 
-  async function openBookingModal(_unused = null, preselected = '') {
+  const bookingModalOverlay = document.getElementById('bookingModalOverlay');
+  const bookingRequestModal = bookingModalOverlay?.querySelector('.booking-request-modal');
+  const servicesBookingPane = document.getElementById('servicesBookingPane');
+  const pagesExpertRequestPane = document.getElementById('pagesExpertRequestPane');
+  const pagesServiceWorkContent = document.getElementById('pagesServiceWorkContent');
+
+  function restoreBookingRequestForm() {
+    if (bookingRequestModal && bookingRequestModal.parentElement !== bookingModalOverlay) bookingModalOverlay?.appendChild(bookingRequestModal);
+    bookingModalOverlay?.classList.remove('active');
+    servicesBookingPane?.classList.remove('has-form');
+    pagesExpertRequestPane?.classList.remove('has-form');
+    if (pagesServiceWorkContent) pagesServiceWorkContent.hidden = false;
+    activeBookingDestination = null;
+    const cancel = document.getElementById('cancelBookingBtn');
+    if (cancel) cancel.textContent = 'Cancel';
+  }
+
+  function presentBookingRequestForm(destination = 'services') {
+    activeBookingDestination = destination === 'pages' ? 'pages' : 'services';
+    if (!isDesktopWorkspace()) {
+      if (bookingRequestModal && bookingRequestModal.parentElement !== bookingModalOverlay) bookingModalOverlay?.appendChild(bookingRequestModal);
+      bookingModalOverlay?.classList.add('active');
+      return;
+    }
+    bookingModalOverlay?.classList.remove('active');
+    if (activeBookingDestination === 'pages') {
+      if (!pagesView?.classList.contains('active')) switchTab(0);
+      if (pagesServiceWorkContent) pagesServiceWorkContent.hidden = true;
+      pagesExpertRequestPane?.classList.add('has-form');
+      if (bookingRequestModal && pagesExpertRequestPane) pagesExpertRequestPane.appendChild(bookingRequestModal);
+    } else {
+      if (!servicesView?.classList.contains('active')) switchTab(4);
+      pagesExpertRequestPane?.classList.remove('has-form');
+      if (pagesServiceWorkContent) pagesServiceWorkContent.hidden = false;
+      servicesBookingPane?.classList.add('has-form');
+      if (bookingRequestModal && servicesBookingPane) servicesBookingPane.appendChild(bookingRequestModal);
+    }
+    const cancel = document.getElementById('cancelBookingBtn');
+    if (cancel) cancel.textContent = activeBookingDestination === 'pages' ? 'Back to Service Work' : 'Back to categories';
+  }
+
+  async function openBookingModal(_unused = null, preselected = '', options = {}) {
     activeBookingAnalyst = null;
     latestBlindRecoveryBackup = null;
     latestBlindReceiptBundle = null;
@@ -11619,10 +11748,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const hint=document.getElementById('serviceBlindFileHint');
     if(hint) hint.textContent=preselected?`You selected “${preselected}” from the workspace. Download it to this device first, then attach it here so it can be encrypted locally.`:'Choose a file stored on this device. It is encrypted locally before upload. Maximum 25 MB.';
     validateServiceBookingForm();
-    document.getElementById('bookingModalOverlay').classList.add('active');
+    presentBookingRequestForm(options.destination || 'services');
   }
 
-  document.getElementById('cancelBookingBtn')?.addEventListener('click', () => document.getElementById('bookingModalOverlay').classList.remove('active'));
+  document.getElementById('cancelBookingBtn')?.addEventListener('click', restoreBookingRequestForm);
   document.getElementById('confirmBookingBtn')?.addEventListener('click', async () => {
     const submittedNotes=bookingNotesInput?.value.trim()||'';
     const file=blindServiceFileInput?.files?.[0];
@@ -11657,7 +11786,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const receipt={caseRef:result.caseRef,receiptToken:result.receiptToken,category:selectedReviewCategory,createdAt:new Date().toISOString()};
       const receipts=getLocalBlindReceipts();receipts.push(receipt);const receiptsPersisted=saveLocalBlindReceipts(receipts);
       latestBlindReceiptBundle=receipt;blindRecoveryBundleDownloadStarted=false;
-      document.getElementById('bookingModalOverlay').classList.remove('active');
+      restoreBookingRequestForm();
       const summary=document.getElementById('serviceRequestSentSummary');
       if(summary)summary.textContent=`${receipt.caseRef} · ${selectedReviewCategory}. Your encrypted request has entered the private category queue. QOVARK assigns an eligible, approved reviewer privately; reviewer identity is never shown.`+((!caseKeyPersisted||!receiptsPersisted)?' Browser storage is unavailable; download the recovery bundle now.':'');
       const recoveryButton=document.getElementById('downloadBlindRecoveryBundleBtn');if(recoveryButton)recoveryButton.innerHTML='<i class="fa-solid fa-download"></i> Download encrypted recovery bundle';
