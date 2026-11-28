@@ -5976,7 +5976,7 @@
         <div style="font-size:11.5px;color:var(--text-muted);line-height:1.45;">Your encrypted file and instructions are stored under a random case reference. The coordinator can route the case and issue an access code, but cannot decrypt its contents. The assigned expert must sign the returned report; your device verifies that signature before download.</div>
       </div>
       <button type="button" id="downloadBlindRecoveryBundleBtn" class="dw-btn primary-submit" style="width:100%;padding:12px;margin-bottom:7px;"><i class="fa-solid fa-download"></i> Save QOVARK Recovery File</button>
-      <p style="font-size:10.5px;color:var(--text-muted);line-height:1.45;margin:0 0 10px;text-align:left;">This file contains your case access token and an encrypted private-key backup. Save it somewhere private. To restore the case on another device, open Services and choose Import Recovery File. Keep your 16+ character delivery passphrase separately; QOVARK cannot reset it.</p>
+      <p style="font-size:10.5px;color:var(--text-muted);line-height:1.45;margin:0 0 10px;text-align:left;">This QOVARK Recovery File contains a case access token and an encrypted private-key backup. The access token is not encrypted, so keep the file private and do not share it. To restore the case on another device, open Services and choose Import Recovery File. Keep your 16+ character delivery passphrase separately; QOVARK cannot reset it.</p>
       <button type="button" id="closeServiceRequestSentBtn" class="page-action-btn" style="width:100%;padding:12px;">Done</button>
     </div>
   </div>
@@ -11710,7 +11710,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       caseRef: receipt.caseRef, receiptToken: receipt.receiptToken,
       desk: receipt.desk, category: receipt.category, createdAt: receipt.createdAt,
       encryptedPrivateKeyBackup: backup,
-      note: 'Keep this file private. It contains a case access token and an encrypted private-key backup. A passphrase is still required to decrypt reports.'
+      note: 'Keep this file private. It contains a case access token that is not encrypted and an encrypted private-key backup. A passphrase is still required to decrypt reports.'
     };
     const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
     try { await deliverBlindFile(`${receipt.caseRef}-qovark-recovery.qovark`, blob, 'application/json'); return true; }
@@ -15685,7 +15685,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     "Private delivery key backup is missing.":"Nakala ya akiba ya ufunguo wa faragha wa kupokea ripoti haipo.",
     "Incorrect private delivery passphrase or damaged recovery backup.":"Kauli-siri ya faragha si sahihi au nakala ya urejeshaji imeharibika.",
     "This case private-key backup is unavailable on this device. Import its QOVARK Recovery File first.":"Nakala ya akiba ya ufunguo binafsi wa kesi hii haipatikani kwenye kifaa hiki. Ingiza kwanza Faili yake ya Urejeshaji ya QOVARK.",
-    "Keep this file private. It contains a case access token and an encrypted private-key backup. A passphrase is still required to decrypt reports.":"Weka faili hii kuwa ya faragha. Ina tokeni ya ufikiaji wa kesi na nakala ya akiba ya ufunguo binafsi iliyosimbwa. Bado utahitaji kauli-siri ili kufungua ripoti.",
+    "Keep this file private. It contains a case access token that is not encrypted and an encrypted private-key backup. A passphrase is still required to decrypt reports.":"Weka faili hii kuwa ya faragha. Ina tokeni ya ufikiaji wa kesi ambayo haijasimbwa na nakala ya akiba ya ufunguo binafsi iliyosimbwa. Bado utahitaji kauli-siri ili kufungua ripoti.",
     "Could not save the QOVARK Recovery File.":"Imeshindikana kuhifadhi Faili ya Urejeshaji ya QOVARK.", "Receipt unavailable":"Stakabadhi haipatikani",
     "An expert report is ready in Pages.":"Ripoti ya mtaalamu iko tayari kwenye Kurasa.", "New expert reports are ready in Pages.":"Ripoti mpya za wataalamu ziko tayari kwenye Kurasa.",
     "Browser storage is unavailable; save the QOVARK Recovery File now.":"Hifadhi ya kivinjari haipatikani; hifadhi Faili ya Urejeshaji ya QOVARK sasa.",
