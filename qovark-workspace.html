@@ -5094,7 +5094,73 @@
   }
   #servicesView .service-category-copy strong { font-size:12.5px !important; }
   #servicesView .service-category-copy small { display:block !important; font-size:10.5px !important; line-height:1.4 !important; }
-  #servicesView .service-security-details { display:block !important; }
+  #servicesView .service-security-details {
+    display:block !important;
+    flex:0 0 auto !important;
+    padding:14px 15px !important;
+    border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border)) !important;
+    border-radius:15px !important;
+    background:color-mix(in srgb,var(--accent) 6%,var(--surface)) !important;
+    color:var(--text) !important;
+    box-shadow:0 5px 18px rgba(15,23,42,.045) !important;
+  }
+  #servicesView .service-security-details > summary {
+    display:flex !important;
+    align-items:center !important;
+    gap:9px !important;
+    margin:0 !important;
+    color:var(--text) !important;
+    font-size:12.5px !important;
+    line-height:1.4 !important;
+    font-weight:800 !important;
+    list-style:none !important;
+    cursor:pointer !important;
+  }
+  #servicesView .service-security-details > summary::-webkit-details-marker { display:none !important; }
+  #servicesView .service-security-details > summary::before {
+    content:"" !important;
+    flex:0 0 7px !important;
+    width:7px !important;
+    height:7px !important;
+    border-radius:50% !important;
+    background:var(--accent) !important;
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent) !important;
+  }
+  #servicesView .service-security-details > summary::after {
+    content:"+" !important;
+    display:grid !important;
+    place-items:center !important;
+    flex:0 0 23px !important;
+    width:23px !important;
+    height:23px !important;
+    margin-left:auto !important;
+    border-radius:8px !important;
+    background:color-mix(in srgb,var(--accent) 12%,var(--surface)) !important;
+    color:var(--accent) !important;
+    font-size:16px !important;
+    font-weight:600 !important;
+  }
+  #servicesView .service-security-details[open] > summary::after { content:"−" !important; }
+  #servicesView .service-security-copy {
+    display:grid !important;
+    gap:9px !important;
+    margin-top:12px !important;
+    padding-top:11px !important;
+    border-top:1px solid var(--border) !important;
+    color:var(--text-muted) !important;
+  }
+  #servicesView .service-security-copy p {
+    margin:0 !important;
+    padding:0 0 0 11px !important;
+    border-left:2px solid color-mix(in srgb,var(--accent) 35%,var(--border)) !important;
+    color:var(--text-muted) !important;
+    font-size:11.2px !important;
+    line-height:1.55 !important;
+  }
+  #servicesView .service-security-copy strong {
+    color:var(--text) !important;
+    font-weight:750 !important;
+  }
   #servicesView .service-receipts-card { margin-top:auto !important; }
   #servicesView .services-booking-pane {
     display:flex !important;
