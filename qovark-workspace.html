@@ -5631,8 +5631,9 @@
       </div>
     </details>
     <section class="service-receipts-card">
-      <div class="service-receipts-heading"><div><h3>Active review requests</h3><p>Track requests in progress. Completed reports appear in Pages → Service Work.</p></div><div class="service-receipts-actions"><button type="button" id="importBlindRecoveryBundleBtn" class="page-action-btn"><i class="fa-solid fa-file-import"></i> Import</button><button type="button" id="refreshBlindReceiptsBtn" class="page-action-btn"><i class="fa-solid fa-rotate"></i> Refresh</button></div></div>
-      <input type="file" id="blindRecoveryImportInput" accept="application/json,.json" style="display:none;">
+      <div class="service-receipts-heading"><div><h3>Active review requests</h3><p>Track requests in progress. Completed reports appear in Pages → Service Work.</p></div><div class="service-receipts-actions"><button type="button" id="importBlindRecoveryBundleBtn" class="page-action-btn" title="Select a saved QOVARK Recovery File"><i class="fa-solid fa-file-import"></i> Import Recovery File</button><button type="button" id="refreshBlindReceiptsBtn" class="page-action-btn"><i class="fa-solid fa-rotate"></i> Refresh</button></div></div>
+      <p style="font-size:11.5px;color:var(--text-muted);line-height:1.5;margin:8px 0 10px;">To restore a case on this device, select its QOVARK Recovery File. You do not need to open it. Older .json recovery files are still supported.</p>
+      <input type="file" id="blindRecoveryImportInput" accept=".qovark,application/vnd.qovark.recovery+json,.json,application/json" style="display:none;">
       <div id="blindReceiptsList" style="display:grid;gap:9px;"><div class="service-receipts-empty">Your encrypted human-review receipts will appear here.</div></div>
       
     </section>
@@ -5930,7 +5931,7 @@
 
       <label class="dw-label" for="blindDeliveryPassphrase" style="display:block;margin-bottom:6px;">4. Private delivery passphrase <span style="color:var(--danger);">*</span></label>
       <input id="blindDeliveryPassphrase" type="password" autocomplete="new-password" minlength="16" class="dw-textarea" style="min-height:44px;height:44px;margin-bottom:6px;" placeholder="Create a passphrase (16+ characters)">
-      <p style="font-size:10.5px;color:var(--text-muted);line-height:1.45;margin:0 0 12px;">This protects the private key used to open your returned report. QOVARK does not receive this passphrase. You must remember it and keep the encrypted recovery bundle.</p>
+      <p style="font-size:10.5px;color:var(--text-muted);line-height:1.45;margin:0 0 12px;">This protects the private key used to open your returned report. QOVARK does not receive this passphrase. You must remember it and keep your QOVARK Recovery File private.</p>
       <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-muted);margin-bottom:13px;"><input type="checkbox" id="showBlindPassphrase"> Show passphrase</label>
       <p style="font-size:10.5px;color:var(--text-muted);line-height:1.4;margin:0 0 12px;">Do not upload passwords, PINs, or unrelated login secrets. A reviewer can read the document after you assign access, so redact details you do not want that reviewer to see.</p>
 
@@ -5974,8 +5975,8 @@
         <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px;">PRIVATE CASE RECEIPT</div>
         <div style="font-size:11.5px;color:var(--text-muted);line-height:1.45;">Your encrypted file and instructions are stored under a random case reference. The coordinator can route the case and issue an access code, but cannot decrypt its contents. The assigned expert must sign the returned report; your device verifies that signature before download.</div>
       </div>
-      <button type="button" id="downloadBlindRecoveryBundleBtn" class="dw-btn primary-submit" style="width:100%;padding:12px;margin-bottom:7px;"><i class="fa-solid fa-download"></i> Download encrypted recovery bundle</button>
-      <p style="font-size:10.5px;color:var(--text-muted);line-height:1.45;margin:0 0 10px;text-align:left;">Keep this recovery file and your 16+ character passphrase separately. It is the only recovery route for this case on a new device; QOVARK cannot reset or retrieve the private decryption key.</p>
+      <button type="button" id="downloadBlindRecoveryBundleBtn" class="dw-btn primary-submit" style="width:100%;padding:12px;margin-bottom:7px;"><i class="fa-solid fa-download"></i> Save QOVARK Recovery File</button>
+      <p style="font-size:10.5px;color:var(--text-muted);line-height:1.45;margin:0 0 10px;text-align:left;">This file contains your case access token and an encrypted private-key backup. Save it somewhere private. To restore the case on another device, open Services and choose Import Recovery File. Keep your 16+ character delivery passphrase separately; QOVARK cannot reset it.</p>
       <button type="button" id="closeServiceRequestSentBtn" class="page-action-btn" style="width:100%;padding:12px;">Done</button>
     </div>
   </div>
@@ -10134,7 +10135,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
       actions.className = 'service-work-actions';
       const recovery = document.createElement('button');
       recovery.type = 'button'; recovery.className = 'page-action-btn';
-      recovery.innerHTML = '<i class="fa-solid fa-box-archive"></i> Recovery bundle';
+      recovery.innerHTML = '<i class="fa-solid fa-box-archive"></i> Save Recovery File';
       recovery.addEventListener('click', () => downloadBlindRecoveryBundle(receipt));
       actions.appendChild(recovery);
       if (proof) {
@@ -10160,7 +10161,7 @@ Hybrid WebView + Cloud Firestore pipeline separates heavy document processing fr
       remove.type = 'button'; remove.className = 'page-action-btn danger';
       remove.innerHTML = '<i class="fa-solid fa-trash"></i> Remove from this device';
       remove.addEventListener('click', async () => {
-        const ok = await confirmInApp('Remove this completed service item from this device? This does not delete the case from the secure relay. Keep your recovery bundle if you may need it later.', { title: 'Remove completed work', confirmText: 'Remove', danger: true });
+        const ok = await confirmInApp('Remove this completed service item from this device? This does not delete the case from the secure relay. Keep the QOVARK Recovery File if you may need this case later.', { title: 'Remove completed work', confirmText: 'Remove', danger: true });
         if (!ok) return;
         const ref = String(receipt.caseRef || '');
         saveLocalBlindReceipts(getLocalBlindReceipts().filter(row => String(row.caseRef || '') !== ref));
@@ -11703,17 +11704,17 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   async function downloadBlindRecoveryBundle(receipt, backupOverride = null) {
     if (!receipt) return false;
     const backup = backupOverride || receipt.encryptedPrivateKeyBackup || getLocalBlindCaseKey(receipt.caseRef);
-    if (!backup) { showToast('This case private-key backup is unavailable on this device. Import its recovery bundle first.'); return false; }
+    if (!backup) { showToast('This case private-key backup is unavailable on this device. Import its QOVARK Recovery File first.'); return false; }
     const bundle = {
       type: 'TEXTER_BLIND_REVIEW_RECOVERY', version: 1,
       caseRef: receipt.caseRef, receiptToken: receipt.receiptToken,
       desk: receipt.desk, category: receipt.category, createdAt: receipt.createdAt,
       encryptedPrivateKeyBackup: backup,
-      note: 'Keep this file private. It contains a bearer receipt token and an encrypted private-key backup. A passphrase is still required to decrypt reports.'
+      note: 'Keep this file private. It contains a case access token and an encrypted private-key backup. A passphrase is still required to decrypt reports.'
     };
     const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-    try { await deliverBlindFile(`${receipt.caseRef}-qovark-recovery.json`, blob, 'application/json'); return true; }
-    catch (error) { showToast(error.message || 'Could not save the recovery bundle.'); return false; }
+    try { await deliverBlindFile(`${receipt.caseRef}-qovark-recovery.qovark`, blob, 'application/json'); return true; }
+    catch (error) { showToast(error.message || 'Could not save the QOVARK Recovery File.'); return false; }
   }
   async function encryptBlindSubmission(file, instructions, analyst, userPublicKeyJwk) {
     const contentKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
@@ -11746,7 +11747,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     blindReceiptsRefreshBusy = true;
     const receipts = getLocalBlindReceipts();
     if (!receipts.length) {
-      list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:10px 0;">No secure review receipts saved on this device. Keep your recovery bundle safe.</div>';
+      list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:10px 0;">No secure review receipts saved on this device. Keep your QOVARK Recovery File safe.</div>';
       completedServiceWorkItems = [];
       renderServiceWorkPages();
       blindReceiptsRefreshBusy = false;
@@ -11802,7 +11803,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       const savedProof = getLocalBlindVerificationProofs().find(item => item.caseRef === receipt.caseRef);
       card.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><strong style="font-size:12px;color:var(--text);">${escapeHTML(receipt.caseRef)}</strong><span style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase;">${escapeHTML(status.replace(/_/g,' '))}</span></div><div style="font-size:11px;color:var(--text-muted);">${escapeHTML(receipt.desk || 'Confidential review')} · ${escapeHTML(receipt.category || 'General')} · ${receipt.createdAt ? new Date(receipt.createdAt).toLocaleString() : ''}${verifiedReviewer}${credentialLabel}</div>${status === 'completed' ? '<div style="font-size:10.5px;color:var(--success);">Encrypted report returned. Signature, report hash, metadata hash and reviewer attestation will be checked on this device.</div>' : ''}${savedProof ? '<div style="font-size:10.5px;color:var(--success);">Local verification record: signature valid · file integrity valid · personal-review attestation signed.</div>' : ''}${error ? '<div style="font-size:10.5px;color:var(--text-muted);">Status is temporarily unavailable. Your saved receipt remains on this device.</div>' : ''}`;
       const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:7px;flex-wrap:wrap;';
-      const recovery = document.createElement('button'); recovery.type = 'button'; recovery.className = 'page-action-btn'; recovery.textContent = 'Recovery bundle'; recovery.addEventListener('click', () => downloadBlindRecoveryBundle(receipt)); actions.appendChild(recovery);
+      const recovery = document.createElement('button'); recovery.type = 'button'; recovery.className = 'page-action-btn'; recovery.textContent = 'Save Recovery File'; recovery.addEventListener('click', () => downloadBlindRecoveryBundle(receipt)); actions.appendChild(recovery);
       if (savedProof) { const proofButton = document.createElement('button'); proofButton.type = 'button'; proofButton.className = 'page-action-btn'; proofButton.textContent = 'Download verification receipt'; proofButton.addEventListener('click', () => downloadBlindVerificationReceipt(savedProof)); actions.appendChild(proofButton); }
       if (status === 'completed' && data?.report) {
         const decrypt = document.createElement('button'); decrypt.type = 'button'; decrypt.className = 'page-action-btn accent'; decrypt.textContent = 'Receive verified report'; decrypt.addEventListener('click', () => openBlindReportUnlock(receipt, data.report)); actions.appendChild(decrypt);
@@ -11912,7 +11913,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const passphrase = document.getElementById('blindReceiptPassphrase')?.value || '';
     if (passphrase.length < 16) { showToast('Enter the private delivery passphrase (16+ characters).'); return; }
     const backup = getLocalBlindCaseKey(receipt.caseRef);
-    if (!backup) { showToast('Private key backup not found for this case. Import its encrypted recovery bundle first.'); return; }
+    if (!backup) { showToast('Private key backup not found for this case. Import its QOVARK Recovery File first.'); return; }
     const btn = document.getElementById('unlockBlindReportBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Decrypting & verifying…'; }
     try {
@@ -12012,10 +12013,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      if (file.size > 1024 * 1024) throw new Error('Recovery bundle is unexpectedly large.');
+      if (file.size > 1024 * 1024) throw new Error('This QOVARK Recovery File is too large to be valid.');
       const bundle = JSON.parse(await file.text());
       if (bundle.type !== 'TEXTER_BLIND_REVIEW_RECOVERY' || bundle.version !== 1 || !/^TXR-[A-F0-9]{20}$/.test(bundle.caseRef || '') || String(bundle.receiptToken || '').length < 40 || !bundle.encryptedPrivateKeyBackup) {
-        throw new Error('This is not a valid QOVARK blind-review recovery bundle.');
+        throw new Error('This is not a valid QOVARK Recovery File. Select a .qovark file or an older .json recovery file.');
       }
       const existingCaseKey = getLocalBlindCaseKey(bundle.caseRef);
       if (existingCaseKey && JSON.stringify(existingCaseKey.publicKeyJwk) !== JSON.stringify(bundle.encryptedPrivateKeyBackup.publicKeyJwk)) {
@@ -12030,8 +12031,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       });
       saveLocalBlindReceipts(receipts);
       await refreshBlindReceipts();
-      showToast('Encrypted receipt and private-key backup imported. Keep the bundle safe.');
-    } catch (error) { showToast(error.message || 'Could not import recovery bundle.'); }
+      showToast('QOVARK Recovery File imported. Your case is restored on this device.');
+    } catch (error) { showToast(error.message || 'Could not import the QOVARK Recovery File.'); }
     finally { event.target.value = ''; }
   });
 
@@ -12161,8 +12162,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
       latestBlindReceiptBundle=receipt;blindRecoveryBundleDownloadStarted=false;
       restoreBookingRequestForm();
       const summary=document.getElementById('serviceRequestSentSummary');
-      if(summary)summary.textContent=`${receipt.caseRef} · ${selectedReviewCategory}. Your encrypted request has entered the private category queue. QOVARK assigns an eligible, approved reviewer privately; reviewer identity is never shown.`+((!caseKeyPersisted||!receiptsPersisted)?' Browser storage is unavailable; download the recovery bundle now.':'');
-      const recoveryButton=document.getElementById('downloadBlindRecoveryBundleBtn');if(recoveryButton)recoveryButton.innerHTML='<i class="fa-solid fa-download"></i> Download encrypted recovery bundle';
+      if(summary)summary.textContent=`${receipt.caseRef} · ${selectedReviewCategory}. Your encrypted request has entered the private category queue. QOVARK assigns an eligible, approved reviewer privately; reviewer identity is never shown.`+((!caseKeyPersisted||!receiptsPersisted)?' Browser storage is unavailable; save the QOVARK Recovery File now.':'');
+      const recoveryButton=document.getElementById('downloadBlindRecoveryBundleBtn');if(recoveryButton)recoveryButton.innerHTML='<i class="fa-solid fa-download"></i> Save QOVARK Recovery File';
       document.getElementById('serviceRequestSentModal')?.classList.add('active');
       bookingNotesInput.value='';blindServiceFileInput.value='';blindDeliveryPassphrase.value='';
       validateServiceBookingForm();await refreshBlindReceipts();
@@ -12174,17 +12175,17 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     if (!saved) return;
     blindRecoveryBundleDownloadStarted = true;
     const button = document.getElementById('downloadBlindRecoveryBundleBtn');
-    if (button) button.innerHTML = '<i class="fa-solid fa-check"></i> Recovery bundle handoff started';
-    showToast('Store the recovery file and 16+ character passphrase separately. QOVARK cannot restore a lost private key.');
+    if (button) button.innerHTML = '<i class="fa-solid fa-check"></i> Save started';
+    showToast('Keep the QOVARK Recovery File private and store your 16+ character passphrase separately. QOVARK cannot reset a lost passphrase.');
   });
 
   document.getElementById('closeServiceRequestSentBtn')?.addEventListener('click', async () => {
-    if (!blindRecoveryBundleDownloadStarted && !(await confirmInApp('You have not started downloading the private recovery bundle. If browser data is cleared, the report may become unrecoverable. Close anyway?', { title: 'Recovery bundle not saved', confirmText: 'Close anyway', danger: true }))) return;
+    if (!blindRecoveryBundleDownloadStarted && !(await confirmInApp('You have not started saving the QOVARK Recovery File. If browser data is cleared, the report may become unrecoverable. Close anyway?', { title: 'Recovery File not saved', confirmText: 'Close anyway', danger: true }))) return;
     document.getElementById('serviceRequestSentModal')?.classList.remove('active');
   });
   document.getElementById('serviceRequestSentModal')?.addEventListener('click', async event => {
     if (event.target.id === 'serviceRequestSentModal') {
-      if (!blindRecoveryBundleDownloadStarted && !(await confirmInApp('You have not started downloading the private recovery bundle. If browser data is cleared, the report may become unrecoverable. Close anyway?', { title: 'Recovery bundle not saved', confirmText: 'Close anyway', danger: true }))) return;
+      if (!blindRecoveryBundleDownloadStarted && !(await confirmInApp('You have not started saving the QOVARK Recovery File. If browser data is cleared, the report may become unrecoverable. Close anyway?', { title: 'Recovery File not saved', confirmText: 'Close anyway', danger: true }))) return;
       event.currentTarget.classList.remove('active');
     }
   });
@@ -15533,7 +15534,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     "4. Private delivery passphrase":"4. Kauli-siri ya faragha ya kupokea ripoti", "Show passphrase":"Onyesha kauli-siri",
     "Send Encrypted Request":"Tuma Ombi Lililosimbwa", "Encrypted case received":"Kesi iliyosimbwa imepokelewa",
     "Your encrypted request has been accepted by the case relay.":"Ombi lako lililosimbwa limepokelewa na mfumo wa kati wa kesi.",
-    "Download encrypted recovery bundle":"Pakua Kifurushi cha Urejeshaji Kilichosimbwa", "Create":"Unda", "Deep Analysis Required":"Uchambuzi wa Kina Unahitajika",
+    "Save QOVARK Recovery File":"Hifadhi Faili ya Urejeshaji ya QOVARK", "Import Recovery File":"Ingiza Faili ya Urejeshaji", "Create":"Unda", "Deep Analysis Required":"Uchambuzi wa Kina Unahitajika",
     "This document is best handled by the QOVARK Deep Analysis workspace. Open it there now?":"Hati hii inafaa kushughulikiwa kwenye nafasi ya Uchambuzi wa Kina ya QOVARK. Uifungue huko sasa?",
     "Open Deep Work":"Fungua Uchambuzi wa Kina", "Review":"Kagua", "Analyze":"Chambua", "Document Preview":"Hakikisho la Hati",
     "Open With Phone App":"Fungua kwa Programu ya Simu", "Google Web Research":"Utafiti wa Wavuti wa Google",
@@ -15689,8 +15690,8 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     "An expert report is ready in Pages.":"Ripoti ya mtaalamu iko tayari kwenye Kurasa.", "New expert reports are ready in Pages.":"Ripoti mpya za wataalamu ziko tayari kwenye Kurasa.",
     "Browser storage is unavailable; download the recovery bundle now.":"Hifadhi ya kivinjari haipatikani; pakua kifurushi cha urejeshaji sasa.",
     "Store the recovery file and 16+ character passphrase separately. QOVARK cannot restore a lost private key.":"Hifadhi faili ya urejeshaji na kauli-siri yenye herufi 16 au zaidi sehemu tofauti. QOVARK haiwezi kurejesha ufunguo binafsi uliopotea.",
-    "You have not started downloading the private recovery bundle. If browser data is cleared, the report may become unrecoverable. Close anyway?":"Hujaanza kupakua kifurushi cha faragha cha urejeshaji. Data ya kivinjari ikifutwa, ripoti inaweza kushindwa kurejeshwa. Ufunge hata hivyo?",
-    "Recovery bundle not saved":"Kifurushi cha urejeshaji hakijahifadhiwa", "Close anyway":"Funga hata hivyo",
+    "You have not started saving the QOVARK Recovery File. If browser data is cleared, the report may become unrecoverable. Close anyway?":"Hujaanza kupakua kifurushi cha faragha cha urejeshaji. Data ya kivinjari ikifutwa, ripoti inaweza kushindwa kurejeshwa. Ufunge hata hivyo?",
+    "Recovery File not saved":"Kifurushi cha urejeshaji hakijahifadhiwa", "Close anyway":"Funga hata hivyo",
     "Device authentication is unavailable in this app or on this device.":"Uthibitishaji wa kifaa haupatikani kwenye programu hii au kifaa hiki.",
     "A device authentication request is already open.":"Ombi la uthibitishaji wa kifaa tayari limefunguliwa.", "Verify it's you":"Thibitisha kuwa ni wewe",
     "Android could not start device authentication.":"Android haikuweza kuanzisha uthibitishaji wa kifaa.", "Device authentication could not start.":"Uthibitishaji wa kifaa haukuweza kuanza.",
