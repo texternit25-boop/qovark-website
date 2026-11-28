@@ -5056,7 +5056,7 @@
   }
   #servicesView .services-desktop-layout {
     display:grid !important;
-    grid-template-columns:minmax(330px,.88fr) minmax(420px,1.12fr) !important;
+    grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr) !important;
     gap:22px !important;
     flex:1 1 auto !important;
     min-height:0 !important;
@@ -5169,7 +5169,7 @@
   }
   #filesView .files-workspace-grid {
     display:grid !important;
-    grid-template-columns:minmax(330px,.86fr) minmax(440px,1.14fr) !important;
+    grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr) !important;
     gap:22px !important;
     flex:1 1 auto !important;
     min-height:0 !important;
@@ -5290,6 +5290,11 @@
   .expert-category-option.selected > i:last-child { opacity:1; }
   .expert-category-picker-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
   .expert-category-picker-actions > button { min-width:130px; min-height:42px; }
+}
+@media (min-width: 900px) and (max-width: 1100px) {
+  #servicesView .service-category-grid { grid-template-columns:1fr !important; }
+  #servicesView .service-category-card { min-height:68px !important; }
+  #filesView .files-workspace-grid { grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr) !important; }
 }
 @media (max-width: 899px) {
   #pagesView .pages-expert-request-pane,
@@ -11458,8 +11463,11 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const request = pendingExpertRequest;
     currentExpertCategory = selectedExpertCategoryForPicker;
     closeExpertCategoryPicker();
-    if (request.destination === 'pages') switchTab(0);
-    else switchTab(4);
+    if (request.destination === 'pages') {
+      if (!pagesView?.classList.contains('active')) switchTab(0, { pinAuthorized: true });
+    } else {
+      switchTab(4);
+    }
     openBookingModal(null, request.fileName, { destination: request.destination });
   });
 
@@ -12078,7 +12086,7 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     }
     bookingModalOverlay?.classList.remove('active');
     if (activeBookingDestination === 'pages') {
-      if (!pagesView?.classList.contains('active')) switchTab(0);
+      if (!pagesView?.classList.contains('active')) switchTab(0, { pinAuthorized: true });
       if (pagesServiceWorkContent) pagesServiceWorkContent.hidden = true;
       pagesExpertRequestPane?.classList.add('has-form');
       if (bookingRequestModal && pagesExpertRequestPane) pagesExpertRequestPane.appendChild(bookingRequestModal);
