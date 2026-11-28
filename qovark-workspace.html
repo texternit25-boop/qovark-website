@@ -4963,6 +4963,345 @@
   border-width:5px !important; box-shadow:0 0 15px rgba(172,123,255,.2) !important;
 }
 </style>
+<style id="qovark-desktop-split-workflows">
+/* Desktop-only work surfaces. The phone layout retains its existing swipe and modal presentation. */
+@media (min-width: 900px) {
+  /* Pages: show Deep Analysis and completed Service Work together, with no horizontal swipe gap. */
+  #pagesView { overflow:hidden !important; }
+  #pagesView .pages-pane-tabs { display:none !important; }
+  #pagesView .pages-swipe-viewport {
+    display:grid !important;
+    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr) !important;
+    gap:20px !important;
+    width:100% !important;
+    min-height:0 !important;
+    flex:1 1 auto !important;
+    overflow:hidden !important;
+    scroll-snap-type:none !important;
+    touch-action:auto !important;
+  }
+  #pagesView .pages-swipe-panel {
+    width:auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    height:100% !important;
+    flex:initial !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    padding:18px !important;
+    border:1px solid var(--border) !important;
+    border-radius:20px !important;
+    background:linear-gradient(150deg,var(--surface),var(--bg)) !important;
+    box-shadow:0 10px 32px rgba(0,0,0,.08) !important;
+    scroll-snap-align:none !important;
+  }
+  #pagesView #pagesDeepAnalysisPanel .pages-list,
+  #pagesView #pagesDeepAnalysisPanel .empty-state,
+  #pagesView #pagesServiceWorkContent {
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+  #pagesView #pagesServiceWorkContent {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-height:100%;
+  }
+  #pagesView .service-work-panel-heading { margin:0 !important; }
+  #pagesView .service-work-list,
+  #pagesView .service-work-proof-list { width:100% !important; max-width:none !important; }
+  #pagesView #pagesServiceWorkEmpty { margin-top:4px !important; }
+  #pagesView #pagesServiceWorkContent[hidden] { display:none !important; }
+  #pagesView .pages-expert-request-pane { display:none; }
+  #pagesView .pages-expert-request-pane.has-form {
+    display:flex !important;
+    flex:1 1 auto;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+    border:1px solid color-mix(in srgb,var(--accent) 24%,var(--border));
+    border-radius:17px;
+    background:var(--surface);
+  }
+  #pagesView .pages-expert-request-pane .booking-request-modal {
+    display:flex !important;
+    flex:1 1 auto !important;
+    flex-direction:column !important;
+    width:100% !important;
+    max-width:900px !important;
+    max-height:100% !important;
+    min-height:0 !important;
+    margin:0 auto !important;
+    padding:22px !important;
+    overflow-y:auto !important;
+    border:0 !important;
+    border-radius:17px !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    text-align:left !important;
+  }
+  #pagesView .pages-expert-request-pane .booking-request-modal > h3 { font-size:21px !important; }
+  #pagesView .pages-expert-request-pane .booking-request-modal > p { line-height:1.55 !important; }
+  #pagesView .pages-expert-request-pane .booking-modal-actions { margin-top:auto; padding-top:15px; }
+
+  /* Services: category browser stays in its own column; the real request form opens beside it. */
+  #servicesView.app-view.active {
+    display:flex !important;
+    flex-direction:column !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    gap:0 !important;
+    padding-bottom:18px !important;
+  }
+  #servicesView .services-desktop-layout {
+    display:grid !important;
+    grid-template-columns:minmax(330px,.88fr) minmax(420px,1.12fr) !important;
+    gap:22px !important;
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+  #servicesView .services-category-pane {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:13px !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    padding:0 8px 8px 0 !important;
+  }
+  #servicesView .service-intro-card,
+  #servicesView .service-category-heading,
+  #servicesView .service-category-grid,
+  #servicesView .service-security-details,
+  #servicesView .service-receipts-card {
+    width:100% !important;
+    max-width:none !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+  #servicesView .service-intro-card { margin-top:0 !important; }
+  #servicesView .service-category-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  #servicesView .service-category-card {
+    min-height:84px !important;
+    padding:12px !important;
+    gap:10px !important;
+  }
+  #servicesView .service-category-copy strong { font-size:12.5px !important; }
+  #servicesView .service-category-copy small { display:block !important; font-size:10.5px !important; line-height:1.4 !important; }
+  #servicesView .service-security-details { display:block !important; }
+  #servicesView .service-receipts-card { margin-top:auto !important; }
+  #servicesView .services-booking-pane {
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    justify-content:flex-start !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    padding:20px !important;
+    border:1px solid var(--border) !important;
+    border-radius:20px !important;
+    background:linear-gradient(150deg,var(--surface),var(--bg)) !important;
+    box-shadow:0 10px 32px rgba(0,0,0,.08) !important;
+  }
+  #servicesView .services-booking-empty,
+  #desktopFilePreviewPane .desktop-file-preview-empty {
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    min-height:240px;
+    padding:30px;
+    text-align:center;
+  }
+  #servicesView .services-booking-empty > span,
+  #desktopFilePreviewPane .desktop-file-preview-empty > span {
+    display:grid;
+    place-items:center;
+    width:58px;
+    height:58px;
+    border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));
+    border-radius:18px;
+    background:var(--primary-soft);
+    color:var(--accent);
+    font-size:23px;
+  }
+  #servicesView .services-booking-empty h2,
+  #desktopFilePreviewPane .desktop-file-preview-empty h2 { margin:3px 0 0; color:var(--text); font-size:19px; }
+  #servicesView .services-booking-empty p,
+  #desktopFilePreviewPane .desktop-file-preview-empty p { max-width:360px; margin:0; color:var(--text-muted); font-size:13px; line-height:1.6; }
+  #servicesView .services-booking-pane.has-form .services-booking-empty { display:none !important; }
+  #servicesView .services-booking-pane .booking-request-modal {
+    display:flex !important;
+    flex:1 1 auto !important;
+    flex-direction:column !important;
+    width:100% !important;
+    max-width:900px !important;
+    max-height:100% !important;
+    min-height:0 !important;
+    margin:0 auto !important;
+    padding:22px !important;
+    overflow-y:auto !important;
+    border:0 !important;
+    border-radius:17px !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    text-align:left !important;
+  }
+  #servicesView .services-booking-pane:not(.has-form) .booking-request-modal { display:none !important; }
+  #servicesView .services-booking-pane .booking-request-modal > h3 { font-size:21px !important; }
+  #servicesView .services-booking-pane .booking-modal-actions { margin-top:auto; padding-top:15px; }
+
+  /* Files: keep the browser/list on the left and render the actual file viewer on the right. */
+  #filesView.app-view.active {
+    display:flex !important;
+    flex-direction:column !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+  #filesView .files-workspace-grid {
+    display:grid !important;
+    grid-template-columns:minmax(330px,.86fr) minmax(440px,1.14fr) !important;
+    gap:22px !important;
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+  #filesView .files-browser-column {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+  #filesView .files-browser-column .search-container,
+  #filesView .files-browser-column .file-selection-banner,
+  #filesView .files-browser-column .file-selection-footer,
+  #filesView .files-browser-column .file-list-container {
+    width:100% !important;
+    max-width:none !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+  #filesView .files-browser-column .file-list-container {
+    flex:1 1 auto !important;
+    min-height:100px !important;
+    overflow-y:auto !important;
+    overscroll-behavior:contain !important;
+    padding:4px 2px 18px !important;
+  }
+  #filesView .desktop-file-preview-pane {
+    display:flex !important;
+    flex-direction:column !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    border:1px solid var(--border) !important;
+    border-radius:20px !important;
+    background:linear-gradient(150deg,var(--surface),var(--bg)) !important;
+    box-shadow:0 10px 32px rgba(0,0,0,.08) !important;
+  }
+  #filesView .desktop-file-preview-pane.has-preview .desktop-file-preview-empty { display:none !important; }
+  #filesView .desktop-file-preview-pane .custom-modal {
+    display:none !important;
+    width:100% !important;
+    max-width:none !important;
+    max-height:100% !important;
+    height:100% !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:20px !important;
+    overflow:hidden !important;
+    border:0 !important;
+    border-radius:20px !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    text-align:left !important;
+  }
+  #filesView .desktop-file-preview-pane.has-preview .custom-modal {
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:8px !important;
+  }
+  #filesView .desktop-file-preview-pane .custom-modal > div:first-child { flex:0 0 auto; }
+  #filesView .desktop-file-preview-pane #viewerFileMeta { flex:0 0 auto; }
+  #filesView .desktop-file-preview-pane #viewerFileContent {
+    flex:1 1 auto !important;
+    min-height:100px !important;
+    max-height:none !important;
+    overflow:auto !important;
+    margin-bottom:8px !important;
+  }
+  #filesView .desktop-file-preview-pane #viewerFileContent img {
+    max-width:100% !important;
+    max-height:100% !important;
+    object-fit:contain !important;
+  }
+  #filesView .desktop-file-preview-pane .custom-modal > div:last-child {
+    flex:0 0 auto;
+    flex-wrap:wrap;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+  }
+  #filesView .file-item.preview-selected {
+    border-color:var(--accent) !important;
+    background:var(--primary-soft) !important;
+  }
+
+  /* The category picker is a short, focused modal; the detailed request itself is never modal on desktop. */
+  #expertCategoryPickerModal.active {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+  #expertCategoryPickerModal .expert-category-picker {
+    width:min(560px,calc(100vw - 48px)) !important;
+    max-width:560px !important;
+    max-height:min(84dvh,760px) !important;
+    overflow-y:auto !important;
+    padding:24px !important;
+    border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border)) !important;
+    border-radius:22px !important;
+    background:var(--bg) !important;
+    box-shadow:0 28px 90px rgba(0,0,0,.36) !important;
+  }
+  .expert-category-picker-heading { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+  .expert-category-picker-icon { display:grid; place-items:center; flex:0 0 48px; width:48px; height:48px; border-radius:15px; color:var(--accent); background:var(--primary-soft); font-size:20px; }
+  .expert-category-picker-heading h3 { margin:0 0 5px; color:var(--text); font-size:20px; }
+  .expert-category-picker-heading p { margin:0; color:var(--text-muted); font-size:12px; line-height:1.5; }
+  .expert-category-picker-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  .expert-category-option { display:grid; grid-template-columns:30px minmax(0,1fr) 17px; gap:10px; align-items:center; min-width:0; padding:12px; border:1px solid var(--border); border-radius:13px; background:var(--surface); color:var(--text); text-align:left; cursor:pointer; }
+  .expert-category-option > i:first-child { color:var(--accent); font-size:16px; }
+  .expert-category-option > i:last-child { color:var(--accent); opacity:0; }
+  .expert-category-option strong,.expert-category-option small { display:block; }
+  .expert-category-option strong { font-size:11.5px; line-height:1.35; }
+  .expert-category-option small { margin-top:4px; color:var(--text-muted); font-size:9.5px; line-height:1.35; }
+  .expert-category-option.selected { border-color:var(--accent); background:var(--primary-soft); }
+  .expert-category-option.selected > i:last-child { opacity:1; }
+  .expert-category-picker-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
+  .expert-category-picker-actions > button { min-width:130px; min-height:42px; }
+}
+@media (max-width: 899px) {
+  #pagesView .pages-expert-request-pane,
+  #servicesView .services-booking-pane,
+  #filesView .desktop-file-preview-pane { display:none !important; }
+  #pagesView #pagesServiceWorkContent { display:contents; }
+  #servicesView .services-desktop-layout,
+  #servicesView .services-category-pane,
+  #filesView .files-workspace-grid,
+  #filesView .files-browser-column { display:contents; }
+}
+</style>
 </head>
 <body>
 
@@ -10830,9 +11169,10 @@ Size: ${activeViewedFile.size || 'N/A'}`,
   });
 
   document.getElementById('viewerAttachDeepBtn')?.addEventListener('click', () => {
+    const fileToAttach = activeViewedFile;
     closeFileViewer();
-    if (activeViewedFile) {
-      if (!selectedFilesForDeepWork.some(file => file.id === activeViewedFile.id)) selectedFilesForDeepWork.push(activeViewedFile);
+    if (fileToAttach) {
+      if (!selectedFilesForDeepWork.some(file => file.id === fileToAttach.id)) selectedFilesForDeepWork.push(fileToAttach);
       syncDeepWorkFileSelection();
       switchTab(2);
     }
@@ -11703,6 +12043,27 @@ Size: ${activeViewedFile.size || 'N/A'}`,
     const cancel = document.getElementById('cancelBookingBtn');
     if (cancel) cancel.textContent = 'Cancel';
   }
+
+  window.addEventListener('resize', () => {
+    if (!activeBookingDestination || !bookingRequestModal) return;
+    if (!isDesktopWorkspace()) {
+      if (bookingRequestModal.parentElement !== bookingModalOverlay) bookingModalOverlay?.appendChild(bookingRequestModal);
+      servicesBookingPane?.classList.remove('has-form');
+      pagesExpertRequestPane?.classList.remove('has-form');
+      if (pagesServiceWorkContent) pagesServiceWorkContent.hidden = false;
+      bookingModalOverlay?.classList.add('active');
+      return;
+    }
+    bookingModalOverlay?.classList.remove('active');
+    if (activeBookingDestination === 'pages') {
+      if (pagesServiceWorkContent) pagesServiceWorkContent.hidden = true;
+      pagesExpertRequestPane?.classList.add('has-form');
+      if (bookingRequestModal.parentElement !== pagesExpertRequestPane) pagesExpertRequestPane?.appendChild(bookingRequestModal);
+    } else {
+      servicesBookingPane?.classList.add('has-form');
+      if (bookingRequestModal.parentElement !== servicesBookingPane) servicesBookingPane?.appendChild(bookingRequestModal);
+    }
+  });
 
   function presentBookingRequestForm(destination = 'services') {
     activeBookingDestination = destination === 'pages' ? 'pages' : 'services';
