@@ -5165,10 +5165,13 @@
         <div class="pages-list" id="pagesList" style="display: none;"></div>
       </section>
       <section class="pages-swipe-panel" id="pagesServiceWorkPanel" aria-label="Completed service work">
-        <div class="service-work-panel-heading"><div><span class="service-work-eyebrow">COMPLETED REVIEWS</span><h2>Service Work</h2><p>Completed expert reports and verified receipts are collected here. Active requests remain in Services.</p></div><span class="service-work-icon"><i class="fa-solid fa-briefcase"></i></span></div>
-        <div id="pagesServiceWorkList" class="service-work-list"></div>
-        <div id="pagesServiceWorkProofList" class="service-work-proof-list"></div>
-        <div id="pagesServiceWorkEmpty" class="service-work-empty"><i class="fa-solid fa-folder-open"></i><strong>No completed service work yet</strong><span>Your completed expert reports will appear here when they are returned.</span></div>
+        <div id="pagesServiceWorkContent">
+          <div class="service-work-panel-heading"><div><span class="service-work-eyebrow">COMPLETED REVIEWS</span><h2>Service Work</h2><p>Completed expert reports and verified receipts are collected here. Active requests remain in Services.</p></div><span class="service-work-icon"><i class="fa-solid fa-briefcase"></i></span></div>
+          <div id="pagesServiceWorkList" class="service-work-list"></div>
+          <div id="pagesServiceWorkProofList" class="service-work-proof-list"></div>
+          <div id="pagesServiceWorkEmpty" class="service-work-empty"><i class="fa-solid fa-folder-open"></i><strong>No completed service work yet</strong><span>Your completed expert reports will appear here when they are returned.</span></div>
+        </div>
+        <aside id="pagesExpertRequestPane" class="pages-expert-request-pane" aria-label="Prepare an expert review request"></aside>
       </section>
     </div>
   </div>
@@ -5185,13 +5188,24 @@
         <button type="button" class="files-add-btn" id="filesAddBtn" aria-label="Add a file"><i class="fa-solid fa-plus"></i></button>
       </div>
     </div>
-    <div class="search-container">
-      <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" id="fileSearchInput" class="search-input" placeholder="Search files and folders...">
+    <div class="files-workspace-grid">
+      <div class="files-browser-column">
+        <div class="search-container">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="fileSearchInput" class="search-input" placeholder="Search files and folders...">
+        </div>
+        <div class="file-selection-banner" id="deepFileSelectionBanner"><span id="deepFileSelectionCount">Select files to add to Deep Analysis</span><button type="button" id="confirmDeepFileSelectionBtn">Add selected</button></div>
+        <div class="file-list-container" id="fileListContainer"></div>
+        <div class="file-selection-footer" id="deepFileSelectionFooter" style="display:none;"><button type="button" class="dw-btn" id="finishDeepFileSelectionBtn" style="width:100%;">Done selecting files</button></div>
+      </div>
+      <aside id="desktopFilePreviewPane" class="desktop-file-preview-pane" aria-label="File preview">
+        <div class="desktop-file-preview-empty">
+          <span><i class="fa-solid fa-file-lines"></i></span>
+          <h2>Select a file to preview</h2>
+          <p>Choose a file from your workspace. Its preview and available actions will appear here.</p>
+        </div>
+      </aside>
     </div>
-    <div class="file-selection-banner" id="deepFileSelectionBanner"><span id="deepFileSelectionCount">Select files to add to Deep Analysis</span><button type="button" id="confirmDeepFileSelectionBtn">Add selected</button></div>
-    <div class="file-list-container" id="fileListContainer"></div>
-    <div class="file-selection-footer" id="deepFileSelectionFooter" style="display:none;"><button type="button" class="dw-btn" id="finishDeepFileSelectionBtn" style="width:100%;">Done selecting files</button></div>
   </div>
 
   <!-- ALERTS VIEW -->
@@ -5220,6 +5234,8 @@
         <p class="view-subtitle">Choose a category to continue.</p>
       </div>
     </div>
+    <div class="services-desktop-layout" id="servicesDesktopLayout">
+      <div class="services-category-pane" id="servicesCategoryPane">
     <section class="service-intro-card">
       <div class="service-intro-icon"><i class="fa-solid fa-shield-halved"></i></div>
       <div>
@@ -5276,6 +5292,15 @@
       <div id="blindReceiptsList" style="display:grid;gap:9px;"><div class="service-receipts-empty">Your encrypted human-review receipts will appear here.</div></div>
       
     </section>
+      </div>
+      <aside id="servicesBookingPane" class="services-booking-pane" aria-label="Prepare an expert review request">
+        <div class="services-booking-empty">
+          <span><i class="fa-solid fa-user-check"></i></span>
+          <h2>Prepare an expert review</h2>
+          <p>Choose one of the review categories to open the secure request form here.</p>
+        </div>
+      </aside>
+    </div>
   </div>
   <!-- FOLDER OVERLAY -->
 
@@ -5568,6 +5593,27 @@
       <div class="booking-modal-actions" style="display: flex; gap: 10px;">
         <button type="button" id="cancelBookingBtn" style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--text); font-weight: 600; cursor: pointer;">Cancel</button>
         <button type="button" id="confirmBookingBtn" class="dw-btn primary-submit btn-disabled" style="flex: 1.3; padding: 12px; border-radius: 12px;" disabled>Send Encrypted Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPERT CATEGORY PICKER: used before opening a review request from Pages. -->
+  <div class="custom-modal-overlay" id="expertCategoryPickerModal" aria-hidden="true">
+    <div class="custom-modal expert-category-picker" role="dialog" aria-modal="true" aria-labelledby="expertCategoryPickerTitle">
+      <div class="expert-category-picker-heading">
+        <span class="expert-category-picker-icon"><i class="fa-solid fa-user-check"></i></span>
+        <div><h3 id="expertCategoryPickerTitle">Choose a review category</h3><p>Select the area that best matches the report you want an expert to review.</p></div>
+      </div>
+      <div id="expertCategoryPickerGrid" class="expert-category-picker-grid">
+        <button type="button" class="expert-category-option" data-expert-category="Engineering &amp; Technology"><i class="fa-solid fa-gears"></i><span><strong>Engineering &amp; Technology</strong><small>Technical systems and engineering</small></span><i class="fa-solid fa-circle-check"></i></button>
+        <button type="button" class="expert-category-option" data-expert-category="Research &amp; Academia"><i class="fa-solid fa-flask"></i><span><strong>Research &amp; Academia</strong><small>Research methods and evidence</small></span><i class="fa-solid fa-circle-check"></i></button>
+        <button type="button" class="expert-category-option" data-expert-category="Data &amp; Analytics"><i class="fa-solid fa-chart-pie"></i><span><strong>Data &amp; Analytics</strong><small>Datasets and analytical reports</small></span><i class="fa-solid fa-circle-check"></i></button>
+        <button type="button" class="expert-category-option" data-expert-category="Business &amp; Strategy"><i class="fa-solid fa-briefcase"></i><span><strong>Business &amp; Strategy</strong><small>Planning and operational reviews</small></span><i class="fa-solid fa-circle-check"></i></button>
+        <button type="button" class="expert-category-option" data-expert-category="Other"><i class="fa-solid fa-ellipsis"></i><span><strong>Other</strong><small>Requests outside the core categories</small></span><i class="fa-solid fa-circle-check"></i></button>
+      </div>
+      <div class="expert-category-picker-actions">
+        <button type="button" id="cancelExpertCategoryPickerBtn" class="page-action-btn">Cancel</button>
+        <button type="button" id="confirmExpertCategoryPickerBtn" class="dw-btn primary-submit" disabled>Confirm category</button>
       </div>
     </div>
   </div>
